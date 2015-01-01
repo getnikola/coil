@@ -44,8 +44,8 @@ def init_site():
 class Webapp(Command):
 
     name = "webapp"
-    doc_usage = "[[-u] theme_name] | [[-u] -l]"
-    doc_purpose = "install theme into current site"
+    doc_usage = "[[-p] port_number] | [[-u] -b]"
+    doc_purpose = "run crud interface for the site"
     cmd_options = [
         {
             'name': 'browser',
