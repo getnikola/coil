@@ -34,7 +34,7 @@ import mako
 import sys
 
 from nikola.plugin_categories import Command
-from bottle import Bottle, run, request, server_names, ServerAdapter  
+from bottle import Bottle, run, request
 _site = None
 
 def check(user, passwd):
@@ -78,7 +78,7 @@ class Webapp(Command):
         b.run(host='localhost', port=port)
     @staticmethod
     @b.route('/')
-    @b.auth_basic(check)    
+    @b.auth_basic(check)
     def index():
         context = {}
         context['site'] = _site
@@ -87,7 +87,7 @@ class Webapp(Command):
     @staticmethod
     @b.route('/edit/<path:path>', method='POST')
     @b.route('/edit/<path:path>', method='GET')
-    @b.auth_basic(check)    
+    @b.auth_basic(check)
     def edit(path):
         context = {'path': path}
         context['site'] = _site
@@ -104,7 +104,7 @@ class Webapp(Command):
 
     @staticmethod
     @b.route('/save/<path:path>', method='POST')
-    @b.auth_basic(check)    
+    @b.auth_basic(check)
     def save(path):
         # FIXME insecure pending defnull/bottle#411
         context = {'path': path}
@@ -123,7 +123,7 @@ class Webapp(Command):
 
     @staticmethod
     @b.route('/delete/<path:path>')
-    @b.auth_basic(check)    
+    @b.auth_basic(check)
     def delete(path):
         context = {'path': path}
         context['site'] = _site
@@ -139,7 +139,7 @@ class Webapp(Command):
 
     @staticmethod
     @b.route('/really_delete/<path:path>')
-    @b.auth_basic(check)    
+    @b.auth_basic(check)
     def really_delete(path):
         # FIXME insecure pending defnull/bottle#411
         os.unlink(path)
@@ -148,13 +148,13 @@ class Webapp(Command):
 
     @staticmethod
     @b.route('/static/<path:path>')
-    @b.auth_basic(check)    
+    @b.auth_basic(check)
     def server_static(path):
         return b.static_file(path, root=os.path.join(os.path.dirname(__file__), 'static'))
 
     @staticmethod
     @b.route('/new/post', method='POST')
-    @b.auth_basic(check)    
+    @b.auth_basic(check)
     def new_post():
         title = b.request.forms['title']
         # So, let's create a post with that title, lumberjack style
@@ -166,7 +166,7 @@ class Webapp(Command):
 
     @staticmethod
     @b.route('/new/page', method='POST')
-    @b.auth_basic(check)    
+    @b.auth_basic(check)
     def new_page():
         title = b.request.forms['title']
         # So, let's create a page with that title, lumberjack style
