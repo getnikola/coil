@@ -45,23 +45,6 @@ def check(user, passwd):
 def init_site():
     _site.scan_posts(really=True)
 
-class MySSLCherryPy(ServerAdapter):  
-    def run(self, handler):  
-        #from cherrypy import _cpwsgiserver3
-        from cherrypy import wsgiserver 
-        #server = _cpwsgiserver3.CherryPyWSGIServer((self.host, self.port), handler)  
-        server = wsgiserver.CherryPyWSGIServer((self.host, self.port), handler)      
-        # If cert variable is a valid path, SSL will be used  
-        # You can set it to None to disable SSL  
-        cert = 'server.pem' # certificate path   
-        server.ssl_certificate = cert  
-        server.ssl_private_key = cert  
-        try:
-            server.start()  
-        finally:  
-            server.stop()
-            
-server_names['mysslcherrypy'] = MySSLCherryPy              
 class Webapp(Command):
 
     name = "webapp"
@@ -91,8 +74,8 @@ class Webapp(Command):
         init_site()
         port = options and options.get('port')
         if options and options.get('browser'):
-            webbrowser.open('https://localhost:{0}'.format(port))
-        b.run(host='localhost', port=port, server='mysslcherrypy')
+            webbrowser.open('http://localhost:{0}'.format(port))
+        b.run(host='localhost', port=port)
     @staticmethod
     @b.route('/')
     @b.auth_basic(check)    
