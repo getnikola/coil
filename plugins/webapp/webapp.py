@@ -157,7 +157,10 @@ class Webapp(Command):
     @b.auth_basic(check)
     def new_post():
         title = b.request.forms['title'].decode('utf-8')
-        _site.commands.new_post(title=title, content_format='html')
+        try:
+            _site.commands.new_post(title=title, content_format='html')
+        except SystemExit:
+            b.abort(500, "This post already exists!")
         # reload post list and go to index
         init_site()
         b.redirect('/')
@@ -167,7 +170,10 @@ class Webapp(Command):
     @b.auth_basic(check)
     def new_page():
         title = b.request.forms['title'].decode('utf-8')
-        _site.commands.new_post(title=title, content_format='html')
+        try:
+            _site.commands.new_page(title=title, content_format='html')
+        except SystemExit:
+            b.abort(500, "This page already exists!")
         # reload post list and go to index
         init_site()
         b.redirect('/')
