@@ -156,10 +156,8 @@ class Webapp(Command):
     @b.route('/new/post', method='POST')
     @b.auth_basic(check)
     def new_post():
-        title = b.request.forms['title']
-        # So, let's create a post with that title, lumberjack style
-        # FIXME but I am a lumberjack and I don't care.
-        os.system("nikola new_post -f html -t '{0}'". format(title))
+        title = b.request.forms['title'].decode('utf-8')
+        _site.commands.new_post(title=title, content_format='html')
         # reload post list and go to index
         init_site()
         b.redirect('/')
@@ -168,10 +166,8 @@ class Webapp(Command):
     @b.route('/new/page', method='POST')
     @b.auth_basic(check)
     def new_page():
-        title = b.request.forms['title']
-        # So, let's create a page with that title, lumberjack style
-        # FIXME but I am a lumberjack and I don't care.
-        os.system("nikola new_page -f html -t '{0}'".format(title))
+        title = b.request.forms['title'].decode('utf-8')
+        _site.commands.new_post(title=title, content_format='html')
         # reload post list and go to index
         init_site()
         b.redirect('/')
