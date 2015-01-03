@@ -31,16 +31,37 @@ import webbrowser
 
 import bottle as b
 import mako
+import sys
 
 from nikola.plugin_categories import Command
-
+from bottle import Bottle, run, request, server_names, ServerAdapter  
 _site = None
 
+def check(user, passwd):
+    if user == 'ben':
+        return True
+    return False
 
 def init_site():
     _site.scan_posts(really=True)
 
-
+class MySSLCherryPy(ServerAdapter):  
+    def run(self, handler):  
+        #from cherrypy import _cpwsgiserver3
+        from cherrypy import wsgiserver 
+        #server = _cpwsgiserver3.CherryPyWSGIServer((self.host, self.port), handler)  
+        server = wsgiserver.CherryPyWSGIServer((self.host, self.port), handler)      
+        # If cert variable is a valid path, SSL will be used  
+        # You can set it to None to disable SSL  
+        cert = 'server.pem' # certificate path   
+        server.ssl_certificate = cert  
+        server.ssl_private_key = cert  
+        try:
+            server.start()  
+        finally:  
+            server.stop()
+            
+server_names['mysslcherrypy'] = MySSLCherryPy              
 class Webapp(Command):
 
     name = "webapp"
@@ -70,11 +91,11 @@ class Webapp(Command):
         init_site()
         port = options and options.get('port')
         if options and options.get('browser'):
-            webbrowser.open('http://localhost:{0}'.format(port))
-        b.run(host='localhost', port=port)
-
+            webbrowser.open('https://localhost:{0}'.format(port))
+        b.run(host='localhost', port=port, server='mysslcherrypy')
     @staticmethod
     @b.route('/')
+    @b.auth_basic(check)    
     def index():
         context = {}
         context['site'] = _site
@@ -83,6 +104,7 @@ class Webapp(Command):
     @staticmethod
     @b.route('/edit/<path:path>', method='POST')
     @b.route('/edit/<path:path>', method='GET')
+    @b.auth_basic(check)    
     def edit(path):
         context = {'path': path}
         context['site'] = _site
@@ -99,6 +121,7 @@ class Webapp(Command):
 
     @staticmethod
     @b.route('/save/<path:path>', method='POST')
+    @b.auth_basic(check)    
     def save(path):
         # FIXME insecure pending defnull/bottle#411
         context = {'path': path}
@@ -110,13 +133,14 @@ class Webapp(Command):
                 break
         if post is None:
             b.abort(404, "No such post")
-        content = b.request.forms.pop('content')
+        content = b.request.forms.pop('content').decode('utf8')
         post.compiler.create_post(post.source_path, content=content, onefile=True, is_page=False, **b.request.forms)
         init_site()
         b.redirect('/edit/' + path)
 
     @staticmethod
     @b.route('/delete/<path:path>')
+    @b.auth_basic(check)    
     def delete(path):
         context = {'path': path}
         context['site'] = _site
@@ -132,6 +156,7 @@ class Webapp(Command):
 
     @staticmethod
     @b.route('/really_delete/<path:path>')
+    @b.auth_basic(check)    
     def really_delete(path):
         # FIXME insecure pending defnull/bottle#411
         os.unlink(path)
@@ -140,27 +165,30 @@ class Webapp(Command):
 
     @staticmethod
     @b.route('/static/<path:path>')
+    @b.auth_basic(check)    
     def server_static(path):
         return b.static_file(path, root=os.path.join(os.path.dirname(__file__), 'static'))
 
     @staticmethod
     @b.route('/new/post', method='POST')
+    @b.auth_basic(check)    
     def new_post():
         title = b.request.forms['title']
         # So, let's create a post with that title, lumberjack style
         # FIXME but I am a lumberjack and I don't care.
-        os.system("nikola new_post -t '{0}'".format(title))
+        os.system("nikola new_post -f html -t '{0}'". format(title))
         # reload post list and go to index
         init_site()
         b.redirect('/')
 
     @staticmethod
     @b.route('/new/page', method='POST')
+    @b.auth_basic(check)    
     def new_page():
         title = b.request.forms['title']
         # So, let's create a page with that title, lumberjack style
         # FIXME but I am a lumberjack and I don't care.
-        os.system("nikola new_page -t '{0}'".format(title))
+        os.system("nikola new_page -f html -t '{0}'".format(title))
         # reload post list and go to index
         init_site()
         b.redirect('/')
