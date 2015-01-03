@@ -34,7 +34,7 @@ import mako
 import sys
 
 from nikola.plugin_categories import Command
-from bottle import Bottle, run, request, server_names, ServerAdapter  
+from bottle import Bottle, run, request
 _site = None
 
 def check(user, passwd):
@@ -78,7 +78,7 @@ class Webapp(Command):
         b.run(host='localhost', port=port)
     @staticmethod
     @b.route('/')
-    @b.auth_basic(check)    
+    @b.auth_basic(check)
     def index():
         context = {}
         context['site'] = _site
@@ -87,7 +87,7 @@ class Webapp(Command):
     @staticmethod
     @b.route('/edit/<path:path>', method='POST')
     @b.route('/edit/<path:path>', method='GET')
-    @b.auth_basic(check)    
+    @b.auth_basic(check)
     def edit(path):
         context = {'path': path}
         context['site'] = _site
@@ -104,7 +104,7 @@ class Webapp(Command):
 
     @staticmethod
     @b.route('/save/<path:path>', method='POST')
-    @b.auth_basic(check)    
+    @b.auth_basic(check)
     def save(path):
         # FIXME insecure pending defnull/bottle#411
         context = {'path': path}
@@ -117,13 +117,16 @@ class Webapp(Command):
         if post is None:
             b.abort(404, "No such post")
         content = b.request.forms.pop('content').decode('utf8')
-        post.compiler.create_post(post.source_path, content=content, onefile=True, is_page=False, **b.request.forms)
+        meta = {}
+        for k, v in b.request.forms.items():
+            meta[k.decode('utf-8')] = v.decode('utf-8')
+        post.compiler.create_post(post.source_path, content=content, onefile=True, is_page=False, **meta)
         init_site()
         b.redirect('/edit/' + path)
 
     @staticmethod
     @b.route('/delete/<path:path>')
-    @b.auth_basic(check)    
+    @b.auth_basic(check)
     def delete(path):
         context = {'path': path}
         context['site'] = _site
@@ -139,7 +142,7 @@ class Webapp(Command):
 
     @staticmethod
     @b.route('/really_delete/<path:path>')
-    @b.auth_basic(check)    
+    @b.auth_basic(check)
     def really_delete(path):
         # FIXME insecure pending defnull/bottle#411
         os.unlink(path)
@@ -148,30 +151,32 @@ class Webapp(Command):
 
     @staticmethod
     @b.route('/static/<path:path>')
-    @b.auth_basic(check)    
+    @b.auth_basic(check)
     def server_static(path):
         return b.static_file(path, root=os.path.join(os.path.dirname(__file__), 'static'))
 
     @staticmethod
     @b.route('/new/post', method='POST')
-    @b.auth_basic(check)    
+    @b.auth_basic(check)
     def new_post():
-        title = b.request.forms['title']
-        # So, let's create a post with that title, lumberjack style
-        # FIXME but I am a lumberjack and I don't care.
-        os.system("nikola new_post -f html -t '{0}'". format(title))
+        title = b.request.forms['title'].decode('utf-8')
+        try:
+            _site.commands.new_post(title=title, content_format='html')
+        except SystemExit:
+            b.abort(500, "This post already exists!")
         # reload post list and go to index
         init_site()
         b.redirect('/')
 
     @staticmethod
     @b.route('/new/page', method='POST')
-    @b.auth_basic(check)    
+    @b.auth_basic(check)
     def new_page():
-        title = b.request.forms['title']
-        # So, let's create a page with that title, lumberjack style
-        # FIXME but I am a lumberjack and I don't care.
-        os.system("nikola new_page -f html -t '{0}'".format(title))
+        title = b.request.forms['title'].decode('utf-8')
+        try:
+            _site.commands.new_page(title=title, content_format='html')
+        except SystemExit:
+            b.abort(500, "This page already exists!")
         # reload post list and go to index
         init_site()
         b.redirect('/')
