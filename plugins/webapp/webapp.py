@@ -116,15 +116,8 @@ class Webapp(Command):
                 break
         if post is None:
             b.abort(404, "No such post")
-        content = b.request.forms.pop('content')
-        try:
-            content = content.decode('utf-8')
-            meta = {}
-            for k, v in b.request.forms.items():
-                meta[k.decode('utf-8')] = v.decode('utf-8')
-        except AttributeError:
-            # Python 3
-            meta = b.request.forms
+        meta = b.request.forms.decode('utf-8')
+        content = meta.pop('content')
         post.compiler.create_post(post.source_path, content=content, onefile=True, is_page=False, **meta)
         init_site()
         b.redirect('/edit/' + path)
@@ -164,11 +157,7 @@ class Webapp(Command):
     @b.route('/new/post', method='POST')
     @b.auth_basic(check)
     def new_post():
-        try:
-            title = b.request.forms['title'].decode('utf-8')
-        except AttributeError:
-            # Python 3
-            title = b.request.forms['title']
+        title = b.request.forms.getunicode('title', encoding='utf-8')
         try:
             _site.commands.new_post(title=title, content_format='html')
         except SystemExit:
@@ -181,11 +170,7 @@ class Webapp(Command):
     @b.route('/new/page', method='POST')
     @b.auth_basic(check)
     def new_page():
-        try:
-            title = b.request.forms['title'].decode('utf-8')
-        except AttributeError:
-            # Python 3
-            title = b.request.forms['title']
+        title = b.request.forms.getunicode('title', encoding='utf-8')
         try:
             _site.commands.new_page(title=title, content_format='html')
         except SystemExit:
