@@ -100,7 +100,7 @@
 
 <hr/>
 <div id="content-editor" data-placeholder="Go on, start editing..."></div>
-<textarea name="content" id="content" style="display: none;"></textarea>
+<textarea name="content" id="content-area" style="display: none;"></textarea>
 <button formaction="/save/${post.source_path}"><span class="glyphicon glyphicon-save"></span> Save</button>
 </form>
 <script src="/static/js/wysihtml5x-toolbar.min.js"></script>
@@ -120,7 +120,7 @@
     }
 
     var div=document.getElementById('content-editor');
-    var textarea=document.getElementById('content');
+    var textarea=document.getElementById('content-area');
     textarea.value = div.innerHTML;
     return "success";
   }
