@@ -35,22 +35,44 @@ import bottle as b
 from nikola.plugin_categories import Command
 _site = None
 TITLE = 'webapp'
+USERNAME = ''
+REALNAME = ''
+USERS = {}
 auth_title = 'Comet CMS Login'
 
 json_path = os.path.join(os.path.dirname(__file__), 'users.json')
-#json.dump(users, fh, indent=4)
 
 def auth_check(user, passwd):
+    global USERNAME, REALNAME, USERS
     passwd = passwd.encode('utf-8')
-    # safer algorithm?
-    passwd = hashlib.sha512(passwd).hexdigest()
-    with io.open(json_path, encoding='utf-8') as fh:
-        users = json.load(fh)
-        return user in users and users[user]['password'] == passwd
+    passwd = passwd_hash(passwd)
+    status = user in USERS and USERS[user]['password'] == passwd
+    if status:
+        USERNAME = user
+        REALNAME = USERS[user]['name']
+    return status
 
 def init_site():
     _site.scan_posts(really=True)
 
+def passwd_hash(passwd):
+    # safer algorithm?
+    return hashlib.sha512(passwd).hexdigest()
+
+def read_users():
+    global USERS
+    with io.open(json_path, 'rb') as fh:
+        USERS = json.load(fh)
+
+def write_users():
+    global USERS
+    with io.open(json_path, 'wb') as fh:
+        json.dump(USERS, fh, indent=4)
+
+def generate_menu_alt():
+    return  """<li><a href="/profile">{0} [{1}]</a></li>""".format(REALNAME, USERNAME)
+
+read_users()
 
 class Webapp(Command):
 
@@ -82,15 +104,15 @@ class Webapp(Command):
         port = options and options.get('port')
 
         _site.template_hooks['menu'].append("""
-        <ul class="nav navbar-nav">
             <li>
                 <a href="#" data-toggle="modal" data-target="#newPost">New Post</a>
             </li>
             <li>
                 <a href="#" data-toggle="modal" data-target="#newPage">New Page</a>
             </li>
-        </ul>
         """)
+
+        _site.template_hooks['menu_alt'].append(generate_menu_alt)
 
         _site.config['SITE_URL'] = 'http://localhost:{0}/'.format(port)
         _site.config['BASE_URL'] = 'http://localhost:{0}/'.format(port)
@@ -194,7 +216,6 @@ class Webapp(Command):
     def server_assets(path):
         return b.static_file(path, root=os.path.join(_site.config["OUTPUT_FOLDER"], 'assets'))
 
-
     @staticmethod
     @b.route('/new/post', method='POST')
     @b.auth_basic(auth_check, auth_title)
@@ -221,7 +242,29 @@ class Webapp(Command):
         init_site()
         b.redirect('/')
 
+    @staticmethod
+    @b.route('/profile')
+    @b.auth_basic(auth_check, auth_title)
+    def acp_profile():
+        return render('webapp_profile.tmpl',
+                      context={'title': 'Edit profile',
+                               'permalink': '/profile'})
+
+    @staticmethod
+    @b.route('/profile/save', method='POST')
+    @b.auth_basic(auth_check, auth_title)
+    def acp_profile_save():
+        global USERS
+        data = b.request.forms.decode('utf-8')
+        if data['password'].strip():
+            USERS[USERNAME]['password'] = passwd_hash(data['password'])
+        USERS[USERNAME]['name'] = data['name']
+        write_users()
+        b.redirect('/profile')
+
 def render(template_name, context=None):
     if context is None:
         context = {}
+    context['USERNAME'] = USERNAME
+    context['REALNAME'] = REALNAME
     return _site.render_template(template_name, None, context)
