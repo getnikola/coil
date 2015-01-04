@@ -1,3 +1,6 @@
 *.py[cod]
 posts/
 stories/
+cache/
+output/
+.doit.db

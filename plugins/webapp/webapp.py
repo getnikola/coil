@@ -46,8 +46,6 @@ def init_site():
     _site.scan_posts(really=True)
 
 
-WEBAPP_NAME = "Comet CMS/Nikola WebApp"
-
 class Webapp(Command):
 
     name = "webapp"
@@ -74,6 +72,20 @@ class Webapp(Command):
     def _execute(self, options, args):
         global _site
         _site = self.site
+        _site.template_hooks['menu'].append("""
+        <ul class="nav navbar-nav">
+            <li>
+                <a href="#" data-toggle="modal" data-target="#newPost">New Post</a>
+            </li>
+            <li>
+                <a href="#" data-toggle="modal" data-target="#newPage">New Page</a>
+            </li>
+        </ul>
+        """)
+        _site.config['NAVIGATION_LINKS'] = {'en': []}
+        _site.GLOBAL_CONTEXT['navigation_links'] = {'en': []}
+        _site.config['SOCIAL_BUTTONS'] = ''
+        _site.GLOBAL_CONTEXT['social_buttons_code'] = lambda _: ''
         init_site()
         port = options and options.get('port')
         if options and options.get('browser'):
@@ -86,7 +98,8 @@ class Webapp(Command):
         context = {}
         context['site'] = _site
         context['title'] = 'Posts & Pages'
-        return render('index.tpl', context)
+        context['permalink'] = '/'
+        return render('webapp_index.tmpl', context)
 
     @staticmethod
     @b.route('/edit/<path:path>', method='POST')
@@ -105,7 +118,8 @@ class Webapp(Command):
             b.abort(404, "No such post or page")
         context['post'] = post
         context['title'] = 'Editing {0}'.format(post.title())
-        return render('edit_post.tpl', context)
+        context['permalink'] = '/edit/' + path
+        return render('edit_post.tmpl', context)
 
     @staticmethod
     @b.route('/save/<path:path>', method='POST')
@@ -142,7 +156,8 @@ class Webapp(Command):
             b.abort(404, "No such post")
         context['post'] = post
         context['title'] = 'Deleting {0}'.format(post.title())
-        return render('delete_post.tpl', context)
+        context['permalink'] = '/delete/' + path
+        return render('delete_post.tmpl', context)
 
     @staticmethod
     @b.route('/really_delete/<path:path>')
@@ -155,9 +170,14 @@ class Webapp(Command):
 
     @staticmethod
     @b.route('/static/<path:path>')
-    @b.auth_basic(check)
     def server_static(path):
         return b.static_file(path, root=os.path.join(os.path.dirname(__file__), 'static'))
+
+    @staticmethod
+    @b.route('/assets/<path:path>')
+    def server_assets(path):
+        return b.static_file(path, root=os.path.join(_site.config["OUTPUT_FOLDER"], 'assets'))
+
 
     @staticmethod
     @b.route('/new/post', method='POST')
@@ -185,13 +205,10 @@ class Webapp(Command):
         init_site()
         b.redirect('/')
 
-lookup = mako.lookup.TemplateLookup(
-    directories=os.path.join(os.path.dirname(__file__), 'templates'),
-    output_encoding='utf-8')
-
-
 def render(template_name, context=None):
     if context is None:
         context = {}
-    context['webapp_name'] = WEBAPP_NAME
-    return lookup.get_template(template_name).render_unicode(**context)
+    t = _site.GLOBAL_CONTEXT['blog_title']('en') + ' Administration'
+    context['blog_title'] = lambda _: t
+    context['lang'] = 'en'
+    return _site.render_template(template_name, None, context)
