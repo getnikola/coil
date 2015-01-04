@@ -70,7 +70,18 @@ def write_users():
         json.dump(USERS, fh, indent=4)
 
 def generate_menu_alt():
-    return  """<li><a href="/profile">{0} [{1}]</a></li>""".format(REALNAME, USERNAME)
+    if USERS[USERNAME]['can_edit_users']:
+        edit_entry = '<li><a href="/users">Manage users</a></li>'
+    else:
+        edit_entry = ''
+    return """
+    <li class="dropdown">
+      <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">{0} [{1}] <span class="caret"></span></a>
+      <ul class="dropdown-menu" role="menu">
+        <li><a href="/profile">Profile</a></li>
+        {2}
+      </ul>
+    </li>""".format(REALNAME, USERNAME, edit_entry)
 
 read_users()
 
@@ -262,6 +273,94 @@ class Webapp(Command):
         USERS[USERNAME]['name'] = data['name']
         write_users()
         b.redirect('/profile')
+
+    @staticmethod
+    @b.route('/users')
+    @b.auth_basic(auth_check, auth_title)
+    def acp_users():
+        global USERS
+        if not USERS[USERNAME]['can_edit_users']:
+            b.abort(401, "Not authorized to edit users.")
+        else:
+            return render('webapp_users.tmpl',
+                          context={'title': 'Edit users',
+                                   'permalink': '/users',
+                                   'USERS': USERS})
+    @staticmethod
+    @b.route('/users/<name>')
+    @b.auth_basic(auth_check, auth_title)
+    def acp_users_edit(name):
+        global USERS
+        if not USERS[USERNAME]['can_edit_users']:
+            b.abort(401, "Not authorized to edit users.")
+        else:
+            if name in USERS:
+                new = False
+                user = USERS[name]
+            else:
+                new = True
+                user = {'name': '', 'password': '', 'can_edit_users': False}
+            return render('webapp_users_edit.tmpl',
+                          context={'title': 'Edit user ' + name,
+                                   'permalink': '/users/' + name,
+                                   'user': user,
+                                   'name': name,
+                                   'new': new})
+
+    @staticmethod
+    @b.route('/users/<name>/save', method='POST')
+    @b.auth_basic(auth_check, auth_title)
+    def acp_users_save(name):
+        global USERS
+        if not USERS[USERNAME]['can_edit_users']:
+            b.abort(401, "Not authorized to edit users.")
+        else:
+            read_users()
+            data = b.request.forms.decode('utf-8')
+            if name not in USERS:
+                USERS[name] = {'name': '', 'password': '', 'can_edit_users': False}
+            if data['password'].strip():
+                USERS[name]['password'] = passwd_hash(data['password'])
+            USERS[name]['name'] = data['name']
+            if name != USERNAME:
+                USERS[name]['can_edit_users'] = 'can_edit_users' in data
+            write_users()
+            b.redirect('/users')
+
+    @staticmethod
+    @b.route('/users/create/new', method='POST')
+    @b.auth_basic(auth_check, auth_title)
+    def acp_users_create_new():
+        data = b.request.forms.decode('utf-8')
+        b.redirect('/users/' + data['name'])
+
+    @staticmethod
+    @b.route('/users/<name>/delete')
+    @b.auth_basic(auth_check, auth_title)
+    def acp_users_delete(name):
+        global USERS
+        if not USERS[USERNAME]['can_edit_users']:
+            b.abort(401, "Not authorized to edit users.")
+        else:
+            if name not in USERS:
+                b.abort(404, "User does not exist.")
+            return render('webapp_users_delete.tmpl',
+                          context={'title': 'Deleting ' + name,
+                                   'permalink': '/users/{0}/delete'.format(name),
+                                   'user': name})
+
+    @staticmethod
+    @b.route('/users/<name>/really_delete')
+    @b.auth_basic(auth_check, auth_title)
+    def acp_users_really_delete(name):
+        global USERS
+        if not USERS[USERNAME]['can_edit_users']:
+            b.abort(401, "Not authorized to edit users.")
+        else:
+            read_users()
+            del USERS[name]
+            write_users()
+            b.redirect('/users')
 
 def render(template_name, context=None):
     if context is None:

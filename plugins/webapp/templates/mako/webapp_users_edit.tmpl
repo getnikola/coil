@@ -45,18 +45,42 @@
   </form>
 </div>
 
+% if not new:
+<h1 class="title">Editing profile <tt>${name}</tt></h1>
+% else:
+<h1 class="title">Creating profile <tt>${name}</tt></h1>
+% endif
 
-<h1 class="title">Editing profile <tt>${USERNAME}</tt></h1>
-
-<form action="/profile/save" method="POST">
+<form action="/users/${name}/save" method="POST">
   <div class="form-group">
     <label for="name">Real name</label>
-    <input class="form-control" id="name" name="name" value="${REALNAME}" placeholder="Real name">
+    <input class="form-control" id="name" name="name" value="${user['name']}"
+    placeholder="Real name" required>
   </div>
   <div class="form-group">
+  % if user['password']:
     <label for="passwd">New password (leave empty to keep previous):</label>
-    <input type="password" class="form-control" id="password" name="password" placeholder="New password">
+  % else:
+    <label for="passwd">Password:</label>
+  % endif
+    <input type="password" class="form-control" id="password" name="password"
+  % if user['password']:
+    placeholder="New password"
+  % else:
+    placeholder="Password" required
+  % endif
+    >
   </div>
+ <div class="checkbox"><label>
+    <input type="checkbox" name="can_edit_users"
+    % if user['can_edit_users']:
+    checked
+    % endif
+    % if name == USERNAME:
+    disabled
+    % endif
+    > Can edit users
+ </label></div>
   <button type="submit" class="btn btn-default">Save</button>
 </form>
 
