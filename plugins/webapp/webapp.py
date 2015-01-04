@@ -114,22 +114,14 @@ class Webapp(Command):
         init_site()
         port = options and options.get('port')
 
-        _site.template_hooks['menu'].append("""
-            <li>
-                <a href="#" data-toggle="modal" data-target="#newPost">New Post</a>
-            </li>
-            <li>
-                <a href="#" data-toggle="modal" data-target="#newPage">New Page</a>
-            </li>
-        """)
-
         _site.template_hooks['menu_alt'].append(generate_menu_alt)
 
+        site = _site.config['SITE_URL']
         _site.config['SITE_URL'] = 'http://localhost:{0}/'.format(port)
         _site.config['BASE_URL'] = 'http://localhost:{0}/'.format(port)
         _site.GLOBAL_CONTEXT['blog_url'] = 'http://localhost:{0}/'.format(port)
-        _site.config['NAVIGATION_LINKS'] = {'en': []}
-        _site.GLOBAL_CONTEXT['navigation_links'] = {'en': []}
+        _site.config['NAVIGATION_LINKS'] = {'en': ((site, 'Back to {0}'.format(_site.GLOBAL_CONTEXT['blog_title']('en'))),)}
+        _site.GLOBAL_CONTEXT['navigation_links'] = {'en':((site, 'Back to {0}'.format(_site.GLOBAL_CONTEXT['blog_title']('en'))),)}
         _site.config['SOCIAL_BUTTONS'] = ''
         _site.GLOBAL_CONTEXT['social_buttons_code'] = lambda _: ''
         TITLE = _site.GLOBAL_CONTEXT['blog_title']('en') + ' Administration'
@@ -192,27 +184,17 @@ class Webapp(Command):
         b.redirect('/edit/' + path)
 
     @staticmethod
-    @b.route('/delete/<path:path>')
+    @b.route('/delete', method='POST')
     @b.auth_basic(auth_check, auth_title)
-    def delete(path):
-        context = {'path': path}
-        context['site'] = _site
-        post = None
+    def delete():
+        data = b.request.forms.decode('utf-8')
+        path = data['path']
         for p in _site.timeline:
             if p.source_path == path:
                 post = p
                 break
         if post is None:
             b.abort(404, "No such post")
-        context['post'] = post
-        context['title'] = 'Deleting {0}'.format(post.title())
-        context['permalink'] = '/delete/' + path
-        return render('webapp_post_delete.tmpl', context)
-
-    @staticmethod
-    @b.route('/really_delete/<path:path>')
-    @b.auth_basic(auth_check, auth_title)
-    def really_delete(path):
         # FIXME insecure pending defnull/bottle#411
         os.unlink(path)
         init_site()

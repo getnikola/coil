@@ -1,55 +1,17 @@
 <%inherit file="base.tmpl"/>
 <%block name="extra_head">
 <link href="//maxcdn.bootstrapcdn.com/font-awesome/4.2.0/css/font-awesome.min.css" rel="stylesheet">
+
+<style>
+#toolbar, #post-meta-panel, #content-area {
+    margin-top: 10px;
+}
+</style>
 </%block>
 <%block name="content">
-<!-- New Page Modal -->
-<div class="modal fade" id="newPage" tabindex="-1" role="dialog" aria-labelledby="newPageLabel" aria-hidden="true">
-  <form method="POST" action="/new/page">
-  <div class="modal-dialog">
-    <div class="modal-content">
-      <div class="modal-header">
-        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
-        <h4 class="modal-title" id="newPageLabel">Create New Page?</h4>
-      </div>
-      <div class="modal-body">
-        <input class="form-control" name="title" id="title" placeholder="Title">
-      </div>
-      <div class="modal-footer">
-        <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
-        <button type="submit" class="btn btn-primary">Create Page</button>
-      </div>
-    </div>
-  </div>
-  </form>
-</div>
-
-<!-- New Post Modal -->
-<div class="modal fade" id="newPost" tabindex="-1" role="dialog" aria-labelledby="newPostLabel" aria-hidden="true">
-  <form method="POST" action="/new/post">
-  <div class="modal-dialog">
-    <div class="modal-content">
-      <div class="modal-header">
-        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
-        <h4 class="modal-title" id="newPostLabel">Create New Post?</h4>
-      </div>
-      <div class="modal-body">
-        <input class="form-control" name="title" id="title" placeholder="Title">
-      </div>
-      <div class="modal-footer">
-        <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
-        <button type="submit" class="btn btn-primary">Create Post</button>
-      </div>
-    </div>
-  </div>
-  </form>
-</div>
-
-
 <form method="POST" class="form-horizontal" role="form" id="form" action="/save/${post.source_path}">
-<input name="title" value="${post.title()}" class="form-control title"
-placeholder="Title" style="font-size: 36px; height: auto;">
-        <div id="toolbar" class="btn-toolbar" style="margin-top: 10px;">
+<input name="title" value="${post.title()}" class="form-control title input-lg" placeholder="Title">
+        <div id="toolbar" class="btn-toolbar">
         <div class="btn-group">
         <button type="submit" class="btn btn-sm btn-primary"><i class="fa fa-save"></i> Save</button>
         <button class="btn btn-sm btn-info" type="button" data-toggle="collapse"
@@ -110,7 +72,7 @@ placeholder="Title" style="font-size: 36px; height: auto;">
           </div>
         </div>
         <div class="collapse" id="post-meta">
-        <div class="panel panel-info" style="margin-top: 10px;">
+        <div class="panel panel-info" id="post-meta-panel">
           <div class="panel-heading">
             <h3 class="panel-title">Metadata</h3>
           </div>
@@ -129,7 +91,7 @@ placeholder="Title" style="font-size: 36px; height: auto;">
           </div>
         </div>
 
-<textarea name="content" id="content-area" class="form-control" rows="24" style="margin-top: 10px;">${open(path).read().split('\n\n', 1)[1]}</textarea>
+<textarea name="content" id="content-area" class="form-control" rows="24">${open(path).read().split('\n\n', 1)[1]}</textarea>
 </form>
 <script src="/wysihtml/dist/wysihtml5x-toolbar.min.js"></script>
 <script src="/wysihtml/parser_rules/advanced_and_extended.js"></script>
