@@ -100,14 +100,14 @@
 </div>
 
 <form method="POST">
-<div class="row clearfix">
+<div class="row">
     <div class="col-md-6">
         <h2 style="text-align: center;">Posts</h2>
         <div class="post_holder"></div>
         <div class="list-group" id="post_container">
         % for p in site.posts:
             <div class="list-group-item">
-                <h3>${p.title()}</h3>
+                <h3 class="media-heading">${p.title()}</h3>
                 <small>Date: ${p.date}</small>
                 <div class="pull-right">
                     <a type="button" class="btn" href="/edit/${p.source_path}"><span class="glyphicon glyphicon-edit"></span> Edit</a>
@@ -125,7 +125,7 @@
         <div class="list-group" id="page_container">
         % for p in site.pages:
             <div class="list-group-item">
-                <h3>${p.title()}</h3>
+                <h3 class="media-heading">${p.title()}</h3>
                 <small>Date: ${p.date}</small>
                 <div class="pull-right">
                     <a type="button" class="btn" href="/edit/${p.source_path}"><span class="glyphicon glyphicon-edit"></span> Edit</a>
