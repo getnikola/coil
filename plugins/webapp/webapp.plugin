@@ -3,7 +3,7 @@ Name = webapp
 Module = webapp
 
 [Documentation]
-Author = Roberto Alsina
+Author = Roberto Alsina, Henry Hirsch, Chris Warrick
 Version = 0.1
 Website = http://plugins.getnikola.com/#webapp
 Description = Turn Nikola into a webapp
