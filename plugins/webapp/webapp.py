@@ -28,19 +28,25 @@ from __future__ import print_function, unicode_literals
 import json
 import os
 import webbrowser
-
+import io
+import hashlib
 import bottle as b
-import mako
-import sys
 
 from nikola.plugin_categories import Command
-from bottle import Bottle, run, request
 _site = None
+TITLE = 'webapp'
+auth_title = 'Comet CMS Login'
 
-def check(user, passwd):
-    if user == 'ben':
-        return True
-    return False
+json_path = os.path.join(os.path.dirname(__file__), 'users.json')
+#json.dump(users, fh, indent=4)
+
+def auth_check(user, passwd):
+    passwd = passwd.encode('utf-8')
+    # safer algorithm?
+    passwd = hashlib.sha512(passwd).hexdigest()
+    with io.open(json_path, encoding='utf-8') as fh:
+        users = json.load(fh)
+        return user in users and users[user]['password'] == passwd
 
 def init_site():
     _site.scan_posts(really=True)
@@ -50,7 +56,7 @@ class Webapp(Command):
 
     name = "webapp"
     doc_usage = "[[-p] port_number] | [[-u] -b]"
-    doc_purpose = "run crud interface for the site"
+    doc_purpose = "run CRUD interface for the site"
     cmd_options = [
         {
             'name': 'browser',
@@ -93,13 +99,18 @@ class Webapp(Command):
         _site.GLOBAL_CONTEXT['navigation_links'] = {'en': []}
         _site.config['SOCIAL_BUTTONS'] = ''
         _site.GLOBAL_CONTEXT['social_buttons_code'] = lambda _: ''
+        TITLE = _site.GLOBAL_CONTEXT['blog_title']('en') + ' Administration'
+        _site.config['BLOG_TITLE'] = lambda _: TITLE
+        _site.GLOBAL_CONTEXT['blog_title'] = lambda _: TITLE
+        _site.GLOBAL_CONTEXT['lang'] = 'en'
 
         if options and options.get('browser'):
             webbrowser.open('http://localhost:{0}'.format(port))
         b.run(host='localhost', port=port)
+
     @staticmethod
     @b.route('/')
-    @b.auth_basic(check)
+    @b.auth_basic(auth_check, auth_title)
     def index():
         context = {}
         context['site'] = _site
@@ -110,7 +121,7 @@ class Webapp(Command):
     @staticmethod
     @b.route('/edit/<path:path>', method='POST')
     @b.route('/edit/<path:path>', method='GET')
-    @b.auth_basic(check)
+    @b.auth_basic(auth_check, auth_title)
     def edit(path):
         context = {'path': path}
         context['site'] = _site
@@ -129,7 +140,7 @@ class Webapp(Command):
 
     @staticmethod
     @b.route('/save/<path:path>', method='POST')
-    @b.auth_basic(check)
+    @b.auth_basic(auth_check, auth_title)
     def save(path):
         # FIXME insecure pending defnull/bottle#411
         context = {'path': path}
@@ -148,7 +159,7 @@ class Webapp(Command):
 
     @staticmethod
     @b.route('/delete/<path:path>')
-    @b.auth_basic(check)
+    @b.auth_basic(auth_check, auth_title)
     def delete(path):
         context = {'path': path}
         context['site'] = _site
@@ -166,7 +177,7 @@ class Webapp(Command):
 
     @staticmethod
     @b.route('/really_delete/<path:path>')
-    @b.auth_basic(check)
+    @b.auth_basic(auth_check, auth_title)
     def really_delete(path):
         # FIXME insecure pending defnull/bottle#411
         os.unlink(path)
@@ -186,7 +197,7 @@ class Webapp(Command):
 
     @staticmethod
     @b.route('/new/post', method='POST')
-    @b.auth_basic(check)
+    @b.auth_basic(auth_check, auth_title)
     def new_post():
         title = b.request.forms.getunicode('title', encoding='utf-8')
         try:
@@ -199,7 +210,7 @@ class Webapp(Command):
 
     @staticmethod
     @b.route('/new/page', method='POST')
-    @b.auth_basic(check)
+    @b.auth_basic(auth_check, auth_title)
     def new_page():
         title = b.request.forms.getunicode('title', encoding='utf-8')
         try:
@@ -213,7 +224,4 @@ class Webapp(Command):
 def render(template_name, context=None):
     if context is None:
         context = {}
-    t = _site.GLOBAL_CONTEXT['blog_title']('en') + ' Administration'
-    context['blog_title'] = lambda _: t
-    context['lang'] = 'en'
     return _site.render_template(template_name, None, context)
