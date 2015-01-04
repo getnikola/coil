@@ -72,6 +72,9 @@ class Webapp(Command):
     def _execute(self, options, args):
         global _site
         _site = self.site
+        init_site()
+        port = options and options.get('port')
+
         _site.template_hooks['menu'].append("""
         <ul class="nav navbar-nav">
             <li>
@@ -82,12 +85,15 @@ class Webapp(Command):
             </li>
         </ul>
         """)
+
+        _site.config['SITE_URL'] = 'http://localhost:{0}/'.format(port)
+        _site.config['BASE_URL'] = 'http://localhost:{0}/'.format(port)
+        _site.GLOBAL_CONTEXT['blog_url'] = 'http://localhost:{0}/'.format(port)
         _site.config['NAVIGATION_LINKS'] = {'en': []}
         _site.GLOBAL_CONTEXT['navigation_links'] = {'en': []}
         _site.config['SOCIAL_BUTTONS'] = ''
         _site.GLOBAL_CONTEXT['social_buttons_code'] = lambda _: ''
-        init_site()
-        port = options and options.get('port')
+
         if options and options.get('browser'):
             webbrowser.open('http://localhost:{0}'.format(port))
         b.run(host='localhost', port=port)
