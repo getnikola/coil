@@ -169,7 +169,7 @@ class Webapp(Command):
         context['post'] = post
         context['title'] = 'Editing {0}'.format(post.title())
         context['permalink'] = '/edit/' + path
-        return render('edit_post.tmpl', context)
+        return render('webapp_edit_post.tmpl', context)
 
     @staticmethod
     @b.route('/save/<path:path>', method='POST')
@@ -206,7 +206,7 @@ class Webapp(Command):
         context['post'] = post
         context['title'] = 'Deleting {0}'.format(post.title())
         context['permalink'] = '/delete/' + path
-        return render('delete_post.tmpl', context)
+        return render('webapp_delete_post.tmpl', context)
 
     @staticmethod
     @b.route('/really_delete/<path:path>')
