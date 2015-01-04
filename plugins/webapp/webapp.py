@@ -234,7 +234,7 @@ class Webapp(Command):
     def new_page():
         title = b.request.forms.getunicode('title', encoding='utf-8')
         try:
-            _site.commands.new_page(title=title, content_format='html')
+            _site.commands.new_page(title=title, author=REALNAME, content_format='html')
         except SystemExit:
             b.abort(500, "This page already exists!")
         # reload post list and go to index
