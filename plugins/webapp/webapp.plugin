@@ -2,6 +2,9 @@
 Name = webapp
 Module = webapp
 
+[Nikola]
+MinVersion = 7.3.0
+
 [Documentation]
 Author = Roberto Alsina, Henry Hirsch, Chris Warrick
 Version = 0.1

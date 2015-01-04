@@ -233,7 +233,7 @@ class Webapp(Command):
     def new_post():
         title = b.request.forms.getunicode('title', encoding='utf-8')
         try:
-            _site.commands.new_post(title=title, content_format='html')
+            _site.commands.new_post(title=title, author=REALNAME, content_format='html')
         except SystemExit:
             b.abort(500, "This post already exists!")
         # reload post list and go to index
