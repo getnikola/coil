@@ -255,6 +255,7 @@ class Webapp(Command):
     @b.auth_basic(auth_check, auth_title)
     def acp_profile_save():
         global USERS
+        read_users()
         data = b.request.forms.decode('utf-8')
         if data['password'].strip():
             USERS[USERNAME]['password'] = passwd_hash(data['password'])
