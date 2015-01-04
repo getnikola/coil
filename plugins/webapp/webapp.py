@@ -169,7 +169,7 @@ class Webapp(Command):
         context['post'] = post
         context['title'] = 'Editing {0}'.format(post.title())
         context['permalink'] = '/edit/' + path
-        return render('webapp_edit_post.tmpl', context)
+        return render('webapp_post_edit.tmpl', context)
 
     @staticmethod
     @b.route('/save/<path:path>', method='POST')
@@ -186,6 +186,7 @@ class Webapp(Command):
         if post is None:
             b.abort(404, "No such post")
         meta = b.request.forms.decode('utf-8')
+        meta.pop('_wysihtml5_mode', '')
         post.compiler.create_post(post.source_path, onefile=True, is_page=False, **meta)
         init_site()
         b.redirect('/edit/' + path)
@@ -206,7 +207,7 @@ class Webapp(Command):
         context['post'] = post
         context['title'] = 'Deleting {0}'.format(post.title())
         context['permalink'] = '/delete/' + path
-        return render('webapp_delete_post.tmpl', context)
+        return render('webapp_post_delete.tmpl', context)
 
     @staticmethod
     @b.route('/really_delete/<path:path>')
@@ -221,6 +222,11 @@ class Webapp(Command):
     @b.route('/static/<path:path>')
     def server_static(path):
         return b.static_file(path, root=os.path.join(os.path.dirname(__file__), 'static'))
+
+    @staticmethod
+    @b.route('/wysihtml/<path:path>')
+    def server_wysihtml(path):
+        return b.static_file(path, root=os.path.join(os.path.dirname(__file__), 'bower_components', 'wysihtml'))
 
     @staticmethod
     @b.route('/assets/<path:path>')
