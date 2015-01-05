@@ -69,6 +69,14 @@ def generate_menu_alt():
       </ul>
     </li>""".format(current_user.realname, current_user.username, edit_entry)
 
+def _author_get(post):
+    a = post.meta['en']['author']
+    return a if a else current_user.realname
+
+def _author_uid_get(post):
+    u = post.meta['en']['author.uid']
+    return u if u else current_user.uid
+
 def render(template_name, context=None):
     if context is None:
         context = {}
@@ -76,6 +84,8 @@ def render(template_name, context=None):
     context['request'] = request
     context['session'] = session
     context['current_user'] = current_user
+    context['_author_get'] = _author_get
+    context['_author_uid_get'] = _author_uid_get
     return _site.render_template(template_name, None, context)
 
 def unauthorized():
@@ -97,12 +107,12 @@ class User(object):
     active = False
     is_admin = False
     can_see_others_posts = False
-    want_see_others_posts = True
+    wants_see_others_posts = True
     can_upload_attachments = True
     can_rebuild_site = True
 
     def __init__(self, uid, username, realname, password, active, is_admin,
-                 can_see_others_posts, want_see_others_posts,
+                 can_see_others_posts, wants_see_others_posts,
                  can_upload_attachments, can_rebuild_site):
         self.uid = uid
         self.username = username
@@ -111,7 +121,7 @@ class User(object):
         self.active = active
         self.is_admin = is_admin
         self.can_see_others_posts = can_see_others_posts
-        self.want_see_others_posts = want_see_others_posts
+        self.wants_see_others_posts = wants_see_others_posts
         self.can_upload_attachments = can_upload_attachments
         self.can_rebuild_site = can_rebuild_site
 
@@ -165,7 +175,7 @@ def write_users():
             'active': user.active,
             'is_admin': user.is_admin,
             'can_see_others_posts': user.can_see_others_posts,
-            'want_see_others_posts': user.want_see_others_posts,
+            'wants_see_others_posts': user.wants_see_others_posts,
             'can_upload_attachments': user.can_upload_attachments,
             'can_rebuild_site': user.can_rebuild_site,
         }
@@ -298,7 +308,9 @@ def new_post():
 def new_page():
     title = request.form['title']
     try:
+        _site.config['ADDITIONAL_METADATA']['author.uid'] = current_user.uid
         _site.commands.new_page(title=title, author=current_user.realname, content_format='html')
+        del _site.config['ADDITIONAL_METADATA']['author.uid']
     except SystemExit:
         return "This post already exists!", 500
     # reload post list and go to index

@@ -77,8 +77,15 @@
             <h3 class="panel-title">Metadata</h3>
           </div>
           <div class="panel-body">
+            <input name="author.uid" value="${_author_uid_get(post)}" type="hidden">
+            <div class="form-group">
+                <label for="author" class="col-sm-2 control-label">Author</label>
+                <div class="col-sm-10">
+                    <input name="author" value="${_author_get(post)}" class="form-control">
+                </div>
+            </div>
             % for k,v in post.meta['en'].items():
-                % if k != 'title':
+                % if k not in ['title', 'author', 'author.uid']:
                     <div class="form-group">
                         <label for="${k}" class="col-sm-2 control-label">${k}</label>
                         <div class="col-sm-10">
