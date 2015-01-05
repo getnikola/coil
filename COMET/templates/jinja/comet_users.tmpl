@@ -65,15 +65,15 @@ $('#deleteModal').on('show.bs.modal', function (event) {
     <form action="/users/edit" method="POST"><input type="hidden" name="uid" value="{{ uid }}">
     <div class="btn-group" role="group">
     {% if user.active %}
-        <button type="submit" class="btn btn-info btn-xs"><i class="fa fa-pencil"></i></button>
+        <button type="submit" class="btn btn-info btn-xs" title="Edit"><i class="fa fa-pencil"></i> Edit</button>
         {% if user == current_user %}
-        <button type="button" class="btn btn-danger btn-xs" disabled><i class="fa fa-trash"></i></button>
+        <button type="button" class="btn btn-danger btn-xs" title="Delete" disabled><i class="fa fa-trash"></i> Delete</button>
         {% else %}
-        <button type="button" class="btn btn-danger btn-xs" data-toggle="modal" data-target="#deleteModal" data-username="{{ user.username }}" data-uid="{{ uid }}" data-direction="del" title="Delete"><i class="fa fa-trash"></i></button>
+        <button type="button" class="btn btn-danger btn-xs" data-toggle="modal" data-target="#deleteModal" data-username="{{ user.username }}" data-uid="{{ uid }}" data-direction="del" title="Delete"><i class="fa fa-trash"></i> Delete</button>
         {% endif %}
     {% else %}
-        <button type="button" class="btn btn-info btn-xs" disabled><i class="fa fa-pencil"></i></button>
-        <button type="button" class="btn btn-success btn-xs" data-toggle="modal" data-target="#deleteModal" data-username="{{ user.username }}" data-uid="{{ uid }}" data-direction="undel" title="Undelete"><i class="fa fa-trash-o"></i></button>
+        <button type="button" class="btn btn-info btn-xs" title="Edit" disabled><i class="fa fa-pencil"></i> Edit</button>
+        <button type="button" class="btn btn-success btn-xs" data-toggle="modal" data-target="#deleteModal" data-username="{{ user.username }}" data-uid="{{ uid }}" data-direction="undel" title="Undelete"><i class="fa fa-trash-o"></i> Undelete</button>
     {% endif %}
     </div>
     </form>
@@ -84,7 +84,7 @@ $('#deleteModal').on('show.bs.modal', function (event) {
     <td><input name="username" placeholder="User to create"></td>
     <td></td>
     <td></td>
-    <td><button type="submit" class="btn btn-success btn-xs"><i class="fa fa-arrow-circle-right"></i></button></td>
+    <td><button type="submit" class="btn btn-primary btn-xs"><i class="fa fa-plus-square"></i> Create</button></td>
 </form></tr>
 </table>
 
