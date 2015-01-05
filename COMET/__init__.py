@@ -158,7 +158,7 @@ def write_users():
             'is_admin': user.is_admin,
             'can_see_others_posts': user.can_see_others_posts
         }
-    with io.open(json_path, 'wb') as fh:
+    with io.open(json_path, 'w', encoding='utf-8') as fh:
         json.dump(udict, fh, indent=4)
 
 read_users()
