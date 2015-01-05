@@ -139,7 +139,7 @@ def find_user_by_name(username):
 def read_users():
     global USERS
     USERS = {}
-    with io.open(json_path, 'rb') as fh:
+    with io.open(json_path, 'r', encoding='utf-8') as fh:
         udict = json.load(fh)
     for uid, data in udict.items():
         uid = int(uid)
@@ -472,6 +472,7 @@ def main():
     #if options and options.get('browser'):
         #webbrowser.open('http://localhost:{0}'.format(port))
 
+    print("COMET CMS running @ http://localhost:8001/")
     app.run('localhost', port, debug=True)
 
 if __name__ == '__main__':
