@@ -97,8 +97,13 @@ class User(object):
     active = False
     is_admin = False
     can_see_others_posts = False
+    want_see_others_posts = True
+    can_upload_attachments = True
+    can_rebuild_site = True
 
-    def __init__(self, uid, username, realname, password, active, is_admin, can_see_others_posts):
+    def __init__(self, uid, username, realname, password, active, is_admin,
+                 can_see_others_posts, want_see_others_posts,
+                 can_upload_attachments, can_rebuild_site):
         self.uid = uid
         self.username = username
         self.realname = realname
@@ -106,6 +111,9 @@ class User(object):
         self.active = active
         self.is_admin = is_admin
         self.can_see_others_posts = can_see_others_posts
+        self.want_see_others_posts = want_see_others_posts
+        self.can_upload_attachments = can_upload_attachments
+        self.can_rebuild_site = can_rebuild_site
 
     def get_id(self):
         return unicode_str(self.uid)
@@ -156,9 +164,12 @@ def write_users():
             'password': user.password,
             'active': user.active,
             'is_admin': user.is_admin,
-            'can_see_others_posts': user.can_see_others_posts
+            'can_see_others_posts': user.can_see_others_posts,
+            'want_see_others_posts': user.want_see_others_posts,
+            'can_upload_attachments': user.can_upload_attachments,
+            'can_rebuild_site': user.can_rebuild_site,
         }
-    with io.open(json_path, 'w', encoding='utf-8') as fh:
+    with open(json_path, 'w') as fh:
         json.dump(udict, fh, indent=4)
 
 read_users()
@@ -348,14 +359,17 @@ def acp_users():
                                  'alert': alert,
                                  'alert_status': alert_status})
 
-@app.route('/users/edit', methods=['POST'])
+@app.route('/users/edit', methods=['GET', 'POST'])
 @login_required
 def acp_users_edit():
     global USERS
     if not current_user.is_admin:
         return "Not authorized to edit users.", 401
     else:
-        user = get_user(request.form['uid'])
+        if request.method == 'GET':
+            user = get_user(request.args.get('uid'))
+        else:
+            user = get_user(request.form['uid'])
         if not user:
             return "User does not exist.", 404
         new = not user.password
@@ -402,7 +416,7 @@ def acp_users_save():
     if user != current_user:
         user.is_admin = 'is_admin' in data
     write_users()
-    return redirect('/users/{0}/edit?status={1}'.format(user.username, status))
+    return redirect('/users/edit?uid={0}&status={1}'.format(user.uid, status))
 
 
 @app.route('/users/new', methods=['POST'])

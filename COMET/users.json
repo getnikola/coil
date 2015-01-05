@@ -3,6 +3,9 @@
         "username": "admin", 
         "realname": "Website Administrator", 
         "can_see_others_posts": true, 
+        "want_see_others_posts": true, 
+        "can_upload_attachments": true, 
+        "can_rebuild_site": true, 
         "is_admin": true, 
         "active": true, 
         "password": "$2a$12$.qMCcA2uOo0BKkDtEF/bueYtHjcdPBmfEdpxtktRwRTgsR7ZVTWmW"
@@ -11,14 +14,20 @@
         "username": "user3", 
         "realname": "User Three", 
         "can_see_others_posts": false, 
+        "want_see_others_posts": true, 
+        "can_upload_attachments": true, 
+        "can_rebuild_site": true, 
         "is_admin": false, 
-        "active": true, 
+        "active": false, 
         "password": "$2a$12$LGFk3vhXFXA75ZwYIPV6o.Bv/ING9dfSxNroTXQ15tQpjGW9FjCU2"
     }, 
     "2": {
         "username": "user2", 
         "realname": "User Two", 
         "can_see_others_posts": false, 
+        "want_see_others_posts": true, 
+        "can_upload_attachments": true, 
+        "can_rebuild_site": true, 
         "is_admin": false, 
         "active": true, 
         "password": "$2a$12$GlbUlIMPBhLeWbQfK07g8uKsc8LO9P5gI7MyWsRpKt5exajp7ySoK"
@@ -27,8 +36,11 @@
         "username": "user4", 
         "realname": "User Four", 
         "can_see_others_posts": false, 
+        "want_see_others_posts": true, 
+        "can_upload_attachments": true, 
+        "can_rebuild_site": true, 
         "is_admin": true, 
-        "active": true, 
+        "active": false, 
         "password": "$2a$12$7fQihZDxHFayBkUAX2LSgeAX9m8MAkx2jovDv3B6WW47e1UfVV2Ue"
     }
 }
