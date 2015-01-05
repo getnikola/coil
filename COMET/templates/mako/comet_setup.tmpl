@@ -1,3 +1,4 @@
+## -*- coding: utf-8 -*-
 <!DOCTYPE html>
 <html>
     <head>
@@ -14,8 +15,10 @@
 
         a {
             text-decoration: none;
-            border-radius: 3px;
-            border-color: #ccc;
+            border-radius: 5px;
+            border: solid #ccc 1px;
+            padding: 10px;
+            color: #000;
         }
         </style>
     </head>
@@ -25,8 +28,9 @@
         <p>Welcome to Comet CMS!</p>
         <p>In order to start using Comet CMS, you must run <kbd>nikola build</kbd> first.</p>
         <p><a href="/">→ Try again</a></p>
-        % else
+        % else:
         <p>Comet CMS is good to go!</p>
         <p><a href="/">→ Continue</a></p>
+        % endif
     </body>
 </html>

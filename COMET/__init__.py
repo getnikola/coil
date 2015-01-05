@@ -204,7 +204,7 @@ def index():
 
 @app.route('/setup')
 def setup():
-    needs_setup = os.path.exists(os.path.join(_site.config["OUTPUT_FOLDER"], 'assets'))
+    needs_setup = not os.path.exists(os.path.join(_site.config["OUTPUT_FOLDER"], 'assets'))
     return render("comet_setup.tmpl", context={'needs_setup': needs_setup})
 
 @app.route('/edit/<path:path>', methods=['GET', 'POST'])
