@@ -1,7 +1,34 @@
 {
-    "admin": {
-        "can_edit_users": true, 
-        "password": "c7ad44cbad762a5da0a452f9e854fdc1e0e7a52a38015f23f3eab1d80b931dd472634dfac71cd34ebc35d16ab7fb8a90c81f975113d6c7538dc69dd8de9077ec", 
-        "name": "Website Administrator"
+    "1": {
+        "username": "admin", 
+        "realname": "Website Administrator", 
+        "can_see_others_posts": true, 
+        "is_admin": true, 
+        "active": true, 
+        "password": "$2a$12$.qMCcA2uOo0BKkDtEF/bueYtHjcdPBmfEdpxtktRwRTgsR7ZVTWmW"
+    }, 
+    "3": {
+        "username": "user3", 
+        "realname": "User Three", 
+        "can_see_others_posts": false, 
+        "is_admin": false, 
+        "active": true, 
+        "password": "$2a$12$LGFk3vhXFXA75ZwYIPV6o.Bv/ING9dfSxNroTXQ15tQpjGW9FjCU2"
+    }, 
+    "2": {
+        "username": "user2", 
+        "realname": "User Two", 
+        "can_see_others_posts": false, 
+        "is_admin": false, 
+        "active": true, 
+        "password": "$2a$12$GlbUlIMPBhLeWbQfK07g8uKsc8LO9P5gI7MyWsRpKt5exajp7ySoK"
+    }, 
+    "4": {
+        "username": "user4", 
+        "realname": "User Four", 
+        "can_see_others_posts": false, 
+        "is_admin": true, 
+        "active": true, 
+        "password": "$2a$12$7fQihZDxHFayBkUAX2LSgeAX9m8MAkx2jovDv3B6WW47e1UfVV2Ue"
     }
 }

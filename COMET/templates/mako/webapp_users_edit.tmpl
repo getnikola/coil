@@ -4,40 +4,55 @@
 </%block>
 <%block name="content">
 % if not new:
-<h1 class="title">Editing profile <tt>${name}</tt></h1>
+<h1 class="title">Editing profile <tt>${user.username}</tt></h1>
 % else:
-<h1 class="title">Creating profile <tt>${name}</tt></h1>
+<h1 class="title">Creating profile <tt>${user.username}</tt></h1>
 % endif
 
-<form action="/users/${name}/save" method="POST">
+% if alert:
+<div class="alert alert-${alert_status}" role="alert">${alert}</div>
+% endif
+
+<form action="/users/save" method="POST">
+  <input name="uid" type="hidden" value="${user.uid}">
   <div class="form-group">
     <label for="name">Real name</label>
-    <input class="form-control" id="name" name="name" value="${user['name']}"
+    <input class="form-control" id="realname" name="realname" value="${user.realname}"
     placeholder="Real name" required>
   </div>
+  % if user.password:
   <div class="form-group">
-  % if user['password']:
-    <label for="passwd">New password (leave empty to keep previous):</label>
-  % else:
-    <label for="passwd">Password:</label>
-  % endif
-    <input type="password" class="form-control" id="password" name="password"
-  % if user['password']:
-    placeholder="New password"
-  % else:
-    placeholder="Password" required
-  % endif
-    >
+    <label for="oldpwd">Old password:</label>
+    <input type="password" class="form-control" id="oldpwd" name="oldpwd" placeholder="Old password">
+    <p class="help-block">If you do not want to change the password, leave the fields blank.</p>
   </div>
+  <div class="form-group">
+    <label for="newpwd1">New password:</label>
+    <input type="password" class="form-control" id="newpwd1" name="newpwd1" placeholder="New password">
+  </div>
+  <div class="form-group">
+    <label for="newpwd2">Repeat new password:</label>
+    <input type="password" class="form-control" id="newpwd2" name="newpwd2" placeholder="Repeat new password">
+  </div>
+  % else:
+  <div class="form-group">
+    <label for="newpwd1">Password:</label>
+    <input type="password" class="form-control" id="newpwd1" name="newpwd1" placeholder="Password" required>
+  </div>
+  <div class="form-group">
+    <label for="newpwd2">Repeat password:</label>
+    <input type="password" class="form-control" id="newpwd2" name="newpwd2" placeholder="Repeat password" required>
+  </div>
+  % endif
  <div class="checkbox"><label>
-    <input type="checkbox" name="can_edit_users"
-    % if user['can_edit_users']:
+    <input type="checkbox" name="is_admin"
+    % if user.is_admin:
     checked
     % endif
-    % if name == USERNAME:
+    % if user == current_user:
     disabled
     % endif
-    > Can edit users
+    > Is administrator
  </label></div>
   <button type="submit" class="btn btn-default">Save</button>
 </form>

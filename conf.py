@@ -6,6 +6,8 @@ import time
 # !! This is the configuration of Nikola. !! #
 # !!  You should edit it to your liking.  !! #
 
+# CHANGE! product of keyboard cat below
+COMET_SECRET_KEY = 'ltfpokghw3he4torjmhghgo30w5rektyghbnopfyjk32wo0-khnj4io0h09<F10>45kijhn0=p6kjh=0n5y0v'
 
 # ! Some settings can be different in different languages.
 # ! A comment stating (translatable) is used to denote those.

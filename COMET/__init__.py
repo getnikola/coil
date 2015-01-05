@@ -31,49 +31,31 @@ import webbrowser
 import io
 import hashlib
 import nikola.__main__
-from flask import Flask, Blueprint, request, redirect, send_from_directory
-from flask.ext.login import LoginManager, login_required
+from nikola.utils import unicode_str
+from flask import Flask, request, redirect, send_from_directory, g, session
+from flask.ext.login import LoginManager, login_required, login_user, logout_user, current_user, make_secure_token
+from flask.ext.bcrypt import Bcrypt
 _site = None
 app = None
 TITLE = 'webapp'
-USERNAME = ''
-REALNAME = ''
 USERS = {}
 auth_title = 'Comet CMS Login'
 
 json_path = os.path.join(os.path.dirname(__file__), 'users.json')
 
-def auth_check(user, passwd):
-    global USERNAME, REALNAME, USERS
-    passwd = passwd.encode('utf-8')
-    passwd = passwd_hash(passwd)
-    status = user in USERS and USERS[user]['password'] == passwd
-    if status:
-        USERNAME = user
-        REALNAME = USERS[user]['name']
-    return status
-
 def init_site():
     _site.scan_posts(really=True)
 
-def passwd_hash(passwd):
-    # safer algorithm?
-    return hashlib.sha512(passwd).hexdigest()
+def password_hash(password):
+    return bcrypt.generate_password_hash(password)
 
-def read_users():
-    global USERS
-    with io.open(json_path, 'rb') as fh:
-        USERS = json.load(fh)
-
-def write_users():
-    global USERS
-    with io.open(json_path, 'wb') as fh:
-        json.dump(USERS, fh, indent=4)
+def check_password(hash, password):
+    return bcrypt.check_password_hash(hash, password)
 
 def generate_menu_alt():
-    REALNAME = "TEMPORARILY DISABLED"
-    USERNAME = "admin"
-    if USERS[USERNAME]['can_edit_users']:
+    if not current_user.is_authenticated():
+        return """<li><a href="/login">Log in</a></li>"""
+    if current_user.is_admin:
         edit_entry = '<li><a href="/users">Manage users</a></li>'
     else:
         edit_entry = ''
@@ -83,23 +65,131 @@ def generate_menu_alt():
       <ul class="dropdown-menu" role="menu">
         <li><a href="/profile">Profile</a></li>
         {2}
+        <li><a href="/logout">Log out</a></li>
       </ul>
-    </li>""".format(REALNAME, USERNAME, edit_entry)
+    </li>""".format(current_user.realname, current_user.username, edit_entry)
 
 def render(template_name, context=None):
     if context is None:
         context = {}
-    context['USERNAME'] = USERNAME
-    context['REALNAME'] = REALNAME
+    context['g'] = g
+    context['request'] = request
+    context['session'] = session
+    context['current_user'] = current_user
     return _site.render_template(template_name, None, context)
+
+def unauthorized():
+    return redirect('/login?status=unauthorized')
+
+app = Flask('webapp')
+app.config['BCRYPT_LOG_ROUNDS'] = 12
+bcrypt = Bcrypt(app)
+login_manager = LoginManager()
+login_manager.init_app(app)
+login_manager.unauthorized_callback = unauthorized
+
+class User(object):
+    """An user."""
+    uid = -1
+    username = ''
+    realname = ''
+    password = ''
+    active = False
+    is_admin = False
+    can_see_others_posts = False
+
+    def __init__(self, uid, username, realname, password, active, is_admin, can_see_others_posts):
+        self.uid = uid
+        self.username = username
+        self.realname = realname
+        self.password = password
+        self.active = active
+        self.is_admin = is_admin
+        self.can_see_others_posts = can_see_others_posts
+
+    def get_id(self):
+        return unicode_str(self.uid)
+
+    def is_authenticated(self):
+        return self.active
+
+    def is_active(self):
+        return self.active
+
+    def is_anonymous(self):
+        return not self.active
+
+    def get_auth_token(self):
+        return make_secure_token(self.uid, self.username, self.password)
+
+    def __repr__(self):
+        return '<User {0}>'.format(self.username)
+
+@login_manager.user_loader
+def get_user(uid):
+    global USERS
+    return USERS[int(uid)]
+
+def find_user_by_name(username):
+        for uid, u in USERS.items():
+            if u.username == username:
+                return u
+                break
+
+def read_users():
+    global USERS
+    USERS = {}
+    with io.open(json_path, 'rb') as fh:
+        udict = json.load(fh)
+    for uid, data in udict.items():
+        uid = int(uid)
+        USERS[uid] = User(uid, **data)
+
+def write_users():
+    global USERS
+    udict = {}
+    for uid, user in USERS.items():
+        uid = unicode_str(uid)
+        udict[uid] = {
+            'username': user.username,
+            'realname': user.realname,
+            'password': user.password,
+            'active': user.active,
+            'is_admin': user.is_admin,
+            'can_see_others_posts': user.can_see_others_posts
+        }
+    with io.open(json_path, 'wb') as fh:
+        json.dump(udict, fh, indent=4)
 
 read_users()
 
+@app.route('/login', methods=['GET', 'POST'])
+def login():
+    alert = None
+    alert_status = 'danger'
+    if request.method == 'POST':
+        user = find_user_by_name(request.form['username'])
+        if not user:
+            alert = 'Invalid credentials.'
+        else:
+            if check_password(user.password, request.form['password']) and user.active:
+                login_user(user, remember=('remember-me' in request.form))
+                return redirect('/')
+            else:
+                alert = "Invalid credentials."
+    else:
+        if request.args.get('status') == 'unauthorized':
+            alert = 'Please log in to access this page.'
+        elif request.args.get('status') == 'logout':
+            alert = 'Logged out successfully.'
+            alert_status = 'success'
+    return render('webapp_login.tmpl', {'title': 'Login', 'permalink': '/login', 'alert': alert, 'alert_status': alert_status})
 
-# FIXME
-login_required = lambda _: _
-
-app = Flask('webapp')
+@app.route('/logout')
+@login_required
+def logout():
+    logout_user()
+    return redirect('/login?status=logout')
 
 @app.route('/')
 @login_required
@@ -123,6 +213,8 @@ def edit(path):
             break
     if post is None:
         return "No such post or page.", 404
+    with io.open(path, 'r', encoding='utf-8') as fh:
+        context['post_content'] = fh.read().split('\n\n', 1)[1]
     context['post'] = post
     context['title'] = 'Editing {0}'.format(post.title())
     context['permalink'] = '/edit/' + path
@@ -141,7 +233,9 @@ def save(path):
             break
     if post is None:
         return "No such post or page.", 404
-    meta = request.form
+    meta = {}
+    for k, v in request.form.items():
+        meta[k] = v
     meta.pop('_wysihtml5_mode', '')
     post.compiler.create_post(post.source_path, onefile=True, is_page=False, **meta)
     init_site()
@@ -172,9 +266,9 @@ def server_assets(path):
 @app.route('/new/post', methods=['POST'])
 @login_required
 def new_post():
-    title = request.forms['title']
+    title = request.form['title']
     try:
-        _site.commands.new_post(title=title, author=REALNAME, content_format='html')
+        _site.commands.new_post(title=title, author=current_user.realname, content_format='html')
     except SystemExit:
         return "This post already exists!", 500
     # reload post list and go to index
@@ -186,7 +280,7 @@ def new_post():
 def new_page():
     title = request.form['title']
     try:
-        _site.commands.new_page(title=title, author=REALNAME, content_format='html')
+        _site.commands.new_page(title=title, author=current_user.realname, content_format='html')
     except SystemExit:
         return "This post already exists!", 500
     # reload post list and go to index
@@ -196,108 +290,152 @@ def new_page():
 @app.route('/profile')
 @login_required
 def acp_profile():
+    if request.args.get('status') == 'ok':
+        alert = 'Profile changed successfully.'
+        alert_status = 'success'
+    elif request.args.get('status') == 'pwdfail':
+        alert = 'Passwords don’t match.'
+        alert_status = 'danger'
+    else:
+        alert = ''
+        alert_status = ''
     return render('webapp_profile.tmpl',
                     context={'title': 'Edit profile',
-                            'permalink': '/profile'})
+                             'permalink': '/profile',
+                             'alert': alert,
+                             'alert_status': alert_status})
 
 @app.route('/profile/save', methods=['POST'])
 @login_required
 def acp_profile_save():
-    global USERS
-    read_users()
+    status = 'ok'
     data = request.form
-    if data['password'].strip():
-        USERS[USERNAME]['password'] = passwd_hash(data['password'])
-    USERS[USERNAME]['name'] = data['name']
+    if data['newpwd1']:
+        if data['newpwd1'] == data['newpwd2'] and check_password(current_user.password, data['oldpwd']):
+            current_user.password = password_hash(data['newpwd1'])
+        else:
+            status = 'pwdfail'
+    current_user.realname = data['realname']
     write_users()
-    return redirect('/profile')
+    return redirect('/profile?status={0}'.format(status))
 
 @app.route('/users')
 @login_required
 def acp_users():
+    alert = ''
+    alert_status = ''
+    if request.args.get('status') == 'deleted':
+        alert = 'User deleted.'
+        alert_status = 'success'
+    if request.args.get('status') == 'undeleted':
+        alert = 'User undeleted.'
+        alert_status = 'success'
     global USERS
-    if not USERS[USERNAME]['can_edit_users']:
+    if not current_user.is_admin:
         return "Not authorized to edit users.", 401
     else:
         return render('webapp_users.tmpl',
                         context={'title': 'Edit users',
-                                'permalink': '/users',
-                                'USERS': USERS})
-@app.route('/users/<name>')
+                                 'permalink': '/users',
+                                 'USERS': USERS,
+                                 'alert': alert,
+                                 'alert_status': alert_status})
+
+@app.route('/users/edit', methods=['POST'])
 @login_required
-def acp_users_edit(name):
+def acp_users_edit():
     global USERS
-    if not USERS[USERNAME]['can_edit_users']:
+    if not current_user.is_admin:
         return "Not authorized to edit users.", 401
     else:
-        if name in USERS:
-            new = False
-            user = USERS[name]
-        else:
-            new = True
-            user = {'name': '', 'password': '', 'can_edit_users': False}
-        return render('webapp_users_edit.tmpl',
-                        context={'title': 'Edit user ' + name,
-                                'permalink': '/users/' + name,
-                                'user': user,
-                                'name': name,
-                                'new': new})
-
-@app.route('/users/<name>/save', methods=['POST'])
-@login_required
-def acp_users_save(name):
-    global USERS
-    if not USERS[USERNAME]['can_edit_users']:
-        return "Not authorized to edit users.", 401
-    else:
-        read_users()
-        data = request.form
-        if name not in USERS:
-            USERS[name] = {'name': '', 'password': '', 'can_edit_users': False}
-        if data['password'].strip():
-            USERS[name]['password'] = passwd_hash(data['password'])
-        USERS[name]['name'] = data['name']
-        if name != USERNAME:
-            USERS[name]['can_edit_users'] = 'can_edit_users' in data
-        write_users()
-        return redirect('/users')
-
-@app.route('/users/create/new', methods=['POST'])
-@login_required
-def acp_users_create_new():
-    data = request.form
-    return redirect('/users/' + data['name'])
-
-@app.route('/users/<name>/delete')
-@login_required
-def acp_users_delete(name):
-    global USERS
-    if not USERS[USERNAME]['can_edit_users']:
-        return "Not authorized to edit users.", 401
-    else:
-        if name not in USERS:
+        user = get_user(request.form['uid'])
+        if not user:
             return "User does not exist.", 404
-        return render('webapp_users_delete.tmpl',
-                        context={'title': 'Deleting ' + name,
-                                'permalink': '/users/{0}/delete'.format(name),
-                                'user': name})
+        new = not user.password
+        if request.args.get('status') == 'ok':
+            alert = 'User changed successfully.'
+            alert_status = 'success'
+        elif request.args.get('status') == 'ok_new':
+            alert = 'User created successfully.'
+            alert_status = 'success'
+        elif request.args.get('status') == 'pwdfail':
+            alert = 'Passwords don’t match.'
+            alert_status = 'danger'
+        elif request.args.get('status') == 'nopwd':
+            alert = 'Must set a password.'
+            alert_status = 'danger'
+        else:
+            alert = ''
+            alert_status = ''
+        return render('webapp_users_edit.tmpl',
+                        context={'title': 'Edit user',
+                                 'permalink': '/users/edit',
+                                 'user': user,
+                                 'new': new,
+                                 'alert': alert,
+                                 'alert_status': alert_status})
 
-@app.route('/users/<name>/really_delete')
+@app.route('/users/save', methods=['POST'])
 @login_required
-def acp_users_really_delete(name):
-    global USERS
-    if not USERS[USERNAME]['can_edit_users']:
+def acp_users_save():
+    data = request.form
+    user = get_user(int(data['uid']))
+    new = user.password == ''
+    status = 'ok'
+    if new:
+        status = 'ok_new'
+    if data['newpwd1']:
+        if data['newpwd1'] == data['newpwd2']:
+            user.password = password_hash(data['newpwd1'])
+        else:
+            status = 'pwdfail'
+    elif new:
+        status = 'nopwd'
+    user.realname = data['realname']
+    if user != current_user:
+        user.is_admin = 'is_admin' in data
+    write_users()
+    return redirect('/users/{0}/edit?status={1}'.format(user.username, status))
+
+
+@app.route('/users/new', methods=['POST'])
+@login_required
+def acp_users_new():
+    uid = max(USERS) + 1
+    USERS[uid] = User(uid, request.form['username'], '', '', True, False, False)
+    print(USERS[uid])
+    return redirect('/users/{0}/edit'.format(request.form['username']))
+
+@app.route('/users/delete', methods=['POST'])
+@login_required
+def acp_users_delete():
+    if not current_user.is_admin:
         return "Not authorized to edit users.", 401
     else:
-        read_users()
-        del USERS[name]
-        write_users()
-        return redirect('/users')
+        user = get_user(int(request.form['uid']))
+        direction = request.form['direction']
+        if not user:
+            return "User does not exist.", 404
+        else:
+            user.active = direction == 'undel'
+            write_users()
+            return redirect('/users?status={_del}eted'.format(_del=direction))
+
+
+@app.route('/users/reload')
+@login_required
+def acp_users_reload():
+    if not current_user.is_admin:
+        return "Not authorized to edit users.", 401
+    read_users()
+    return redirect('/users')
 
 def main():
     global _site, app
-    nikola.__main__._RETURN_SITE = True
-    _site = nikola.__main__.main([])
+    nikola.__main__._RETURN_DOITNIKOLA = True
+    DN = nikola.__main__.main([])
+    DN.sub_cmds = DN.get_commands()
+    _site = DN.nikola
     init_site()
     port = 8001
 
@@ -315,6 +453,7 @@ def main():
     _site.config['BLOG_TITLE'] = lambda _: TITLE
     _site.GLOBAL_CONTEXT['blog_title'] = lambda _: TITLE
     _site.GLOBAL_CONTEXT['lang'] = 'en'
+    app.secret_key = _site.config['COMET_SECRET_KEY']
 
     mod_dir = os.path.dirname(__file__)
     tmpl_dir = os.path.join(
