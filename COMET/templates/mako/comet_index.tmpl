@@ -36,8 +36,8 @@ $('#deleteModal').on('show.bs.modal', function (event) {
                 <small>Date: ${p.date}</small>
                 <br><small>Author: ${p.meta('author')}</small>
                 <div class="pull-right">
-                    <a class="btn btn-info btn-xs" href="/edit/${p.source_path}"><span class="fa fa-pencil"></span> Edit</a>
-                    <button type="button" class="btn btn-danger btn-xs" data-toggle="modal" data-target="#deleteModal" data-sourcepath="${p.source_path}" data-ptitle="${p.title()}"><span class="fa fa-trash"></span> Delete</a>
+                    <a class="btn btn-info btn-xs" href="/edit/${p.source_path}"><i class="fa fa-pencil"></i> Edit</a>
+                    <button type="button" class="btn btn-danger btn-xs" data-toggle="modal" data-target="#deleteModal" data-sourcepath="${p.source_path}" data-ptitle="${p.title()}"><i class="fa fa-trash"></i> Delete</a>
                 </div>
             </div>
         % endfor
@@ -58,8 +58,8 @@ $('#deleteModal').on('show.bs.modal', function (event) {
                 <small>Date: ${p.date}</small>
                 <br><small>Author: ${p.meta('author')}</small>
                 <div class="pull-right">
-                    <a class="btn btn-info btn-xs" href="/edit/${p.source_path}"><span class="fa fa-pencil"></span> Edit</a>
-                    <button type="button" class="btn btn-danger btn-xs" data-toggle="modal" data-target="#deleteModal" data-sourcepath="${p.source_path}" data-ptitle="${p.title()}"><span class="fa fa-trash"></span> Delete</a>
+                    <a class="btn btn-info btn-xs" href="/edit/${p.source_path}"><i class="fa fa-pencil"></i> Edit</a>
+                    <button type="button" class="btn btn-danger btn-xs" data-toggle="modal" data-target="#deleteModal" data-sourcepath="${p.source_path}" data-ptitle="${p.title()}"><i class="fa fa-trash"></i> Delete</a>
                 </div>
             </div>
         % endfor
