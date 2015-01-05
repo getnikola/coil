@@ -4,3 +4,4 @@ stories/
 cache/
 output/
 .doit.db
+.venv
