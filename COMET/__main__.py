@@ -1,0 +1,2 @@
+import COMET
+COMET.main()
