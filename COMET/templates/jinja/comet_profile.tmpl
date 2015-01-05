@@ -1,0 +1,33 @@
+{% extends 'base.tmpl' %}
+{% block extra_head %}
+<link href="//maxcdn.bootstrapcdn.com/font-awesome/4.2.0/css/font-awesome.min.css" rel="stylesheet">
+{% endblock %}
+{% block content %}
+<h1 class="title">Editing profile <tt>{{ current_user.username }}</tt></h1>
+
+{% if alert %}
+<div class="alert alert-{{ alert_status }}" role="alert">{{ alert }}</div>
+{% endif %}
+
+<form action="/profile/save" method="POST">
+  <div class="form-group">
+    <label for="name">Real name</label>
+    <input class="form-control" id="realname" name="realname" value="{{ current_user.realname }}" placeholder="Real name">
+  </div>
+  <div class="form-group">
+    <label for="oldpwd">Old password:</label>
+    <input type="password" class="form-control" id="oldpwd" name="oldpwd" placeholder="Old password">
+    <p class="help-block">If you do not want to change your password, leave the fields blank.</p>
+  </div>
+  <div class="form-group">
+    <label for="newpwd1">New password:</label>
+    <input type="password" class="form-control" id="newpwd1" name="newpwd1" placeholder="New password">
+  </div>
+  <div class="form-group">
+    <label for="newpwd2">Repeat new password:</label>
+    <input type="password" class="form-control" id="newpwd2" name="newpwd2" placeholder="Repeat new password">
+  </div>
+  <button type="submit" class="btn btn-default">Save</button>
+</form>
+
+{% endblock %}

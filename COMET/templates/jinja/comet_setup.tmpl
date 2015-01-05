@@ -1,0 +1,36 @@
+{#  -*- coding: utf-8 -*- #}
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="UTF-8">
+        <title>Comet CMS Setup</title>
+        <style>
+        kbd {
+            padding: 2px 4px;
+            font-size: 90%;
+            color: #fff;
+            background-color: #333;
+            border-radius: 3px;
+        }
+
+        a {
+            text-decoration: none;
+            border-radius: 5px;
+            border: solid #ccc 1px;
+            padding: 10px;
+            color: #000;
+        }
+        </style>
+    </head>
+    <body>
+        <h1>Comet CMS Setup</h1>
+        {% if needs_setup %}
+        <p>Welcome to Comet CMS!</p>
+        <p>In order to start using Comet CMS, you must run <kbd>nikola build</kbd> first.</p>
+        <p><a href="/">→ Try again</a></p>
+        {% else %}
+        <p>Comet CMS is good to go!</p>
+        <p><a href="/">→ Continue</a></p>
+        {% endif %}
+    </body>
+</html>

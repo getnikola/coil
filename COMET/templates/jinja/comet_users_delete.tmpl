@@ -1,0 +1,9 @@
+{% extends 'base.tmpl' %}
+{% block extra_head %}
+<link href="//maxcdn.bootstrapcdn.com/font-awesome/4.2.0/css/font-awesome.min.css" rel="stylesheet">
+{% endblock %}
+{% block content %}
+<h1 class="title">Really delete <tt>{{ user }}</tt>?</h1>
+<a class="btn btn-danger" href="./really_delete">Yes, really.</a>
+<a class="btn btn-default" href="/users">No</a>
+{% endblock %}

@@ -1,26 +1,26 @@
-<%inherit file="base.tmpl"/>
-<%block name="extra_head">
+{% extends 'base.tmpl' %}
+{% block extra_head %}
 <link href="//maxcdn.bootstrapcdn.com/font-awesome/4.2.0/css/font-awesome.min.css" rel="stylesheet">
-</%block>
-<%block name="content">
-% if not new:
-<h1 class="title">Editing profile <tt>${user.username}</tt></h1>
-% else:
-<h1 class="title">Creating profile <tt>${user.username}</tt></h1>
-% endif
+{% endblock %}
+{% block content %}
+{% if not new %}
+<h1 class="title">Editing profile <tt>{{ user.username }}</tt></h1>
+{% else %}
+<h1 class="title">Creating profile <tt>{{ user.username }}</tt></h1>
+{% endif %}
 
-% if alert:
-<div class="alert alert-${alert_status}" role="alert">${alert}</div>
-% endif
+{% if alert %}
+<div class="alert alert-{{ alert_status }}" role="alert">{{ alert }}</div>
+{% endif %}
 
 <form action="/users/save" method="POST">
-  <input name="uid" type="hidden" value="${user.uid}">
+  <input name="uid" type="hidden" value="{{ user.uid }}">
   <div class="form-group">
     <label for="name">Real name</label>
-    <input class="form-control" id="realname" name="realname" value="${user.realname}"
+    <input class="form-control" id="realname" name="realname" value="{{ user.realname }}"
     placeholder="Real name" required>
   </div>
-  % if user.password:
+  {% if user.password %}
   <div class="form-group">
     <label for="newpwd1">New password:</label>
     <input type="password" class="form-control" id="newpwd1" name="newpwd1" placeholder="New password">
@@ -30,7 +30,7 @@
     <label for="newpwd2">Repeat new password:</label>
     <input type="password" class="form-control" id="newpwd2" name="newpwd2" placeholder="Repeat new password">
   </div>
-  % else:
+  {% else %}
   <div class="form-group">
     <label for="newpwd1">Password:</label>
     <input type="password" class="form-control" id="newpwd1" name="newpwd1" placeholder="Password" required>
@@ -39,18 +39,18 @@
     <label for="newpwd2">Repeat password:</label>
     <input type="password" class="form-control" id="newpwd2" name="newpwd2" placeholder="Repeat password" required>
   </div>
-  % endif
+  {% endif %}
  <div class="checkbox"><label>
     <input type="checkbox" name="is_admin"
-    % if user.is_admin:
+    {% if user.is_admin %}
     checked
-    % endif
-    % if user == current_user:
+    {% endif %}
+    {% if user == current_user %}
     disabled
-    % endif
+    {% endif %}
     > Is administrator
  </label></div>
   <button type="submit" class="btn btn-default">Save</button>
 </form>
 
-</%block>
+{% endblock %}
