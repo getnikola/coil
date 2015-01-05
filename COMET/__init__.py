@@ -37,7 +37,7 @@ from flask.ext.login import LoginManager, login_required, login_user, logout_use
 from flask.ext.bcrypt import Bcrypt
 _site = None
 app = None
-TITLE = 'webapp'
+TITLE = 'comet'
 USERS = {}
 auth_title = 'Comet CMS Login'
 
@@ -81,7 +81,7 @@ def render(template_name, context=None):
 def unauthorized():
     return redirect('/login?status=unauthorized')
 
-app = Flask('webapp')
+app = Flask('comet')
 app.config['BCRYPT_LOG_ROUNDS'] = 12
 bcrypt = Bcrypt(app)
 login_manager = LoginManager()
@@ -183,7 +183,7 @@ def login():
         elif request.args.get('status') == 'logout':
             alert = 'Logged out successfully.'
             alert_status = 'success'
-    return render('webapp_login.tmpl', {'title': 'Login', 'permalink': '/login', 'alert': alert, 'alert_status': alert_status})
+    return render('comet_login.tmpl', {'title': 'Login', 'permalink': '/login', 'alert': alert, 'alert_status': alert_status})
 
 @app.route('/logout')
 @login_required
@@ -194,11 +194,18 @@ def logout():
 @app.route('/')
 @login_required
 def index():
+    if not os.path.exists(os.path.join(_site.config["OUTPUT_FOLDER"], 'assets')):
+        return redirect('/setup')
     context = {}
     context['site'] = _site
     context['title'] = 'Posts & Pages'
     context['permalink'] = '/'
-    return render('webapp_index.tmpl', context)
+    return render('comet_index.tmpl', context)
+
+@app.route('/setup')
+def setup():
+    needs_setup = os.path.exists(os.path.join(_site.config["OUTPUT_FOLDER"], 'assets'))
+    return render("comet_setup.tmpl", context={'needs_setup': needs_setup})
 
 @app.route('/edit/<path:path>', methods=['GET', 'POST'])
 @login_required
@@ -218,7 +225,7 @@ def edit(path):
     context['post'] = post
     context['title'] = 'Editing {0}'.format(post.title())
     context['permalink'] = '/edit/' + path
-    return render('webapp_post_edit.tmpl', context)
+    return render('comet_post_edit.tmpl', context)
 
 @app.route('/save/<path:path>', methods=['POST'])
 @login_required
@@ -299,7 +306,7 @@ def acp_profile():
     else:
         alert = ''
         alert_status = ''
-    return render('webapp_profile.tmpl',
+    return render('comet_profile.tmpl',
                     context={'title': 'Edit profile',
                              'permalink': '/profile',
                              'alert': alert,
@@ -334,7 +341,7 @@ def acp_users():
     if not current_user.is_admin:
         return "Not authorized to edit users.", 401
     else:
-        return render('webapp_users.tmpl',
+        return render('comet_users.tmpl',
                         context={'title': 'Edit users',
                                  'permalink': '/users',
                                  'USERS': USERS,
@@ -367,7 +374,7 @@ def acp_users_edit():
         else:
             alert = ''
             alert_status = ''
-        return render('webapp_users_edit.tmpl',
+        return render('comet_users_edit.tmpl',
                         context={'title': 'Edit user',
                                  'permalink': '/users/edit',
                                  'user': user,
@@ -420,7 +427,6 @@ def acp_users_delete():
             user.active = direction == 'undel'
             write_users()
             return redirect('/users?status={_del}eted'.format(_del=direction))
-
 
 @app.route('/users/reload')
 @login_required
