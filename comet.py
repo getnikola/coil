@@ -1,1 +1,0 @@
-import COMET; COMET.main()

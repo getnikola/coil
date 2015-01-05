@@ -31,4 +31,6 @@ Usage
 
 Run with ``python -m COMET``.
 
+If that fails, use ``python RUN.py`` instead.
+
 Default credentials: admin / admin.
