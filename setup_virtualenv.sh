@@ -1,3 +1,4 @@
+#!/bin/bash
 virtualenv comet_env
 cd comet
 source bin/activate
