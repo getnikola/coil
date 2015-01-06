@@ -180,7 +180,7 @@ def write_users():
             'can_rebuild_site': user.can_rebuild_site,
         }
     with open(json_path, 'w') as fh:
-        json.dump(udict, fh, indent=4)
+        json.dump(udict, fh, indent=4, sort_keys=True, separators=(',', ': '))
 
 read_users()
 
@@ -231,9 +231,7 @@ def setup():
 @app.route('/edit/<path:path>', methods=['GET', 'POST'])
 @login_required
 def edit(path):
-    context = {'path': path}
-    context['site'] = _site
-    context['json'] = json
+    context = {'path': path, 'site': _site}
     post = None
     for p in _site.timeline:
         if p.source_path == path:
@@ -241,33 +239,25 @@ def edit(path):
             break
     if post is None:
         return "No such post or page.", 404
-    with io.open(path, 'r', encoding='utf-8') as fh:
-        context['post_content'] = fh.read().split('\n\n', 1)[1]
+
+    if request.method == 'POST':
+        meta = {}
+        for k, v in request.form.items():
+            meta[k] = v
+        meta.pop('_wysihtml5_mode', '')
+        post.compiler.create_post(post.source_path, onefile=True, is_page=False, **meta)
+        init_site()
+        context['action'] = 'save'
+        context['post_content'] = meta['content']
+    else:
+        context['action'] = 'edit'
+        with io.open(path, 'r', encoding='utf-8') as fh:
+            context['post_content'] = fh.read().split('\n\n', 1)[1]
+
     context['post'] = post
     context['title'] = 'Editing {0}'.format(post.title())
     context['permalink'] = '/edit/' + path
     return render('comet_post_edit.tmpl', context)
-
-@app.route('/save/<path:path>', methods=['POST'])
-@login_required
-def save(path):
-    # FIXME insecure pending defnull/bottle#411
-    context = {'path': path}
-    context['site'] = _site
-    post = None
-    for p in _site.timeline:
-        if p.source_path == path:
-            post = p
-            break
-    if post is None:
-        return "No such post or page.", 404
-    meta = {}
-    for k, v in request.form.items():
-        meta[k] = v
-    meta.pop('_wysihtml5_mode', '')
-    post.compiler.create_post(post.source_path, onefile=True, is_page=False, **meta)
-    init_site()
-    return redirect('/edit/' + path)
 
 @app.route('/delete', methods=['POST'])
 @login_required
@@ -283,71 +273,61 @@ def delete():
     init_site()
     return redirect('/')
 
+# Please do those in nginx if possible.
 @app.route('/wysihtml/<path:path>')
-def server_wysihtml(path):
+def serve_wysihtml(path):
     return send_from_directory(os.path.join(os.path.dirname(__file__), 'bower_components', 'wysihtml'), path)
 
+@app.route('/comet_assets/<path:path>')
+def serve_comet_assets(path):
+    return send_from_directory(os.path.join(os.path.dirname(__file__), 'comet_assets'), path)
+
 @app.route('/assets/<path:path>')
-def server_assets(path):
+def serve_assets(path):
     return send_from_directory(os.path.join(_site.config["OUTPUT_FOLDER"], 'assets'), path)
 
-@app.route('/new/post', methods=['POST'])
+@app.route('/new/<obj>', methods=['POST'])
 @login_required
-def new_post():
+def new_post(obj):
     title = request.form['title']
     try:
-        _site.commands.new_post(title=title, author=current_user.realname, content_format='html')
+        if obj == 'post':
+            _site.commands.new_post(title=title, author=current_user.realname, content_format='html')
+        elif obj == 'page':
+            _site.commands.new_page(title=title, author=current_user.realname, content_format='html')
+        else:
+            return "Cannot create {0} — unknown type.".format(obj), 400
     except SystemExit:
-        return "This post already exists!", 500
+        return "This {0} already exists!".format(obj), 500
     # reload post list and go to index
     init_site()
     return redirect('/')
 
-@app.route('/new/page', methods=['POST'])
-@login_required
-def new_page():
-    title = request.form['title']
-    try:
-        _site.config['ADDITIONAL_METADATA']['author.uid'] = current_user.uid
-        _site.commands.new_page(title=title, author=current_user.realname, content_format='html')
-        del _site.config['ADDITIONAL_METADATA']['author.uid']
-    except SystemExit:
-        return "This post already exists!", 500
-    # reload post list and go to index
-    init_site()
-    return redirect('/')
-
-@app.route('/account')
+@app.route('/account', methods=['POST', 'GET'])
 @login_required
 def acp_user_account():
-    if request.args.get('status') == 'ok':
+    alert = ''
+    alert_status = ''
+    if request.method == 'POST':
+        data = request.form
+        if data['newpwd1']:
+            if data['newpwd1'] == data['newpwd2'] and check_password(current_user.password, data['oldpwd']):
+                current_user.password = password_hash(data['newpwd1'])
+            else:
+                alert = 'Passwords don’t match.'
+                alert_status = 'danger'
+        current_user.realname = data['realname']
+        current_user.wants_see_others_posts = 'wants_see_others_posts' in data
+        write_users()
+
         alert = 'Account edited successfully.'
         alert_status = 'success'
-    elif request.args.get('status') == 'pwdfail':
-        alert = 'Passwords don’t match.'
-        alert_status = 'danger'
-    else:
-        alert = ''
-        alert_status = ''
+
     return render('comet_account.tmpl',
                     context={'title': 'My account',
                              'permalink': '/account',
                              'alert': alert,
                              'alert_status': alert_status})
-
-@app.route('/account/save', methods=['POST'])
-@login_required
-def acp_user_account_save():
-    status = 'ok'
-    data = request.form
-    if data['newpwd1']:
-        if data['newpwd1'] == data['newpwd2'] and check_password(current_user.password, data['oldpwd']):
-            current_user.password = password_hash(data['newpwd1'])
-        else:
-            status = 'pwdfail'
-    current_user.realname = data['realname']
-    write_users()
-    return redirect('/account?status={0}'.format(status))
 
 @app.route('/users')
 @login_required
@@ -371,73 +351,61 @@ def acp_users():
                                  'alert': alert,
                                  'alert_status': alert_status})
 
-@app.route('/users/edit', methods=['GET', 'POST'])
+@app.route('/users/edit', methods=['POST'])
 @login_required
 def acp_users_edit():
     global USERS
     if not current_user.is_admin:
         return "Not authorized to edit users.", 401
+    data = request.form
+    action = data['action']
+
+    if action == 'new':
+        uid = max(USERS) + 1
+        USERS[uid] = User(uid, data['username'], '', '', True, False, True, True, True, True)
+        user = USERS[uid]
+        new = True
     else:
-        if request.method == 'GET':
-            user = get_user(request.args.get('uid'))
-        else:
-            user = get_user(request.form['uid'])
-        if not user:
-            return "User does not exist.", 404
-        new = not user.password
-        if request.args.get('status') == 'ok':
-            alert = 'User changed successfully.'
-            alert_status = 'success'
-        elif request.args.get('status') == 'ok_new':
+        user = get_user(data['uid'])
+        new = False
+
+    if not user:
+        return "User does not exist.", 404
+
+    alert = ''
+    alert_status = ''
+
+    if action == 'save':
+        alert = 'User changed successfully.'
+        alert_status = 'success'
+        if new:
             alert = 'User created successfully.'
             alert_status = 'success'
-        elif request.args.get('status') == 'pwdfail':
-            alert = 'Passwords don’t match.'
-            alert_status = 'danger'
-        elif request.args.get('status') == 'nopwd':
+        if data['newpwd1']:
+            if data['newpwd1'] == data['newpwd2']:
+                user.password = password_hash(data['newpwd1'])
+            else:
+                alert = 'Passwords don’t match.'
+                alert_status = 'danger'
+        elif new:
             alert = 'Must set a password.'
             alert_status = 'danger'
-        else:
-            alert = ''
-            alert_status = ''
-        return render('comet_users_edit.tmpl',
-                        context={'title': 'Edit user',
-                                 'permalink': '/users/edit',
-                                 'user': user,
-                                 'new': new,
-                                 'alert': alert,
-                                 'alert_status': alert_status})
+        user.realname = data['realname']
+        if user != current_user:
+            user.is_admin = 'is_admin' in data
+        user.wants_see_others_posts = 'wants_see_others_posts' in data
+        user.can_see_others_posts = 'can_see_others_posts' in data
+        user.can_upload_attachments = 'can_upload_attachments' in data
+        user.can_rebuild_site = 'can_rebuild_site' in data
+        write_users()
 
-@app.route('/users/save', methods=['POST'])
-@login_required
-def acp_users_save():
-    data = request.form
-    user = get_user(int(data['uid']))
-    new = user.password == ''
-    status = 'ok'
-    if new:
-        status = 'ok_new'
-    if data['newpwd1']:
-        if data['newpwd1'] == data['newpwd2']:
-            user.password = password_hash(data['newpwd1'])
-        else:
-            status = 'pwdfail'
-    elif new:
-        status = 'nopwd'
-    user.realname = data['realname']
-    if user != current_user:
-        user.is_admin = 'is_admin' in data
-    write_users()
-    return redirect('/users/edit?uid={0}&status={1}'.format(user.uid, status))
-
-
-@app.route('/users/new', methods=['POST'])
-@login_required
-def acp_users_new():
-    uid = max(USERS) + 1
-    USERS[uid] = User(uid, request.form['username'], '', '', True, False, False)
-    print(USERS[uid])
-    return redirect('/users/{0}/edit'.format(request.form['username']))
+    return render('comet_users_edit.tmpl',
+                    context={'title': 'Edit user',
+                             'permalink': '/users/edit',
+                             'user': user,
+                             'new': new,
+                             'alert': alert,
+                             'alert_status': alert_status})
 
 @app.route('/users/delete', methods=['POST'])
 @login_required

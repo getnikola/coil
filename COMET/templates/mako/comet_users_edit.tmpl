@@ -13,7 +13,8 @@
 <div class="alert alert-${alert_status}" role="alert">${alert}</div>
 % endif
 
-<form action="/users/save" method="POST" class="form-horizontal">
+<form action="/users/edit" method="POST" class="form-horizontal">
+    <input type="hidden" name="action" value="save">
     <div class="panel panel-primary">
         <div class="panel-heading">
             <h3 class="panel-title">Profile</h3>
@@ -79,6 +80,26 @@
                     % endif
                     > User is an administrator
                 </label></div>
+            <div class="checkbox"><label><input type="checkbox" name="can_see_others_posts"
+                    % if user.can_see_others_posts:
+                    checked
+                    % endif
+                    > User can see posts of other users
+                </label></div>
+            <div class="checkbox"><label><input type="checkbox" name="can_upload_attachments"
+                    % if user.can_upload_attachments:
+                    checked
+                    % endif
+                    > User can upload attachments
+                </label></div>
+            <div class="checkbox"><label><input type="checkbox" name="can_rebuild_site"
+                    % if user.can_rebuild_site:
+                    checked
+                    % endif
+                    > User can rebuild site
+                </label></div>
+
+
         </div>
     </div>
 

@@ -62,7 +62,9 @@ $('#deleteModal').on('show.bs.modal', function (event) {
     % endif
     </td>
     <td>
-    <form action="/users/edit" method="POST"><input type="hidden" name="uid" value="${uid}">
+    <form action="/users/edit" method="POST">
+    <input type="hidden" name="uid" value="${uid}">
+    <input type="hidden" name="action" value="edit">
     <div class="btn-group" role="group">
     % if user.active:
         <button type="submit" class="btn btn-info btn-xs" title="Edit"><i class="fa fa-pencil"></i> Edit</button>
@@ -79,10 +81,10 @@ $('#deleteModal').on('show.bs.modal', function (event) {
     </form>
 </tr>
 % endfor
-<tr><form action="/users/new" method="POST">
+<tr><form action="/users/edit" method="POST">
     <td><i class="fa fa-plus"></i></td>
     <td><input name="username" placeholder="User to create"></td>
-    <td></td>
+    <td><input name="action" value="new" type="hidden"></td>
     <td></td>
     <td><button type="submit" class="btn btn-primary btn-xs"><i class="fa fa-plus-square"></i> Create</button></td>
 </form></tr>
