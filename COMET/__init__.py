@@ -462,39 +462,43 @@ def acp_users_reload():
     read_users()
     return redirect('/users')
 
+nikola.__main__._RETURN_DOITNIKOLA = True
+DN = nikola.__main__.main([])
+DN.sub_cmds = DN.get_commands()
+_site = DN.nikola
+init_site()
+
+_site.template_hooks['menu_alt'].append(generate_menu_alt)
+PORT = 8001
+
+site = _site.config['SITE_URL']
+_site.config['SITE_URL'] = 'http://localhost:{0}/'.format(PORT)
+_site.config['BASE_URL'] = 'http://localhost:{0}/'.format(PORT)
+_site.GLOBAL_CONTEXT['blog_url'] = 'http://localhost:{0}/'.format(PORT)
+_site.config['NAVIGATION_LINKS'] = {'en': ((site, 'Back to {0}'.format(_site.GLOBAL_CONTEXT['blog_title']('en'))),)}
+_site.GLOBAL_CONTEXT['navigation_links'] = {'en':((site, 'Back to {0}'.format(_site.GLOBAL_CONTEXT['blog_title']('en'))),)}
+_site.config['SOCIAL_BUTTONS'] = ''
+_site.GLOBAL_CONTEXT['social_buttons_code'] = lambda _: ''
+TITLE = _site.GLOBAL_CONTEXT['blog_title']('en') + ' Administration'
+_site.config['BLOG_TITLE'] = lambda _: TITLE
+_site.GLOBAL_CONTEXT['blog_title'] = lambda _: TITLE
+_site.GLOBAL_CONTEXT['lang'] = 'en'
+app.secret_key = _site.config['COMET_SECRET_KEY']
+
+mod_dir = os.path.dirname(__file__)
+tmpl_dir = os.path.join(
+    mod_dir, 'templates', _site.template_system.name
+)
+if os.path.isdir(tmpl_dir):
+    # Inject tmpl_dir low in the theme chain
+    _site.template_system.inject_directory(tmpl_dir)
+
 def main():
-    global _site, app
-    nikola.__main__._RETURN_DOITNIKOLA = True
-    DN = nikola.__main__.main([])
-    DN.sub_cmds = DN.get_commands()
-    _site = DN.nikola
-    init_site()
+    global _site
     port = 8001
-
-    _site.template_hooks['menu_alt'].append(generate_menu_alt)
-
-    site = _site.config['SITE_URL']
     _site.config['SITE_URL'] = 'http://localhost:{0}/'.format(port)
     _site.config['BASE_URL'] = 'http://localhost:{0}/'.format(port)
     _site.GLOBAL_CONTEXT['blog_url'] = 'http://localhost:{0}/'.format(port)
-    _site.config['NAVIGATION_LINKS'] = {'en': ((site, 'Back to {0}'.format(_site.GLOBAL_CONTEXT['blog_title']('en'))),)}
-    _site.GLOBAL_CONTEXT['navigation_links'] = {'en':((site, 'Back to {0}'.format(_site.GLOBAL_CONTEXT['blog_title']('en'))),)}
-    _site.config['SOCIAL_BUTTONS'] = ''
-    _site.GLOBAL_CONTEXT['social_buttons_code'] = lambda _: ''
-    TITLE = _site.GLOBAL_CONTEXT['blog_title']('en') + ' Administration'
-    _site.config['BLOG_TITLE'] = lambda _: TITLE
-    _site.GLOBAL_CONTEXT['blog_title'] = lambda _: TITLE
-    _site.GLOBAL_CONTEXT['lang'] = 'en'
-    app.secret_key = _site.config['COMET_SECRET_KEY']
-
-    mod_dir = os.path.dirname(__file__)
-    tmpl_dir = os.path.join(
-        mod_dir, 'templates', _site.template_system.name
-    )
-    if os.path.isdir(tmpl_dir):
-        # Inject tmpl_dir low in the theme chain
-        _site.template_system.inject_directory(tmpl_dir)
-
     #if options and options.get('browser'):
         #webbrowser.open('http://localhost:{0}'.format(port))
 
