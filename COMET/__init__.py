@@ -84,16 +84,23 @@ def _author_uid_get(post):
     u = post.meta['en']['author.uid']
     return u if u else current_user.uid
 
-def render(template_name, context=None):
+def render(template_name, context=None, code=200, headers=None):
     if context is None:
         context = {}
+    if headers is None:
+        headers = {}
+
     context['g'] = g
     context['request'] = request
     context['session'] = session
     context['current_user'] = current_user
     context['_author_get'] = _author_get
     context['_author_uid_get'] = _author_uid_get
-    return _site.render_template(template_name, None, context)
+
+    headers['Pragma'] = 'no-cache'
+    headers['Cache-Control'] = 'private, max-age=0, no-cache'
+
+    return _site.render_template(template_name, None, context), code, headers
 
 def unauthorized():
     return redirect('/login?status=unauthorized')
