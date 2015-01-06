@@ -1,0 +1,92 @@
+{% extends 'base.tmpl' %}
+{% block extra_head %}
+<style>
+.uid {
+    text-align: right;
+}
+.perm, .select_all {
+    text-align: center;
+}
+</style>
+{% endblock %}
+{% block extra_js %}
+<script>
+var PERMISSIONS = {{ json.dumps(PERMISSIONS) }};
+var USERS = {{ json.dumps(USERS.keys()) }};
+var current_uid = {{ current_user.uid }};
+$(document).ready(function() {
+    {% if action == 'save' %}
+    save_anim();
+    {% endif %}
+
+    for (var i = 0; i < PERMISSIONS.length; i++) {
+        var p = PERMISSIONS[i];
+        $('th.' + p + ' i.fa-check-square-o').click(function() {
+            p = this.attributes['data-perm'].value;
+            $('.' + p + ' input').each(function() { this.checked = true; });
+        });
+        $('th.' + p + ' i.fa-square-o').click(function() {
+            p = this.attributes['data-perm'].value;
+            $('.' + p + ' input').each(function() {
+                if (p != 'is_admin' || this.attributes['data-uid'].value != {{ current_user.uid }}) {
+                    this.checked = false;
+                }
+            });
+        });
+    }
+
+    for (var i = 0; i < USERS.length; i++) {
+        uid = USERS[i];
+        $('.u' + uid + ' td.select_all i.fa-check-square-o').click(function() {
+            uid = this.attributes['data-uid'].value;
+            $('input.u' + uid).each(function() { this.checked = true; });
+        });
+        $('.u' + uid + ' td.select_all i.fa-square-o').click(function() {
+            uid = this.attributes['data-uid'].value;
+            $('input.u' + uid).each(function() {
+                if (uid != current_uid || this.attributes['data-perm'].value != 'is_admin') { this.checked = false; }
+            });
+        });
+    }
+});
+</script>
+{% endblock %}
+{% block content %}
+<h1 class="title">Permissions</h1>
+
+{% if alert %}
+<div class="alert alert-{{ alert_status }}" role="alert">{{ alert }}</div>
+{% endif %}
+
+<form action="/users/permissions" method="POST">
+<table class="table table-hover" style="table-layout: fixed;">
+<thead><tr>
+    <th class="uid">#</th>
+    <th class="username">Username</th>
+    <th class="perm is_admin">Admin<br><i class="fa fa-check-square-o fa-fw" data-perm="is_admin"></i><i class="fa fa-square-o fa-fw" data-perm="is_admin"></i></th>
+    <th class="perm can_edit_all_posts">Can all posts<br><i class="fa fa-check-square-o fa-fw" data-perm="can_edit_all_posts"></i><i class="fa fa-square-o fa-fw" data-perm="can_edit_all_posts"></i></th>
+    <th class="perm wants_all_posts">Want all posts<br><i class="fa fa-check-square-o fa-fw" data-perm="wants_all_posts"></i><i class="fa fa-square-o fa-fw" data-perm="wants_all_posts"></i></th>
+    <th class="perm can_upload_attachments">Attachments<br><i class="fa fa-check-square-o fa-fw" data-perm="can_upload_attachments"></i><i class="fa fa-square-o fa-fw" data-perm="can_upload_attachments"></i></th>
+    <th class="perm can_rebuild_site">Rebuild<br><i class="fa fa-check-square-o fa-fw" data-perm="can_rebuild_site"></i><i class="fa fa-square-o fa-fw" data-perm="can_rebuild_site"></i></th>
+    <th class="perm can_transfer_post_authorship">Transfer authorship<br><i class="fa fa-check-square-o fa-fw" data-perm="can_transfer_post_authorship"></i><i class="fa fa-square-o fa-fw" data-perm="can_transfer_post_authorship"></i></th>
+    <th class="select_all">Select all</th>
+</tr></thead>
+{% for uid, user in USERS.items() %}
+{% if user.active %}
+<tr class="u{{ uid }}">
+    <td class="uid">{{ uid }}</td>
+    <td class="username">{{ user.username }}</td>
+    {% for p in PERMISSIONS %}
+    <td class="perm {{ p }}">{{ display_permission(user, p) }}</td>
+    {% endfor %}
+    <td class="select_all info"><i class="fa fa-check-square-o fa-fw" data-uid="{{ uid }}"></i><i class="fa fa-square-o fa-fw" data-uid="{{ uid }}"></i></td>
+</tr>
+{% endif %}
+{% endfor %}
+</table>
+
+<div style="text-align: center;"><button type="submit" class="btn btn-primary btn-lg save-btn"><i class="fa fa-save fa-fw save-icon"></i> Save</button></div>
+
+</form>
+
+{% endblock %}

@@ -27,14 +27,18 @@
 from __future__ import print_function, unicode_literals
 import json
 import os
+import sys
 import webbrowser
 import io
-import hashlib
 import nikola.__main__
 from nikola.utils import unicode_str
 from flask import Flask, request, redirect, send_from_directory, g, session
-from flask.ext.login import LoginManager, login_required, login_user, logout_user, current_user, make_secure_token
+from flask.ext.login import (LoginManager, login_required, login_user,
+                             logout_user, current_user, make_secure_token)
 from flask.ext.bcrypt import Bcrypt
+
+__version__ = '0.5.0'
+
 _site = None
 app = None
 TITLE = 'comet'
@@ -56,17 +60,20 @@ def generate_menu_alt():
     if not current_user.is_authenticated():
         return """<li><a href="/login">Log in</a></li>"""
     if current_user.is_admin:
-        edit_entry = '<li><a href="/users">Manage users</a></li>'
+        edit_entry = """<li><a href="/users">Manage users</a></li>
+<li><a href="/users/permissions">Permissions</a></li>"""
     else:
         edit_entry = ''
     return """
     <li class="dropdown">
-      <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">{0} [{1}] <span class="caret"></span></a>
-      <ul class="dropdown-menu" role="menu">
-        <li><a href="/account">Account</a></li>
-        {2}
-        <li><a href="/logout">Log out</a></li>
-      </ul>
+        <a href="#" class="dropdown-toggle" data-toggle="dropdown"
+            role="button" aria-expanded="false">{0} [{1}]<span
+            class="caret"></span></a>
+        <ul class="dropdown-menu" role="menu">
+            <li><a href="/account">Account</a></li>
+            {2}
+            <li><a href="/logout">Log out</a></li>
+        </ul>
     </li>""".format(current_user.realname, current_user.username, edit_entry)
 
 def _author_get(post):
@@ -91,39 +98,39 @@ def render(template_name, context=None):
 def unauthorized():
     return redirect('/login?status=unauthorized')
 
+def find_post(path):
+    for p in _site.timeline:
+        if p.source_path == path:
+            return p
+    return None
+
 app = Flask('comet')
 app.config['BCRYPT_LOG_ROUNDS'] = 12
 bcrypt = Bcrypt(app)
 login_manager = LoginManager()
 login_manager.init_app(app)
 login_manager.unauthorized_callback = unauthorized
+PERMISSIONS = ['is_admin', 'can_edit_all_posts', 'wants_all_posts',
+               'can_upload_attachments', 'can_rebuild_site',
+               'can_transfer_post_authorship']
 
 class User(object):
     """An user."""
-    uid = -1
-    username = ''
-    realname = ''
-    password = ''
-    active = False
-    is_admin = False
-    can_see_others_posts = False
-    wants_see_others_posts = True
-    can_upload_attachments = True
-    can_rebuild_site = True
-
     def __init__(self, uid, username, realname, password, active, is_admin,
-                 can_see_others_posts, wants_see_others_posts,
-                 can_upload_attachments, can_rebuild_site):
+                 can_edit_all_posts, wants_all_posts,
+                 can_upload_attachments, can_rebuild_site,
+                 can_transfer_post_authorship):
         self.uid = uid
         self.username = username
         self.realname = realname
         self.password = password
         self.active = active
         self.is_admin = is_admin
-        self.can_see_others_posts = can_see_others_posts
-        self.wants_see_others_posts = wants_see_others_posts
+        self.can_edit_all_posts = can_edit_all_posts
+        self.wants_all_posts = wants_all_posts
         self.can_upload_attachments = can_upload_attachments
         self.can_rebuild_site = can_rebuild_site
+        self.can_transfer_post_authorship = can_transfer_post_authorship
 
     def get_id(self):
         return unicode_str(self.uid)
@@ -173,12 +180,9 @@ def write_users():
             'realname': user.realname,
             'password': user.password,
             'active': user.active,
-            'is_admin': user.is_admin,
-            'can_see_others_posts': user.can_see_others_posts,
-            'wants_see_others_posts': user.wants_see_others_posts,
-            'can_upload_attachments': user.can_upload_attachments,
-            'can_rebuild_site': user.can_rebuild_site,
         }
+        for p in PERMISSIONS:
+            udict[uid][p] = getattr(user, p)
     with open(json_path, 'w') as fh:
         json.dump(udict, fh, indent=4, sort_keys=True, separators=(',', ': '))
 
@@ -193,7 +197,8 @@ def login():
         if not user:
             alert = 'Invalid credentials.'
         else:
-            if check_password(user.password, request.form['password']) and user.active:
+            if check_password(user.password,
+                              request.form['password']) and user.active:
                 login_user(user, remember=('remember-me' in request.form))
                 return redirect('/')
             else:
@@ -204,7 +209,9 @@ def login():
         elif request.args.get('status') == 'logout':
             alert = 'Logged out successfully.'
             alert_status = 'success'
-    return render('comet_login.tmpl', {'title': 'Login', 'permalink': '/login', 'alert': alert, 'alert_status': alert_status})
+    return render('comet_login.tmpl', {'title': 'Login', 'permalink': '/login',
+                                       'alert': alert,
+                                       'alert_status': alert_status})
 
 @app.route('/logout')
 @login_required
@@ -215,7 +222,8 @@ def logout():
 @app.route('/')
 @login_required
 def index():
-    if not os.path.exists(os.path.join(_site.config["OUTPUT_FOLDER"], 'assets')):
+    if not os.path.exists(os.path.join(_site.config["OUTPUT_FOLDER"],
+                                       'assets')):
         return redirect('/setup')
     context = {}
     context['site'] = _site
@@ -225,18 +233,15 @@ def index():
 
 @app.route('/setup')
 def setup():
-    needs_setup = not os.path.exists(os.path.join(_site.config["OUTPUT_FOLDER"], 'assets'))
-    return render("comet_setup.tmpl", context={'needs_setup': needs_setup})
+    ns = not os.path.exists(os.path.join(_site.config["OUTPUT_FOLDER"],
+                                         'assets'))
+    return render("comet_setup.tmpl", context={'needs_setup': ns})
 
 @app.route('/edit/<path:path>', methods=['GET', 'POST'])
 @login_required
 def edit(path):
     context = {'path': path, 'site': _site}
-    post = None
-    for p in _site.timeline:
-        if p.source_path == path:
-            post = p
-            break
+    post = find_post(path)
     if post is None:
         return "No such post or page.", 404
 
@@ -245,8 +250,19 @@ def edit(path):
         for k, v in request.form.items():
             meta[k] = v
         meta.pop('_wysihtml5_mode', '')
-        post.compiler.create_post(post.source_path, onefile=True, is_page=False, **meta)
+        try:
+            meta['author'] = get_user(int(meta['author.uid'])).realname
+            author_change_success = True
+        except:
+            author_change_success = False
+        if (not current_user.can_transfer_post_authorship
+            or not author_change_success):
+            meta['author'] = post.meta('author') or current_user.realname
+            meta['author.uid'] = post.meta('author.uid') or current_user.uid
+        post.compiler.create_post(post.source_path, onefile=True,
+                                  is_page=False, **meta)
         init_site()
+        post = find_post(path)
         context['action'] = 'save'
         context['post_content'] = meta['content']
     else:
@@ -255,6 +271,11 @@ def edit(path):
             context['post_content'] = fh.read().split('\n\n', 1)[1]
 
     context['post'] = post
+    safe_users = []
+    for u in USERS.values():
+        safe_users.append((u.uid, u.realname))
+    context['USERS'] = sorted(safe_users)
+    context['current_auid'] = int(post.meta('author.uid') or current_user.uid)
     context['title'] = 'Editing {0}'.format(post.title())
     context['permalink'] = '/edit/' + path
     return render('comet_post_edit.tmpl', context)
@@ -276,29 +297,38 @@ def delete():
 # Please do those in nginx if possible.
 @app.route('/wysihtml/<path:path>')
 def serve_wysihtml(path):
-    return send_from_directory(os.path.join(os.path.dirname(__file__), 'bower_components', 'wysihtml'), path)
+    return send_from_directory(os.path.join(os.path.dirname(__file__),
+                                            'bower_components', 'wysihtml'),
+                               path)
 
 @app.route('/comet_assets/<path:path>')
 def serve_comet_assets(path):
-    return send_from_directory(os.path.join(os.path.dirname(__file__), 'comet_assets'), path)
+    return send_from_directory(os.path.join(os.path.dirname(__file__),
+                                            'comet_assets'), path)
 
 @app.route('/assets/<path:path>')
 def serve_assets(path):
-    return send_from_directory(os.path.join(_site.config["OUTPUT_FOLDER"], 'assets'), path)
+    return send_from_directory(os.path.join(_site.config["OUTPUT_FOLDER"],
+                                            'assets'), path)
 
 @app.route('/new/<obj>', methods=['POST'])
 @login_required
-def new_post(obj):
+def new_post_or_page(obj):
     title = request.form['title']
+    _site['ADDITIONAL_METADATA']['author.uid'] = current_user.uid
     try:
         if obj == 'post':
-            _site.commands.new_post(title=title, author=current_user.realname, content_format='html')
+            _site.commands.new_post(title=title, author=current_user.realname,
+                                    content_format='html')
         elif obj == 'page':
-            _site.commands.new_page(title=title, author=current_user.realname, content_format='html')
+            _site.commands.new_page(title=title, author=current_user.realname,
+                                    content_format='html')
         else:
             return "Cannot create {0} — unknown type.".format(obj), 400
     except SystemExit:
         return "This {0} already exists!".format(obj), 500
+    finally:
+        del _site['ADDITIONAL_METADATA']['author.uid']
     # reload post list and go to index
     init_site()
     return redirect('/')
@@ -308,24 +338,27 @@ def new_post(obj):
 def acp_user_account():
     alert = ''
     alert_status = ''
+    action = 'edit'
     if request.method == 'POST':
+        action = 'save'
         data = request.form
         if data['newpwd1']:
-            if data['newpwd1'] == data['newpwd2'] and check_password(current_user.password, data['oldpwd']):
+            if data['newpwd1'] == data['newpwd2'] and check_password(
+                    current_user.password, data['oldpwd']):
                 current_user.password = password_hash(data['newpwd1'])
             else:
                 alert = 'Passwords don’t match.'
                 alert_status = 'danger'
+                action = 'save_fail'
         current_user.realname = data['realname']
-        current_user.wants_see_others_posts = 'wants_see_others_posts' in data
+        current_user.wants_all_posts = 'wants_all_posts' in data
         write_users()
 
-        alert = 'Account edited successfully.'
-        alert_status = 'success'
 
     return render('comet_account.tmpl',
                     context={'title': 'My account',
                              'permalink': '/account',
+                             'action': action,
                              'alert': alert,
                              'alert_status': alert_status})
 
@@ -345,7 +378,7 @@ def acp_users():
         return "Not authorized to edit users.", 401
     else:
         return render('comet_users.tmpl',
-                        context={'title': 'Edit users',
+                        context={'title': 'Users',
                                  'permalink': '/users',
                                  'USERS': USERS,
                                  'alert': alert,
@@ -362,7 +395,8 @@ def acp_users_edit():
 
     if action == 'new':
         uid = max(USERS) + 1
-        USERS[uid] = User(uid, data['username'], '', '', True, False, True, True, True, True)
+        USERS[uid] = User(uid, data['username'], '', '', True, False, True,
+                          True, True, True)
         user = USERS[uid]
         new = True
     else:
@@ -376,27 +410,23 @@ def acp_users_edit():
     alert_status = ''
 
     if action == 'save':
-        alert = 'User changed successfully.'
-        alert_status = 'success'
-        if new:
-            alert = 'User created successfully.'
-            alert_status = 'success'
         if data['newpwd1']:
             if data['newpwd1'] == data['newpwd2']:
                 user.password = password_hash(data['newpwd1'])
             else:
                 alert = 'Passwords don’t match.'
                 alert_status = 'danger'
+                action = 'save_fail'
         elif new:
             alert = 'Must set a password.'
             alert_status = 'danger'
+            action = 'save_fail'
         user.realname = data['realname']
-        if user != current_user:
-            user.is_admin = 'is_admin' in data
-        user.wants_see_others_posts = 'wants_see_others_posts' in data
-        user.can_see_others_posts = 'can_see_others_posts' in data
-        user.can_upload_attachments = 'can_upload_attachments' in data
-        user.can_rebuild_site = 'can_rebuild_site' in data
+        for p in PERMISSIONS:
+            setattr(user, p, p in data)
+        if user == current_user:
+            user.is_admin = True
+
         write_users()
 
     return render('comet_users_edit.tmpl',
@@ -404,6 +434,7 @@ def acp_users_edit():
                              'permalink': '/users/edit',
                              'user': user,
                              'new': new,
+                             'action': action,
                              'alert': alert,
                              'alert_status': alert_status})
 
@@ -419,8 +450,52 @@ def acp_users_delete():
             return "User does not exist.", 404
         else:
             user.active = direction == 'undel'
+            for p in PERMISSIONS:
+                setattr(user, p, False)
             write_users()
             return redirect('/users?status={_del}eted'.format(_del=direction))
+
+@app.route('/users/permissions', methods=['GET', 'POST'])
+@login_required
+def acp_users_permissions():
+    global USERS
+    if not current_user.is_admin:
+        return "Not authorized to edit users.", 401
+
+
+    if request.method == 'POST':
+        for uid, user in USERS.items():
+            for perm in PERMISSIONS:
+                if '{0}.{1}'.format(uid, perm) in request.form:
+                    setattr(user, perm, True)
+                else:
+                    setattr(user, perm, False)
+        current_user.is_admin = True  # cannot deadmin oneself
+        action = 'save'
+    else:
+        action = 'edit'
+
+    def display_permission(user, permission):
+        checked = 'checked' if getattr(user, permission) else ''
+        if permission == 'wants_all_posts' and not user.can_edit_all_posts:
+            # If this happens, permissions are damaged.
+            checked = ''
+        if user == current_user and permission == 'is_admin':
+            disabled = 'disabled'
+        else:
+            disabled = ''
+        return """<input type="checkbox" name="{0}.{1}" data-uid="{0}" data-perm="{1}" class="u{0}" {2} {3}>""".format(
+            user.uid, permission, checked, disabled)
+
+    return render('comet_users_permissions.tmpl',
+                    context={'title': 'Permissions',
+                             'permalink': '/users/permissions',
+                             'USERS': USERS,
+                             'PERMISSIONS': PERMISSIONS,
+                             'action': action,
+                             'json': json,
+                             'display_permission': display_permission})
+
 
 @app.route('/users/reload')
 @login_required
@@ -443,14 +518,25 @@ site = _site.config['SITE_URL']
 _site.config['SITE_URL'] = 'http://localhost:{0}/'.format(PORT)
 _site.config['BASE_URL'] = 'http://localhost:{0}/'.format(PORT)
 _site.GLOBAL_CONTEXT['blog_url'] = 'http://localhost:{0}/'.format(PORT)
-_site.config['NAVIGATION_LINKS'] = {'en': ((site, 'Back to {0}'.format(_site.GLOBAL_CONTEXT['blog_title']('en'))),)}
-_site.GLOBAL_CONTEXT['navigation_links'] = {'en':((site, 'Back to {0}'.format(_site.GLOBAL_CONTEXT['blog_title']('en'))),)}
-_site.config['SOCIAL_BUTTONS'] = ''
-_site.GLOBAL_CONTEXT['social_buttons_code'] = lambda _: ''
+_site.config['NAVIGATION_LINKS'] = {'en': ((site, 'Back to {0}'.format(
+    _site.GLOBAL_CONTEXT['blog_title']('en'))),)}
+_site.GLOBAL_CONTEXT['navigation_links'] = {'en':((site, 'Back to {0}'.format(
+    _site.GLOBAL_CONTEXT['blog_title']('en'))),)}
 TITLE = _site.GLOBAL_CONTEXT['blog_title']('en') + ' Administration'
 _site.config['BLOG_TITLE'] = lambda _: TITLE
 _site.GLOBAL_CONTEXT['blog_title'] = lambda _: TITLE
 _site.GLOBAL_CONTEXT['lang'] = 'en'
+_site.GLOBAL_CONTEXT['extra_head_data'] = lambda _: """
+<link href="//maxcdn.bootstrapcdn.com/font-awesome/4.2.0/\
+css/font-awesome.min.css" rel="stylesheet">
+<link href="/comet_assets/css/comet.css" rel="stylesheet">
+"""
+# HACK: body_end appears after extra_js from templates, so we must use
+#       social_buttons_code instead
+_site.GLOBAL_CONTEXT['social_buttons_code'] = lambda _: """
+<script src="/comet_assets/js/comet.js"></scripts>
+"""
+
 app.secret_key = _site.config['COMET_SECRET_KEY']
 
 mod_dir = os.path.dirname(__file__)
@@ -467,11 +553,18 @@ def main():
     _site.config['SITE_URL'] = 'http://localhost:{0}/'.format(port)
     _site.config['BASE_URL'] = 'http://localhost:{0}/'.format(port)
     _site.GLOBAL_CONTEXT['blog_url'] = 'http://localhost:{0}/'.format(port)
-    #if options and options.get('browser'):
-        #webbrowser.open('http://localhost:{0}'.format(port))
+    if '-h' in sys.argv:
+        print("COMET CMS v{0}".format(__version__))
+        print("")
+        print("  -b     Open a web browser after starting.")
+    elif '-v' in sys.argv:
+        print("COMET CMS v{0}".format(__version__))
+    else:
+        if '-b' in sys.argv:
+                webbrowser.open('http://localhost:{0}'.format(port))
 
-    print("COMET CMS running @ http://localhost:8001/")
-    app.run('localhost', port, debug=True)
+        print("COMET CMS running @ http://localhost:8001/")
+        app.run('localhost', port, debug=True)
 
 if __name__ == '__main__':
     main()

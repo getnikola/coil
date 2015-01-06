@@ -1,6 +1,10 @@
 {% extends 'base.tmpl' %}
-{% block extra_head %}
-<link href="//maxcdn.bootstrapcdn.com/font-awesome/4.2.0/css/font-awesome.min.css" rel="stylesheet">
+{% block extra_js %}
+{% if action == 'save' %}
+<script>$(document).ready(function() { save_anim(); });</script>
+{% elif action == 'save_fail' %}
+<script>$(document).ready(function() { save_fail_anim();});</script>
+{% endif %}
 {% endblock %}
 {% block content %}
 <h1 class="title">Account <tt>{{ current_user.username }}</tt></h1>
@@ -42,21 +46,25 @@
             <h3 class="panel-title">Preferences</h3>
         </div>
         <div class="panel-body">
-            <div class="checkbox"><label><input type="checkbox" name="wants_see_others_posts"
-                    {% if current_user.can_see_others_posts and current_user.wants_see_others_posts %}
+            <div class="checkbox"><label><input type="checkbox" name="wants_all_posts"
+                    {% if current_user.can_edit_all_posts and current_user.wants_all_posts %}
                     checked
                     {% endif %}
-                    {% if not current_user.can_see_others_posts %}
+                    {% if not current_user.can_edit_all_posts %}
                     disabled
                     {% endif %}
-                > Show me posts of other users
+                > Show me posts of other users by default
                 </label></div>
         </div>
     </div>
 
+    {% if current_user.is_admin %}
+    <p class="text-muted">You can edit your permissions in the <a
+    href="/users/permissions">permissions panel</a>.
+    {% endif %}
 
     <div style="text-align: center;">
-        <button type="submit" class="btn btn-primary btn-lg"><i class="fa fa-save"></i> Save</button>
+        <button type="submit" class="btn btn-primary btn-lg save-btn"><i class="fa fa-save fa-fw save-icon"></i> Save</button>
     </div>
 </form>
 

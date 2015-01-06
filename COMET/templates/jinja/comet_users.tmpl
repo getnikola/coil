@@ -1,13 +1,21 @@
 {% extends 'base.tmpl' %}
 {% block extra_head %}
-<link href="//maxcdn.bootstrapcdn.com/font-awesome/4.2.0/css/font-awesome.min.css" rel="stylesheet">
 <style>
 .inactive-user .username, .inactive-user .realname {
     text-decoration: line-through;
 }
+
+.uid {
+    text-align: right;
+}
 </style>
 {% endblock %}
 {% block extra_js %}
+{% if action == 'save' %}
+<script>$(document).ready(function() { save_anim(); });</script>
+{% elif action == 'save_fail' %}
+<script>$(document).ready(function() { save_fail_anim();});</script>
+{% endif %}
 <script>
 $('#deleteModal').on('show.bs.modal', function (event) {
     var button = $(event.relatedTarget);
@@ -15,7 +23,7 @@ $('#deleteModal').on('show.bs.modal', function (event) {
     var uid = button.data('uid');
     var direction = button.data('direction');
     var modal = $(this);
-    modal.find('.del-title').text(username);
+    modal.find('.del-username').text(username);
     modal.find('.del-uid').val(uid);
     modal.find('.del-direction').val(direction);
     if (direction == 'del') {
@@ -39,11 +47,11 @@ $('#deleteModal').on('show.bs.modal', function (event) {
 
 <table class="table table-hover">
 <thead><tr>
-    <th>#</th>
-    <th>Username</th>
-    <th>Real name</th>
-    <th>Admin</th>
-    <th>Actions</th>
+    <th class="uid">#</th>
+    <th class="username">Username</th>
+    <th class="realname">Real name</th>
+    <th class="is_admin">Admin</th>
+    <th class="actions">Actions</th>
 </tr></thead>
 {% for uid, user in USERS.items() %}
 {% if user.active %}
@@ -54,28 +62,28 @@ $('#deleteModal').on('show.bs.modal', function (event) {
     <td class="uid">{{ uid }}</td>
     <td class="username">{{ user.username }}</td>
     <td class="realname">{{ user.realname }}</td>
-    <td>
+    <td class="actions">
     {% if user.is_admin %}
     <i class="fa fa-check"></i>
     {% else %}
     <i class="fa fa-times"></i>
     {% endif %}
     </td>
-    <td>
+    <td class="actions">
     <form action="/users/edit" method="POST">
     <input type="hidden" name="uid" value="{{ uid }}">
     <input type="hidden" name="action" value="edit">
     <div class="btn-group" role="group">
     {% if user.active %}
-        <button type="submit" class="btn btn-info btn-xs" title="Edit"><i class="fa fa-pencil"></i> Edit</button>
+        <button type="submit" class="btn btn-info btn-xs" title="Edit"><i class="fa fa-pencil fa-fw"></i> Edit</button>
         {% if user == current_user %}
-        <button type="button" class="btn btn-danger btn-xs" title="Delete" disabled><i class="fa fa-trash"></i> Delete</button>
+        <button type="button" class="btn btn-danger btn-xs" title="Delete" disabled><i class="fa fa-trash fa-fw"></i> Delete</button>
         {% else %}
-        <button type="button" class="btn btn-danger btn-xs" data-toggle="modal" data-target="#deleteModal" data-username="{{ user.username }}" data-uid="{{ uid }}" data-direction="del" title="Delete"><i class="fa fa-trash"></i> Delete</button>
+        <button type="button" class="btn btn-danger btn-xs" data-toggle="modal" data-target="#deleteModal" data-username="{{ user.username }}" data-uid="{{ uid }}" data-direction="del" title="Delete"><i class="fa fa-trash fa-fw"></i> Delete</button>
         {% endif %}
     {% else %}
-        <button type="button" class="btn btn-info btn-xs" title="Edit" disabled><i class="fa fa-pencil"></i> Edit</button>
-        <button type="button" class="btn btn-success btn-xs" data-toggle="modal" data-target="#deleteModal" data-username="{{ user.username }}" data-uid="{{ uid }}" data-direction="undel" title="Undelete"><i class="fa fa-trash-o"></i> Undelete</button>
+        <button type="button" class="btn btn-info btn-xs" title="Edit" disabled><i class="fa fa-pencil fa-fw"></i> Edit</button>
+        <button type="button" class="btn btn-success btn-xs" data-toggle="modal" data-target="#deleteModal" data-username="{{ user.username }}" data-uid="{{ uid }}" data-direction="undel" title="Undelete"><i class="fa fa-trash-o fa-fw"></i> Undelete</button>
     {% endif %}
     </div>
     </form>
@@ -86,7 +94,7 @@ $('#deleteModal').on('show.bs.modal', function (event) {
     <td><input name="username" placeholder="User to create"></td>
     <td><input name="action" value="new" type="hidden"></td>
     <td></td>
-    <td><button type="submit" class="btn btn-primary btn-xs"><i class="fa fa-plus-square"></i> Create</button></td>
+    <td><button type="submit" class="btn btn-primary btn-xs"><i class="fa fa-plus-square fa-fw"></i> Create</button></td>
 </form></tr>
 </table>
 
@@ -98,7 +106,7 @@ $('#deleteModal').on('show.bs.modal', function (event) {
         <h4 class="modal-title" id="deleteModalLabel">Confirm <span class="del-noun">something</span></h4>
       </div>
       <div class="modal-body">
-      Really <span class="del-verb">do something to</span> <span class="del-title">user</span>?
+      Really <span class="del-verb">do something to</span> <span class="del-username">user</span>?
       </div>
       <div class="modal-footer">
         <form method="POST" action="/users/delete" class="delete-button">

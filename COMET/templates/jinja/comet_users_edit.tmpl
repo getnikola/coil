@@ -1,6 +1,10 @@
 {% extends 'base.tmpl' %}
-{% block extra_head %}
-<link href="//maxcdn.bootstrapcdn.com/font-awesome/4.2.0/css/font-awesome.min.css" rel="stylesheet">
+{% block extra_js %}
+{% if action == 'save' %}
+<script>$(document).ready(function() { save_anim(); });</script>
+{% elif action == 'save_fail' %}
+<script>$(document).ready(function() { save_fail_anim();});</script>
+{% endif %}
 {% endblock %}
 {% block content %}
 {% if not new %}
@@ -54,14 +58,14 @@
             <h3 class="panel-title">Preferences</h3>
         </div>
         <div class="panel-body">
-            <div class="checkbox"><label><input type="checkbox" name="wants_see_others_posts"
-                    {% if user.can_see_others_posts and user.wants_see_others_posts %}
+            <div class="checkbox"><label><input type="checkbox" name="wants_all_posts"
+                    {% if user.can_edit_all_posts and user.wants_all_posts %}
                     checked
                     {% endif %}
-                    {% if not user.can_see_others_posts %}
+                    {% if not user.can_edit_all_posts %}
                     disabled
                     {% endif %}
-                > Show this user posts of other users
+                > Show this user posts of other users by default
                 </label></div>
         </div>
     </div>
@@ -80,11 +84,11 @@
                     {% endif %}
                     > User is an administrator
                 </label></div>
-            <div class="checkbox"><label><input type="checkbox" name="can_see_others_posts"
-                    {% if user.can_see_others_posts %}
+            <div class="checkbox"><label><input type="checkbox" name="can_edit_all_posts"
+                    {% if user.can_edit_all_posts %}
                     checked
                     {% endif %}
-                    > User can see posts of other users
+                    > User can see and edit all posts
                 </label></div>
             <div class="checkbox"><label><input type="checkbox" name="can_upload_attachments"
                     {% if user.can_upload_attachments %}
@@ -98,13 +102,18 @@
                     {% endif %}
                     > User can rebuild site
                 </label></div>
-
+            <div class="checkbox"><label><input type="checkbox" name="can_transfer_post_authorship"
+                    {% if user.can_transfer_post_authorship %}
+                    checked
+                    {% endif %}
+                    > User can transfer post authorship
+                </label></div>
 
         </div>
     </div>
 
     <div style="text-align: center;">
-        <button type="submit" class="btn btn-primary btn-lg"><i class="fa fa-save"></i> Save</button>
+        <button type="submit" class="btn btn-primary btn-lg save-btn"><i class="fa fa-save fa-fw save-icon"></i> Save</button>
     </div>
 </form>
 
