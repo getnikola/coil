@@ -226,9 +226,38 @@ def index():
                                        'assets')):
         return redirect('/setup')
     context = {}
-    context['site'] = _site
+
+    n = request.args.get('all')
+    if n is None:
+        wants_now = None
+    else:
+        wants_now = n == '1'
+
+    if wants_now is None and current_user.wants_all_posts:
+        wants = True
+    else:
+        wants = wants_now
+
+    if current_user.can_edit_all_posts and wants:
+        posts = _site.posts
+        pages = _site.pages
+    else:
+        wants = False
+        posts = []
+        pages = []
+        for p in _site.timeline:
+            if p.meta('author.uid') and p.meta('author.uid') != str(current_user.uid):
+                continue
+            if p.use_in_feeds:
+                posts.append(p)
+            else:
+                pages.append(p)
+
+    context['posts'] = posts
+    context['pages'] = pages
     context['title'] = 'Posts & Pages'
     context['permalink'] = '/'
+    context['wants'] = wants
     return render('comet_index.tmpl', context)
 
 @app.route('/setup')

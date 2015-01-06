@@ -9,7 +9,7 @@
         "password": "$2a$12$.qMCcA2uOo0BKkDtEF/bueYtHjcdPBmfEdpxtktRwRTgsR7ZVTWmW",
         "realname": "Website Administrator",
         "username": "admin",
-        "wants_all_posts": true
+        "wants_all_posts": false
     },
     "2": {
         "active": true,
