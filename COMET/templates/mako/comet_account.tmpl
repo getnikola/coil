@@ -3,16 +3,16 @@
 <link href="//maxcdn.bootstrapcdn.com/font-awesome/4.2.0/css/font-awesome.min.css" rel="stylesheet">
 </%block>
 <%block name="content">
-<h1 class="title">Editing profile <tt>${current_user.username}</tt></h1>
+<h1 class="title">Account <tt>${current_user.username}</tt></h1>
 
 % if alert:
 <div class="alert alert-${alert_status}" role="alert">${alert}</div>
 % endif
 
-<form action="/profile/save" method="POST" class="form-horizontal">
+<form action="/account/save" method="POST" class="form-horizontal">
     <div class="panel panel-primary">
         <div class="panel-heading">
-            <h3 class="panel-title">Details</h3>
+            <h3 class="panel-title">Profile</h3>
         </div>
         <div class="panel-body">
 

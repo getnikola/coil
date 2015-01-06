@@ -63,7 +63,7 @@ def generate_menu_alt():
     <li class="dropdown">
       <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">{0} [{1}] <span class="caret"></span></a>
       <ul class="dropdown-menu" role="menu">
-        <li><a href="/profile">Profile</a></li>
+        <li><a href="/account">Account</a></li>
         {2}
         <li><a href="/logout">Log out</a></li>
       </ul>
@@ -317,11 +317,11 @@ def new_page():
     init_site()
     return redirect('/')
 
-@app.route('/profile')
+@app.route('/account')
 @login_required
-def acp_profile():
+def acp_user_account():
     if request.args.get('status') == 'ok':
-        alert = 'Profile changed successfully.'
+        alert = 'Account edited successfully.'
         alert_status = 'success'
     elif request.args.get('status') == 'pwdfail':
         alert = 'Passwords don’t match.'
@@ -329,15 +329,15 @@ def acp_profile():
     else:
         alert = ''
         alert_status = ''
-    return render('comet_profile.tmpl',
-                    context={'title': 'Edit profile',
-                             'permalink': '/profile',
+    return render('comet_account.tmpl',
+                    context={'title': 'My account',
+                             'permalink': '/account',
                              'alert': alert,
                              'alert_status': alert_status})
 
-@app.route('/profile/save', methods=['POST'])
+@app.route('/account/save', methods=['POST'])
 @login_required
-def acp_profile_save():
+def acp_user_account_save():
     status = 'ok'
     data = request.form
     if data['newpwd1']:
@@ -347,7 +347,7 @@ def acp_profile_save():
             status = 'pwdfail'
     current_user.realname = data['realname']
     write_users()
-    return redirect('/profile?status={0}'.format(status))
+    return redirect('/account?status={0}'.format(status))
 
 @app.route('/users')
 @login_required
