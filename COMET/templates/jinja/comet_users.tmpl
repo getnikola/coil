@@ -8,6 +8,10 @@
 .uid {
     text-align: right;
 }
+
+td {
+    vertical-align: middle !important;
+}
 </style>
 {% endblock %}
 {% block extra_js %}
@@ -45,7 +49,7 @@ $('#deleteModal').on('show.bs.modal', function (event) {
 <div class="alert alert-{{ alert_status }}" role="alert">{{ alert }}</div>
 {% endif %}
 
-<table class="table table-hover">
+<table class="table table-hover" style="table-layout: fixed;">
 <thead><tr>
     <th class="uid">#</th>
     <th class="username">Username</th>
@@ -75,26 +79,26 @@ $('#deleteModal').on('show.bs.modal', function (event) {
     <input type="hidden" name="action" value="edit">
     <div class="btn-group" role="group">
     {% if user.active %}
-        <button type="submit" class="btn btn-info btn-xs" title="Edit"><i class="fa fa-pencil fa-fw"></i> Edit</button>
+        <button type="submit" class="btn btn-info" title="Edit"><i class="fa fa-pencil fa-fw"></i> Edit</button>
         {% if user == current_user %}
-        <button type="button" class="btn btn-danger btn-xs" title="Delete" disabled><i class="fa fa-trash fa-fw"></i> Delete</button>
+        <button type="button" class="btn btn-danger" title="Delete" disabled><i class="fa fa-trash fa-fw"></i> Delete</button>
         {% else %}
-        <button type="button" class="btn btn-danger btn-xs" data-toggle="modal" data-target="#deleteModal" data-username="{{ user.username }}" data-uid="{{ uid }}" data-direction="del" title="Delete"><i class="fa fa-trash fa-fw"></i> Delete</button>
+        <button type="button" class="btn btn-danger" data-toggle="modal" data-target="#deleteModal" data-username="{{ user.username }}" data-uid="{{ uid }}" data-direction="del" title="Delete"><i class="fa fa-trash fa-fw"></i> Delete</button>
         {% endif %}
     {% else %}
-        <button type="button" class="btn btn-info btn-xs" title="Edit" disabled><i class="fa fa-pencil fa-fw"></i> Edit</button>
-        <button type="button" class="btn btn-success btn-xs" data-toggle="modal" data-target="#deleteModal" data-username="{{ user.username }}" data-uid="{{ uid }}" data-direction="undel" title="Undelete"><i class="fa fa-trash-o fa-fw"></i> Undelete</button>
+        <button type="button" class="btn btn-info" title="Edit" disabled><i class="fa fa-pencil fa-fw"></i> Edit</button>
+        <button type="button" class="btn btn-success" data-toggle="modal" data-target="#deleteModal" data-username="{{ user.username }}" data-uid="{{ uid }}" data-direction="undel" title="Undelete"><i class="fa fa-trash-o fa-fw"></i> Undelete</button>
     {% endif %}
     </div>
     </form>
 </tr>
 {% endfor %}
 <tr><form action="/users/edit" method="POST">
-    <td><i class="fa fa-plus"></i></td>
-    <td><input name="username" placeholder="User to create"></td>
+    <td></td>
+    <td><input name="username" placeholder="New user" class="form-control"></td>
     <td><input name="action" value="new" type="hidden"></td>
     <td></td>
-    <td><button type="submit" class="btn btn-primary btn-xs"><i class="fa fa-plus-square fa-fw"></i> Create</button></td>
+    <td><button type="submit" class="btn btn-primary"><i class="fa fa-plus-square fa-fw"></i> Create</button></td>
 </form></tr>
 </table>
 

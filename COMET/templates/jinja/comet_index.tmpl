@@ -4,6 +4,11 @@
 .list-group {
     margin-top: 10px;
 }
+
+h2 {
+    margin-top: 20px;
+    padding-top: 0;
+}
 </style>
 {% endblock %}
 {% block extra_js %}
@@ -20,6 +25,22 @@ $('#deleteModal').on('show.bs.modal', function (event) {
 {% endblock %}
 {% block content %}
 
+<div class="well well-sm">
+Show posts of:
+<div class="btn-group" role="group">
+{% if wants %}
+    <a href="/?all=0" class="btn btn-default"><i class="fa fa-fw fa-user"></i></a>
+    <a href="/?all=1" class="btn btn-default active"><i class="fa fa-fw fa-users"></i></a>
+{% elif not current_user.can_edit_all_posts %}
+    <a href="#" class="btn btn-default active"><i class="fa fa-fw fa-user"></i></a>
+    <a href="#" class="btn btn-default disabled"><i class="fa fa-fw fa-users"></i></a>
+{% else %}
+    <a href="/?all=0" class="btn btn-default active"><i class="fa fa-fw fa-user"></i></a>
+    <a href="/?all=1" class="btn btn-default"><i class="fa fa-fw fa-users"></i></a>
+{% endif %}
+</div>
+</div>
+
 <div class="row">
     <div class="col-md-6">
         <h2 style="text-align: center;">Posts</h2>
@@ -28,7 +49,7 @@ $('#deleteModal').on('show.bs.modal', function (event) {
               <span class="input-group-btn"><button type="submit" class="btn btn-success"><i class="fa fa-file-o"></i> Create Post</button></span>
         </form>
         <div class="list-group">
-        {% for p in site.posts %}
+        {% for p in posts %}
             <div class="list-group-item">
                 <h3 class="media-heading">{{ p.title() }}</h3>
                 <small>Date: {{ p.date }}</small>
@@ -50,7 +71,7 @@ $('#deleteModal').on('show.bs.modal', function (event) {
         </form>
         <div class="page_holder"></div>
         <div class="list-group">
-        {% for p in site.pages %}
+        {% for p in pages %}
             <div class="list-group-item">
                 <h3 class="media-heading">{{ p.title() }}</h3>
                 <small>Date: {{ p.date }}</small>

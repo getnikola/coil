@@ -60,8 +60,8 @@ def generate_menu_alt():
     if not current_user.is_authenticated():
         return """<li><a href="/login">Log in</a></li>"""
     if current_user.is_admin:
-        edit_entry = """<li><a href="/users">Manage users</a></li>
-<li><a href="/users/permissions">Permissions</a></li>"""
+        edit_entry = """<li><a href="/users">Manage users</a></li>\
+        <li><a href="/users/permissions">Permissions</a></li>"""
     else:
         edit_entry = ''
     return """
@@ -101,6 +101,10 @@ def render(template_name, context=None, code=200, headers=None):
     headers['Cache-Control'] = 'private, max-age=0, no-cache'
 
     return _site.render_template(template_name, None, context), code, headers
+
+def error(desc, code, permalink):
+    return render('comet_error.tmpl', {'title': 'Error', 'code': code, 'desc': desc, 'permalink': permalink}, code)
+
 
 def unauthorized():
     return redirect('/login?status=unauthorized')
@@ -279,7 +283,7 @@ def edit(path):
     context = {'path': path, 'site': _site}
     post = find_post(path)
     if post is None:
-        return "No such post or page.", 404
+        return error("No such post or page.", 404, '/edit/' + path)
 
     if request.method == 'POST':
         meta = {}
@@ -325,7 +329,7 @@ def delete():
             post = p
             break
     if post is None:
-        return "No such post or page.", 404
+        return error("No such post or page.", 404, '/delete')
     os.unlink(path)
     init_site()
     return redirect('/')
@@ -360,9 +364,9 @@ def new_post_or_page(obj):
             _site.commands.new_page(title=title, author=current_user.realname,
                                     content_format='html')
         else:
-            return "Cannot create {0} — unknown type.".format(obj), 400
+            return error("Cannot create {0} — unknown type.".format(obj), 400, '/new/' + obj)
     except SystemExit:
-        return "This {0} already exists!".format(obj), 500
+        return error("This {0} already exists!".format(obj), 500, '/new/' + obj)
     finally:
         del _site['ADDITIONAL_METADATA']['author.uid']
     # reload post list and go to index
@@ -411,7 +415,7 @@ def acp_users():
         alert_status = 'success'
     global USERS
     if not current_user.is_admin:
-        return "Not authorized to edit users.", 401
+        return error("Not authorized to edit users.", 401, "/users")
     else:
         return render('comet_users.tmpl',
                         context={'title': 'Users',
@@ -425,7 +429,7 @@ def acp_users():
 def acp_users_edit():
     global USERS
     if not current_user.is_admin:
-        return "Not authorized to edit users.", 401
+        return error("Not authorized to edit users.", 401, "/users/edit")
     data = request.form
     action = data['action']
 
@@ -440,7 +444,7 @@ def acp_users_edit():
         new = False
 
     if not user:
-        return "User does not exist.", 404
+        return error("User does not exist.", 404, "/users/edit")
 
     alert = ''
     alert_status = ''
@@ -478,25 +482,24 @@ def acp_users_edit():
 @login_required
 def acp_users_delete():
     if not current_user.is_admin:
-        return "Not authorized to edit users.", 401
+        return error("Not authorized to edit users.", 401, "/users/delete")
+    user = get_user(int(request.form['uid']))
+    direction = request.form['direction']
+    if not user:
+        return error("User does not exist.", 404, "/users/edit/delete")
     else:
-        user = get_user(int(request.form['uid']))
-        direction = request.form['direction']
-        if not user:
-            return "User does not exist.", 404
-        else:
-            user.active = direction == 'undel'
-            for p in PERMISSIONS:
-                setattr(user, p, False)
-            write_users()
-            return redirect('/users?status={_del}eted'.format(_del=direction))
+        user.active = direction == 'undel'
+        for p in PERMISSIONS:
+            setattr(user, p, False)
+        write_users()
+        return redirect('/users?status={_del}eted'.format(_del=direction))
 
 @app.route('/users/permissions', methods=['GET', 'POST'])
 @login_required
 def acp_users_permissions():
     global USERS
     if not current_user.is_admin:
-        return "Not authorized to edit users.", 401
+        return error("Not authorized to edit users.", 401, "/users/permissions")
 
 
     if request.method == 'POST':
