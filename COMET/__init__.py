@@ -472,6 +472,7 @@ def acp_users_permissions():
                     setattr(user, perm, False)
         current_user.is_admin = True  # cannot deadmin oneself
         action = 'save'
+        write_users()
     else:
         action = 'edit'
 
@@ -498,10 +499,7 @@ def acp_users_permissions():
 
 
 @app.route('/users/reload')
-@login_required
 def acp_users_reload():
-    if not current_user.is_admin:
-        return "Not authorized to edit users.", 401
     read_users()
     return redirect('/users')
 
