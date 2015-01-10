@@ -62,14 +62,11 @@ __ https://github.com/Voog/wysihtml/blob/master/examples/css/stylesheet.css
 First build
 ===========
 
-When you are done configuring nikola, run ``nikola build`` and chown the
-``my_comet_site`` site directory recursively to nobody, or whatever
-user Comet will run as.  Comet must be able to write to this directory.
+When you are done configuring nikola, run ``nikola build``.
 
 .. code-block:: console
 
     # nikola build
-    # chown -Rf nobody:nobody .
 
 Users
 =====
@@ -86,7 +83,17 @@ Run ``comet write_users``:
 
 
 You will be able to add more users and change the admin credentials (which you
-should do!) later.  See also: :doc:`users`
+should do!) later.  See also: :doc:`users`.
+
+Permissions
+===========
+
+.. code-block:: console
+
+    # chown -Rf nobody:nobody .
+
+Chown ``my_comet_site`` *recursively* to ``nobody``, or whatever
+user Comet will run as.  Comet must be able to write to this directory.
 
 Server: uWSGI and nginx
 =======================
