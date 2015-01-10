@@ -589,17 +589,17 @@ def rescan():
     return redirect('/')
 
 
-@app.route('/wysihtml/<path:path>')
-def serve_wysihtml(path):
-    """Serve wysihtml files.
+@app.route('/bower_components/<path:path>')
+def serve_bower_components(path):
+    """Serve bower components.
 
     This is meant to be used ONLY by the internal dev server.
     Please configure your web server to handle requests to this URL::
 
-        /wysihtml/ => comet/data/bower_components/wysihtml
+        /bower_components/ => comet/data/bower_components
     """
     res = pkg_resources.resource_filename(
-        'comet', os.path.join('data', 'bower_components', 'wysihtml'))
+        'comet', os.path.join('data', 'bower_components'))
     return send_from_directory(res, path)
 
 
@@ -753,6 +753,7 @@ def acp_users_edit():
             alert = 'Must set a password.'
             alert_status = 'danger'
             action = 'save_fail'
+        user.username = data['username']
         user.realname = data['realname']
         for p in PERMISSIONS:
             setattr(user, p, p in data)

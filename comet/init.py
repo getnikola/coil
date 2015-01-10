@@ -26,8 +26,21 @@
 # SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 from __future__ import print_function, unicode_literals
+import pkg_resources
+import os
 
 
 def init():
     print("ERROR: Not implemented.")
     return 255
+
+
+def write_users():
+    with open('comet_users.json', 'wb') as fh:
+        fh.write(pkg_resources.resource_string(
+            'comet', os.path.join('data', 'comet_users.json')))
+
+    print("Wrote comet_users.json.\n")
+    print("Username: admin")
+    print("Password: admin")
+    return 0

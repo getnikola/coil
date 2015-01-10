@@ -31,6 +31,7 @@ u"""Comet CMS v{0}
 Usage:
   comet devserver [-b | --browser] [-p <port> | --port=<port>]
   comet init [directory]
+  comet write_users
   comet -h | --help
   comet --version
 
@@ -55,6 +56,8 @@ def main():
         comet.__version__))
     if arguments[u'init']:
         sys.exit(init(arguments))
+    elif arguments[u'write_users']:
+        sys.exit(write_users(arguments))
     elif arguments[u'devserver']:
         sys.exit(devserver(arguments))
 
@@ -62,6 +65,11 @@ def main():
 def init(arguments):
     import comet.init
     return comet.init.init()
+
+
+def write_users(arguments):
+    import comet.init
+    return comet.init.write_users()
 
 
 def devserver(arguments):

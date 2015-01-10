@@ -1,0 +1,151 @@
+=====
+Setup
+=====
+
+.. index:: setup
+
+.. contents::
+
+How Comet works alongside Nikola
+================================
+
+Comet requires Nikola to work.  `Nikola`_ is a static site generator, written
+in Python.  Comet manages the files that are then used by Nikola to build the
+site.
+
+As such, you must configure Nikola first before you start Comet.
+
+Virtualenv
+==========
+
+Create a virtualenv in ``/var/comet`` and instal Comet in it.
+
+.. code-block:: console
+
+    # virtualenv-2.7 /var/comet
+    # cd /var/comet
+    # source bin/activate
+    # pip install comet uwsgi
+
+Nikola and ``conf.py``
+======================
+
+Start by setting up Nikola.  This can be done using ``nikola init``.
+
+.. code-block:: console
+
+    # mkdir /var/comet
+    # cd /var/comet
+    # nikola init my_comet_site
+    Creating Nikola Site
+    ====================
+
+    [a wizard will guide you through configuration]
+
+    [2015-01-10T18:16:35Z] INFO: init: Created empty site at my_comet_site.
+    # cd my_comet_site
+
+Then, you must make some changes to the config:
+
+ * Add ``COMET_SECRET_KEY`` — a bunch of random characters, needed for sessions.
+   **Store it in a safe place** — git is not one!  You can use
+   ``os.urandom(24)`` to generate something good.
+ * Add ``COMET_URL`` — the URL under which Comet can be accessed.
+ * Modify ``POSTS`` and ``PAGES``, replacing ``.txt`` by ``.html``.
+
+
+Finally, you must add `some CSS`__ for wysihtml5.  The easiest way to do this
+is by downloading the raw ``.css`` file as ``files/assets/css/custom.css``.
+
+__ https://github.com/Voog/wysihtml/blob/master/examples/css/stylesheet.css
+
+First build
+===========
+
+When you are done configuring nikola, run ``nikola build`` and chown the
+``my_comet_site`` site directory recursively to nobody, or whatever
+user Comet will run as.  Comet must be able to write to this directory.
+
+.. code-block:: console
+
+    # nikola build
+    # chown -Rf nobody:nobody .
+
+Users
+=====
+
+Run ``comet write_users``:
+
+.. code-block:: console
+
+    # comet write_users
+    Wrote comet_users.json.
+
+    Username: admin
+    Password: admin
+
+
+You will be able to add more users and change the admin credentials (which you
+should do!) later.  See also: :doc:`users`
+
+Server: uWSGI and nginx
+=======================
+
+For testing purposes, you can use ``comet devserver``.  It should **NOT** be used
+in production.  You should use uWSGI Emperor and nginx in a real environment.
+
+Sample uWSGI configuration:
+
+.. code-block:: ini
+
+    [uwsgi]
+    emperor = true
+    socket = 127.0.0.1:3031
+    chdir = /var/comet/my_comet_site
+    master = true
+    threads = 5
+    binary-path = /var/comet/bin/uwsgi
+    virtualenv = /var/comet
+    module = comet.web
+    callable = app
+    plugins = python2
+    uid = nobody
+    gid = nobody
+    processes = 3
+    logger = file:/var/comet/my_comet_site/uwsgi.log
+
+
+(``python2`` may also be ``python``, this depends on your environment)
+
+Sample nginx configuration:
+
+.. code-block:: nginx
+
+    server {
+        listen 80;
+        server_name comet.example.com;
+        root /var/comet/my_comet_site;
+
+        location / {
+            include uwsgi_params;
+            uwsgi_pass 127.0.0.1:3031;
+        }
+
+        location /favicon.ico {
+            alias /var/comet/my_comet_site/output/favicon.ico;
+        }
+
+        location /assets {
+            alias /var/comet/my_comet_site/output/assets;
+        }
+
+        location /comet_assets {
+            alias /var/comet/lib/python2.7/site-packages/comet/data/comet_assets;
+        }
+
+        location /bower_components {
+            alias /var/comet/lib/python2.7/site-packages/comet/data/bower_components;
+        }
+    }
+
+.. _Nikola: https://getnikola.com/

@@ -3,16 +3,32 @@
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
-Welcome to Comet CMS's documentation!
-=====================================
+Comet CMS
+=========
 
-Contents:
+User documentation
+------------------
+
+Currently none.
+
+watch this space
+
+Administrator documentation
+---------------------------
 
 .. toctree::
    :maxdepth: 2
 
+   setup
    web
-   README
+
+
+Appendices
+----------
+
+.. toctree::
+   :maxdepth: 2
+
    AUTHORS
    CHANGELOG
    LICENSE
