@@ -21,6 +21,7 @@ Administrator documentation
    :numbered:
 
    admin/*
+   internals
 
 Appendices
 ----------
