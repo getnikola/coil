@@ -18,6 +18,7 @@ Administrator documentation
 
 .. toctree::
    :maxdepth: 2
+   :glob:
    :numbered:
 
    admin/*
@@ -28,7 +29,6 @@ Appendices
 
 .. toctree::
    :maxdepth: 2
-   :numbered:
 
    AUTHORS
    CHANGELOG
