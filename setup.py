@@ -3,7 +3,7 @@
 import io
 from setuptools import setup
 
-setup(name='comet_cms',
+setup(name='comet-cms',
       version='0.6.0',
       description='Getting rid of the dinosaurs (WordPress and friends).',
       keywords='comet',
@@ -26,7 +26,7 @@ setup(name='comet_cms',
       include_package_data=True,
       entry_points={
           'console_scripts': [
-              'comet = comet:main',
+              'comet = comet.__main__:main',
           ]
       },
       )
