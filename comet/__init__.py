@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 # Comet CMS v0.6.0
-# Copyright © 2014-2015 Chris Warrick, Roberto Alsina et al.
+# Copyright © 2014-2015 Chris Warrick, Roberto Alsina, Henry Hirsch et al.
 
 # Permission is hereby granted, free of charge, to any
 # person obtaining a copy of this software and associated

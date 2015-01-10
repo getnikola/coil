@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 # Comet CMS v0.6.0
-# Copyright © 2014-2015 Chris Warrick, Roberto Alsina et al.
+# Copyright © 2014-2015 Chris Warrick, Roberto Alsina, Henry Hirsch et al.
 
 # Permission is hereby granted, free of charge, to any
 # person obtaining a copy of this software and associated
@@ -48,9 +48,11 @@ import webbrowser
 
 __doc__ = __doc__.format(comet.__version__)
 
+
 def main():
     u"""The main function."""
-    arguments = docopt.docopt(__doc__, version=u'Comet CMS v{0}'.format(comet.__version__))
+    arguments = docopt.docopt(__doc__, version=u'Comet CMS v{0}'.format(
+        comet.__version__))
     if arguments[u'init']:
         sys.exit(init(arguments))
     elif arguments[u'devserver']:
@@ -61,16 +63,18 @@ def init(arguments):
     import comet.init
     return comet.init.init()
 
+
 def devserver(arguments):
     import comet.web
-    port = int(arguments[u'port'])
+    port = int(arguments['--port'])
     url = 'http://localhost:{0}/'.format(port)
-    comet.web.configure_site(url)
+    comet.web.configure_url(url)
     comet.web.app.config['DEBUG'] = True
 
-    if arguments[u'browser']:
+    if arguments['--browser']:
         webbrowser.open(url)
-    comet.web.app.logger.info(u"Comet CMS running @ http://localhost:8001/")
+
+    comet.web.app.logger.info(u"Comet CMS running @ {0}".format(url))
     comet.web.app.run('localhost', port, debug=True)
     return 0
 

@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 # Comet CMS v0.6.0
-# Copyright © 2014-2015 Chris Warrick, Roberto Alsina et al.
+# Copyright © 2014-2015 Chris Warrick, Roberto Alsina, Henry Hirsch et al.
 
 # Permission is hereby granted, free of charge, to any
 # person obtaining a copy of this software and associated
@@ -51,7 +51,13 @@ def scan_site():
     nikola.utils.LOGGER.info("Posts scanned.")
 
 
-def configure_site(url=None):
+def configure_url(url):
+    """Configure site URL."""
+    app.config['COMET_URL'] = site.config['SITE_URL'] =\
+        site.config['BASE_URL'] = site.GLOBAL_CONTEXT['blog_url'] = url
+
+
+def configure_site():
     """Configure the site for Comet."""
     global site
 
@@ -99,19 +105,19 @@ def configure_site(url=None):
     else:
         raise Exception("Not a Nikola site.")
 
-    app.secret_key = site.config['COMET_SECRET_KEY']
-    app.config['COMET_URL'] = url or site.config['COMET_URL']
+    app.secret_key = site.config.get('COMET_SECRET_KEY')
+    app.config['COMET_URL'] = site.config.get('COMET_URL')
 
     read_users()
 
     site.template_hooks['menu_alt'].append(generate_menu_alt)
 
     app.config['NIKOLA_URL'] = site.config['SITE_URL']
-    site.config['SITE_URL'] = site.config['BASE_URL'] =\
-        site.GLOBAL_CONTEXT['blog_url'] = app.config['COMET_URL']
+    configure_url(app.config['COMET_URL'])
     site.config['NAVIGATION_LINKS'] = {
         'en': (
-            (app.config['NIKOLA_URL'], '<i class="fa fa-globe"></i> Back to website'),
+            (app.config['NIKOLA_URL'],
+             '<i class="fa fa-globe"></i> Back to website'),
             ('/rebuild', '<i class="fa fa-cog rebuild"></i> Rebuild'),
         )
     }
@@ -566,7 +572,6 @@ def delete():
     return redirect('/')
 
 
-
 @app.route('/rebuild')
 @login_required
 def rebuild():
@@ -580,6 +585,7 @@ def rescan():
     """Rescan posts."""
     scan_site()
     return redirect('/')
+
 
 @app.route('/wysihtml/<path:path>')
 def serve_wysihtml(path):
@@ -823,3 +829,5 @@ def acp_users_permissions():
                            'action': action,
                            'json': json,
                            'display_permission': display_permission})
+
+configure_site()

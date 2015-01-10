@@ -2,7 +2,7 @@
 Appendix C. License
 ===================
 
-Copyright © 2014-2015 Chris Warrick, Roberto Alsina et al.
+Copyright © 2014-2015 Chris Warrick, Roberto Alsina, Henry Hirsch et al.
 
 Permission is hereby granted, free of charge, to any
 person obtaining a copy of this software and associated
