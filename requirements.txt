@@ -1,4 +1,4 @@
-Nikola
+git+https://github.com/getnikola/nikola#egg=Nikola
 docopt==0.6.1
 Flask==0.10.1
 Flask-Login==0.2.11
