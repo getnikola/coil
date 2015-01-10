@@ -1,0 +1,127 @@
+{% extends 'base.tmpl' %}
+{% block extra_head %}
+<style>
+.inactive-user .username, .inactive-user .realname {
+    text-decoration: line-through;
+}
+
+.uid {
+    text-align: right;
+}
+
+td {
+    vertical-align: middle !important;
+}
+</style>
+{% endblock %}
+{% block extra_js %}
+{% if action == 'save' %}
+<script>$(document).ready(function() { save_anim(); });</script>
+{% elif action == 'save_fail' %}
+<script>$(document).ready(function() { save_fail_anim();});</script>
+{% endif %}
+<script>
+$('#deleteModal').on('show.bs.modal', function (event) {
+    var button = $(event.relatedTarget);
+    var username = button.data('username');
+    var uid = button.data('uid');
+    var direction = button.data('direction');
+    var modal = $(this);
+    modal.find('.del-username').text(username);
+    modal.find('.del-uid').val(uid);
+    modal.find('.del-direction').val(direction);
+    if (direction == 'del') {
+        modal.find('.del-noun').text('deletion');
+        modal.find('.del-verb').text('delete');
+        modal.find('.del-verb-capital').text('Delete');
+    } else {
+        modal.find('.del-noun').text('undeletion');
+        modal.find('.del-verb').text('undelete');
+        modal.find('.del-verb-capital').text('Undelete');
+    }
+});
+</script>
+{% endblock %}
+{% block content %}
+<div class="page-header">
+<h1>Users</h1>
+</div>
+
+{% if alert %}
+<div class="alert alert-{{ alert_status }}" role="alert">{{ alert }}</div>
+{% endif %}
+
+<table class="table table-hover" style="table-layout: fixed;">
+<thead><tr>
+    <th class="uid">#</th>
+    <th class="username">Username</th>
+    <th class="realname">Real name</th>
+    <th class="is_admin">Admin</th>
+    <th class="actions">Actions</th>
+</tr></thead>
+{% for uid, user in USERS.items() %}
+{% if user.active %}
+<tr>
+{% else %}
+<tr class="danger inactive-user">
+{% endif %}
+    <td class="uid">{{ uid }}</td>
+    <td class="username">{{ user.username }}</td>
+    <td class="realname">{{ user.realname }}</td>
+    <td class="actions">
+    {% if user.is_admin %}
+    <i class="fa fa-check"></i>
+    {% else %}
+    <i class="fa fa-times"></i>
+    {% endif %}
+    </td>
+    <td class="actions">
+    <form action="/users/edit" method="POST">
+    <input type="hidden" name="uid" value="{{ uid }}">
+    <input type="hidden" name="action" value="edit">
+    <div class="btn-group" role="group">
+    {% if user.active %}
+        <button type="submit" class="btn btn-info" title="Edit"><i class="fa fa-pencil fa-fw"></i> Edit</button>
+        {% if user == current_user %}
+        <button type="button" class="btn btn-danger" title="Delete" disabled><i class="fa fa-trash fa-fw"></i> Delete</button>
+        {% else %}
+        <button type="button" class="btn btn-danger" data-toggle="modal" data-target="#deleteModal" data-username="{{ user.username }}" data-uid="{{ uid }}" data-direction="del" title="Delete"><i class="fa fa-trash fa-fw"></i> Delete</button>
+        {% endif %}
+    {% else %}
+        <button type="button" class="btn btn-info" title="Edit" disabled><i class="fa fa-pencil fa-fw"></i> Edit</button>
+        <button type="button" class="btn btn-success" data-toggle="modal" data-target="#deleteModal" data-username="{{ user.username }}" data-uid="{{ uid }}" data-direction="undel" title="Undelete"><i class="fa fa-trash-o fa-fw"></i> Undelete</button>
+    {% endif %}
+    </div>
+    </form>
+</tr>
+{% endfor %}
+<tr><form action="/users/edit" method="POST">
+    <td></td>
+    <td><input name="username" placeholder="New user" class="form-control"></td>
+    <td><input name="action" value="new" type="hidden"></td>
+    <td></td>
+    <td><button type="submit" class="btn btn-primary"><i class="fa fa-plus-square fa-fw"></i> Create</button></td>
+</form></tr>
+</table>
+
+<div class="modal fade" id="deleteModal" tabindex="-1" role="dialog" aria-labelledby="deleteModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+        <h4 class="modal-title" id="deleteModalLabel">Confirm <span class="del-noun">something</span></h4>
+      </div>
+      <div class="modal-body">
+      Really <span class="del-verb">do something to</span> <span class="del-username">user</span>?
+      </div>
+      <div class="modal-footer">
+        <form method="POST" action="/users/delete" class="delete-button">
+        <input type="hidden" name="uid" class="del-uid">
+        <input type="hidden" name="direction" class="del-direction">
+        <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+        <button type="submit" class="btn btn-danger del-verb-capital">Delete</button>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

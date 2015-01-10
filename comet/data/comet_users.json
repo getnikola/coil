@@ -1,0 +1,14 @@
+{
+    "1": {
+        "active": true,
+        "can_edit_all_posts": true,
+        "can_rebuild_site": true,
+        "can_transfer_post_authorship": true,
+        "can_upload_attachments": true,
+        "is_admin": true,
+        "password": "$2a$12$.qMCcA2uOo0BKkDtEF/bueYtHjcdPBmfEdpxtktRwRTgsR7ZVTWmW",
+        "realname": "Website Administrator",
+        "username": "admin",
+        "wants_all_posts": false
+    }
+}

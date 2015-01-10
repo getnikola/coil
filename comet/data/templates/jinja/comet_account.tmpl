@@ -1,0 +1,73 @@
+{% extends 'base.tmpl' %}
+{% block extra_js %}
+{% if action == 'save' %}
+<script>$(document).ready(function() { save_anim(); });</script>
+{% elif action == 'save_fail' %}
+<script>$(document).ready(function() { save_fail_anim();});</script>
+{% endif %}
+{% endblock %}
+{% block content %}
+<div class="page-header">
+<h1>Account <tt>{{ current_user.username }}</tt></h1>
+</div>
+
+{% if alert %}
+<div class="alert alert-{{ alert_status }}" role="alert">{{ alert }}</div>
+{% endif %}
+
+<form action="/account" method="POST" class="form-horizontal">
+    <div class="panel panel-primary">
+        <div class="panel-heading">
+            <h3 class="panel-title">Profile</h3>
+        </div>
+        <div class="panel-body">
+
+            <div class="form-group">
+                <label for="name" class="col-sm-2 control-label">Real name</label>
+                <div class="col-sm-10"><input class="form-control" id="realname" name="realname" value="{{ current_user.realname }}" placeholder="Real name"></div>
+            </div>
+            <div class="form-group">
+                <label for="oldpwd" class="col-sm-2 control-label">Old password</label>
+                <div class="col-sm-10"><input type="password" class="form-control" id="oldpwd" name="oldpwd" placeholder="Old password">
+                    <p class="help-block">If you do not want to change your password, leave the fields blank.</p></div>
+            </div>
+            <div class="form-group">
+                <label for="newpwd1" class="col-sm-2 control-label">New password</label>
+                <div class="col-sm-10"><input type="password" class="form-control" id="newpwd1" name="newpwd1" placeholder="New password"></div>
+            </div>
+            <div class="form-group">
+                <label for="newpwd2" class="col-sm-2 control-label">Repeat password</label>
+                <div class="col-sm-10"><input type="password" class="form-control" id="newpwd2" name="newpwd2" placeholder="Repeat new password"></div>
+            </div>
+        </div>
+    </div>
+
+
+    <div class="panel panel-primary">
+        <div class="panel-heading">
+            <h3 class="panel-title">Preferences</h3>
+        </div>
+        <div class="panel-body">
+            <div class="checkbox"><label><input type="checkbox" name="wants_all_posts"
+                    {% if current_user.can_edit_all_posts and current_user.wants_all_posts %}
+                    checked
+                    {% endif %}
+                    {% if not current_user.can_edit_all_posts %}
+                    disabled
+                    {% endif %}
+                > Show me posts of other users by default
+                </label></div>
+        </div>
+    </div>
+
+    {% if current_user.is_admin %}
+    <p class="text-muted">You can edit your permissions in the <a
+    href="/users/permissions">permissions panel</a>.
+    {% endif %}
+
+    <div style="text-align: center;">
+        <button type="submit" class="btn btn-primary btn-lg save-btn"><i class="fa fa-save fa-fw save-icon"></i> Save</button>
+    </div>
+</form>
+
+{% endblock %}

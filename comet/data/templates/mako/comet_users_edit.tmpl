@@ -1,0 +1,122 @@
+<%inherit file="base.tmpl"/>
+<%block name="extra_js">
+% if action == 'save':
+<script>$(document).ready(function() { save_anim(); });</script>
+% elif action == 'save_fail':
+<script>$(document).ready(function() { save_fail_anim();});</script>
+% endif
+</%block>
+<%block name="content">
+<div class="page-header">
+% if not new:
+<h1>Editing user <tt>${user.username}</tt></h1>
+% else:
+<h1>Creating user <tt>${user.username}</tt></h1>
+% endif
+</div>
+
+% if alert:
+<div class="alert alert-${alert_status}" role="alert">${alert}</div>
+% endif
+
+<form action="/users/edit" method="POST" class="form-horizontal">
+    <input type="hidden" name="action" value="save">
+    <div class="panel panel-primary">
+        <div class="panel-heading">
+            <h3 class="panel-title">Profile</h3>
+        </div>
+        <div class="panel-body">
+
+            <input name="uid" type="hidden" value="${user.uid}">
+            <div class="form-group">
+                <label for="name" class="col-sm-2 control-label">Real name</label>
+                <div class="col-sm-10"><input class="form-control" id="realname" name="realname" value="${user.realname}" placeholder="Real name" required></div>
+            </div>
+            % if user.password:
+            <div class="form-group">
+                <label for="newpwd1" class="col-sm-2 control-label">New password</label>
+                <div class="col-sm-10"><input type="password" class="form-control" id="newpwd1" name="newpwd1" placeholder="New password">
+                    <p class="help-block">If you do not want to change the password, leave the fields blank.</p></div>
+            </div>
+            <div class="form-group">
+                <label for="newpwd2" class="col-sm-2 control-label">Repeat password</label>
+                <div class="col-sm-10"><input type="password" class="form-control" id="newpwd2" name="newpwd2" placeholder="Repeat password"></div>
+            </div>
+            % else:
+            <div class="form-group">
+                <label for="newpwd1" class="col-sm-2 control-label">Password</label>
+                <div class="col-sm-10"><input type="password" class="form-control" id="newpwd1" name="newpwd1" placeholder="Password" required></div>
+            </div>
+            <div class="form-group">
+                <label for="newpwd2" class="col-sm-2 control-label">Repeat password</label>
+                <div class="col-sm-10"><input type="password" class="form-control" id="newpwd2" name="newpwd2" placeholder="Repeat password" required></div>
+            </div>
+            % endif
+        </div>
+    </div>
+
+    <div class="panel panel-primary">
+        <div class="panel-heading">
+            <h3 class="panel-title">Preferences</h3>
+        </div>
+        <div class="panel-body">
+            <div class="checkbox"><label><input type="checkbox" name="wants_all_posts"
+                    % if user.can_edit_all_posts and user.wants_all_posts:
+                    checked
+                    % endif
+                    % if not user.can_edit_all_posts:
+                    disabled
+                    % endif
+                > Show this user posts of other users by default
+                </label></div>
+        </div>
+    </div>
+
+    <div class="panel panel-primary">
+        <div class="panel-heading">
+            <h3 class="panel-title">Permissions</h3>
+        </div>
+        <div class="panel-body">
+            <div class="checkbox"><label><input type="checkbox" name="is_admin"
+                    % if user.is_admin:
+                    checked
+                    % endif
+                    % if user == current_user:
+                    disabled
+                    % endif
+                    > User is an administrator
+                </label></div>
+            <div class="checkbox"><label><input type="checkbox" name="can_edit_all_posts"
+                    % if user.can_edit_all_posts:
+                    checked
+                    % endif
+                    > User can see and edit all posts
+                </label></div>
+            <div class="checkbox"><label><input type="checkbox" name="can_upload_attachments"
+                    % if user.can_upload_attachments:
+                    checked
+                    % endif
+                    > User can upload attachments
+                </label></div>
+            <div class="checkbox"><label><input type="checkbox" name="can_rebuild_site"
+                    % if user.can_rebuild_site:
+                    checked
+                    % endif
+                    > User can rebuild site
+                </label></div>
+            <div class="checkbox"><label><input type="checkbox" name="can_transfer_post_authorship"
+                    % if user.can_transfer_post_authorship:
+                    checked
+                    % endif
+                    > User can transfer post authorship
+                </label></div>
+
+        </div>
+    </div>
+
+    <div style="text-align: center;">
+        <button type="submit" class="btn btn-primary btn-lg save-btn"><i class="fa fa-save fa-fw save-icon"></i> Save</button>
+    </div>
+</form>
+
+</%block>

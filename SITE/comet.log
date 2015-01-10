@@ -1,0 +1,147 @@
+[2015-01-10T14:34:12Z] INFO: Comet: COMET CMS running @ http://localhost:8001/
+[2015-01-10T14:34:13Z] INFO: Comet: COMET CMS running @ http://localhost:8001/
+[2015-01-10T14:34:13Z] CometHTTP [200] 127.0.0.1 GET http://localhost:8001/ <index>
+[2015-01-10T14:37:38Z] INFO: Comet: COMET CMS running @ http://localhost:8001/
+[2015-01-10T14:37:39Z] INFO: Comet: COMET CMS running @ http://localhost:8001/
+[2015-01-10T14:38:01Z] INFO: Comet: COMET CMS running @ http://localhost:8001/
+[2015-01-10T14:38:02Z] INFO: Comet: COMET CMS running @ http://localhost:8001/
+[2015-01-10T14:38:03Z] INFO: Comet: COMET CMS running @ http://localhost:8001/
+[2015-01-10T14:38:48Z] INFO: Comet: COMET CMS running @ http://localhost:8001/
+[2015-01-10T14:38:49Z] INFO: Comet: COMET CMS running @ http://localhost:8001/
+[2015-01-10T14:38:52Z] CometHTTP [200] 127.0.0.1 GET http://localhost:8001/ <index>
+[2015-01-10T14:38:57Z] CometHTTP [200] 127.0.0.1 GET http://localhost:8001/ <index>
+[2015-01-10T14:44:10Z] INFO: Comet: COMET CMS running @ http://localhost:8001/
+[2015-01-10T14:44:53Z] INFO: Comet: COMET CMS running @ http://localhost:8001/
+[2015-01-10T14:45:03Z] INFO: Comet: COMET CMS running @ http://localhost:8001/
+[2015-01-10T14:45:12Z] CometHTTP [200] 127.0.0.1 GET http://localhost:8001/ <index>
+[2015-01-10T14:45:12Z] CometHTTP [304] 127.0.0.1 GET http://localhost:8001/assets/css/all-nocdn.css <serve_assets>
+[2015-01-10T14:45:12Z] CometHTTP [304] 127.0.0.1 GET http://localhost:8001/comet_assets/css/comet.css <serve_comet_assets>
+[2015-01-10T14:45:12Z] CometHTTP [304] 127.0.0.1 GET http://localhost:8001/assets/js/all-nocdn.js <serve_assets>
+[2015-01-10T14:45:12Z] CometHTTP [304] 127.0.0.1 GET http://localhost:8001/comet_assets/js/comet.js <serve_comet_assets>
+[2015-01-10T14:45:27Z] CometHTTP [200] 127.0.0.1 GET http://localhost:8001/assets/css/all-nocdn.css <serve_assets>
+[2015-01-10T14:45:31Z] CometHTTP [200] 127.0.0.1 GET http://localhost:8001/assets/css/all-nocdn.css <serve_assets>
+[2015-01-10T14:45:38Z] CometHTTP [200] 127.0.0.1 GET http://localhost:8001/comet_assets/js/comet.js <serve_comet_assets>
+[2015-01-10T14:47:42Z] INFO: Comet: COMET CMS running @ http://localhost:8001/
+[2015-01-10T14:47:43Z] CometHTTP [200] 127.0.0.1 GET http://localhost:8001/ <index>
+[2015-01-10T14:47:43Z] CometHTTP [304] 127.0.0.1 GET http://localhost:8001/assets/css/all-nocdn.css <serve_assets>
+[2015-01-10T14:47:43Z] CometHTTP [304] 127.0.0.1 GET http://localhost:8001/comet_assets/css/comet.css <serve_comet_assets>
+[2015-01-10T14:47:43Z] CometHTTP [304] 127.0.0.1 GET http://localhost:8001/assets/js/all-nocdn.js <serve_assets>
+[2015-01-10T14:47:43Z] CometHTTP [304] 127.0.0.1 GET http://localhost:8001/comet_assets/js/comet.js <serve_comet_assets>
+[2015-01-10T14:47:56Z] CometHTTP [200] 127.0.0.1 GET http://localhost:8001/ <index>
+[2015-01-10T14:47:56Z] CometHTTP [304] 127.0.0.1 GET http://localhost:8001/assets/css/all-nocdn.css <serve_assets>
+[2015-01-10T14:47:56Z] CometHTTP [304] 127.0.0.1 GET http://localhost:8001/comet_assets/css/comet.css <serve_comet_assets>
+[2015-01-10T14:47:56Z] CometHTTP [304] 127.0.0.1 GET http://localhost:8001/assets/js/all-nocdn.js <serve_assets>
+[2015-01-10T14:47:56Z] CometHTTP [304] 127.0.0.1 GET http://localhost:8001/comet_assets/js/comet.js <serve_comet_assets>
+[2015-01-10T14:48:12Z] INFO: Comet: COMET CMS running @ http://localhost:8001/
+[2015-01-10T14:48:13Z] CometHTTP [200] 127.0.0.1 GET http://localhost:8001/ <index>
+[2015-01-10T14:48:13Z] CometHTTP [304] 127.0.0.1 GET http://localhost:8001/assets/css/all-nocdn.css <serve_assets>
+[2015-01-10T14:48:13Z] CometHTTP [304] 127.0.0.1 GET http://localhost:8001/comet_assets/css/comet.css <serve_comet_assets>
+[2015-01-10T14:48:13Z] CometHTTP [304] 127.0.0.1 GET http://localhost:8001/assets/js/all-nocdn.js <serve_assets>
+[2015-01-10T14:48:13Z] CometHTTP [304] 127.0.0.1 GET http://localhost:8001/comet_assets/js/comet.js <serve_comet_assets>
+[2015-01-10T14:48:29Z] INFO: Comet: COMET CMS running @ http://localhost:8001/
+[2015-01-10T14:48:30Z] CometHTTP [200] 127.0.0.1 GET http://localhost:8001/ <index>
+[2015-01-10T14:48:30Z] CometHTTP [304] 127.0.0.1 GET http://localhost:8001/assets/css/all-nocdn.css <serve_assets>
+[2015-01-10T14:48:30Z] CometHTTP [304] 127.0.0.1 GET http://localhost:8001/comet_assets/css/comet.css <serve_comet_assets>
+[2015-01-10T14:48:30Z] CometHTTP [304] 127.0.0.1 GET http://localhost:8001/assets/js/all-nocdn.js <serve_assets>
+[2015-01-10T14:48:30Z] CometHTTP [304] 127.0.0.1 GET http://localhost:8001/comet_assets/js/comet.js <serve_comet_assets>
+[2015-01-10T14:48:31Z] CometHTTP [200] 127.0.0.1 GET http://localhost:8001/ <index>
+[2015-01-10T14:48:31Z] CometHTTP [304] 127.0.0.1 GET http://localhost:8001/assets/css/all-nocdn.css <serve_assets>
+[2015-01-10T14:48:31Z] CometHTTP [304] 127.0.0.1 GET http://localhost:8001/comet_assets/css/comet.css <serve_comet_assets>
+[2015-01-10T14:48:31Z] CometHTTP [304] 127.0.0.1 GET http://localhost:8001/assets/js/all-nocdn.js <serve_assets>
+[2015-01-10T14:48:31Z] CometHTTP [304] 127.0.0.1 GET http://localhost:8001/comet_assets/js/comet.js <serve_comet_assets>
+[2015-01-10T14:48:34Z] CometHTTP [200] 127.0.0.1 GET http://localhost:8001/ <index>
+[2015-01-10T14:48:34Z] CometHTTP [304] 127.0.0.1 GET http://localhost:8001/assets/css/all-nocdn.css <serve_assets>
+[2015-01-10T14:48:34Z] CometHTTP [304] 127.0.0.1 GET http://localhost:8001/comet_assets/css/comet.css <serve_comet_assets>
+[2015-01-10T14:48:34Z] CometHTTP [304] 127.0.0.1 GET http://localhost:8001/assets/js/all-nocdn.js <serve_assets>
+[2015-01-10T14:48:34Z] CometHTTP [304] 127.0.0.1 GET http://localhost:8001/comet_assets/js/comet.js <serve_comet_assets>
+[2015-01-10T14:48:38Z] INFO: Comet: COMET CMS running @ http://localhost:8001/
+[2015-01-10T14:53:57Z] INFO: Comet: COMET CMS running @ http://localhost:8001/
+[2015-01-10T14:54:13Z] INFO: Comet: COMET CMS running @ http://localhost:8001/
+[2015-01-10T14:54:55Z] INFO: Comet: COMET CMS running @ http://localhost:8001/
+[2015-01-10T14:55:00Z] INFO: Comet: COMET CMS running @ http://localhost:8001/
+[2015-01-10T14:55:38Z] INFO: Comet: COMET CMS running @ http://localhost:8001/
+[2015-01-10T14:55:50Z] CometHTTP [200] 127.0.0.1 GET http://localhost:8001/ <index>
+[2015-01-10T14:55:50Z] CometHTTP [304] 127.0.0.1 GET http://localhost:8001/assets/css/all-nocdn.css <serve_assets>
+[2015-01-10T14:55:50Z] CometHTTP [304] 127.0.0.1 GET http://localhost:8001/comet_assets/css/comet.css <serve_comet_assets>
+[2015-01-10T14:55:50Z] CometHTTP [304] 127.0.0.1 GET http://localhost:8001/assets/js/all-nocdn.js <serve_assets>
+[2015-01-10T14:55:50Z] CometHTTP [304] 127.0.0.1 GET http://localhost:8001/comet_assets/js/comet.js <serve_comet_assets>
+[2015-01-10T14:57:16Z] CometHTTP [200] 127.0.0.1 GET http://localhost:8001/ <index>
+[2015-01-10T14:57:16Z] CometHTTP [304] 127.0.0.1 GET http://localhost:8001/assets/css/all-nocdn.css <serve_assets>
+[2015-01-10T14:57:16Z] CometHTTP [304] 127.0.0.1 GET http://localhost:8001/comet_assets/css/comet.css <serve_comet_assets>
+[2015-01-10T14:57:16Z] CometHTTP [304] 127.0.0.1 GET http://localhost:8001/assets/js/all-nocdn.js <serve_assets>
+[2015-01-10T14:57:16Z] CometHTTP [304] 127.0.0.1 GET http://localhost:8001/comet_assets/js/comet.js <serve_comet_assets>
+[2015-01-10T14:57:45Z] INFO: Comet: COMET CMS running @ http://localhost:8001/
+[2015-01-10T15:00:02Z] INFO: Comet: COMET CMS running @ http://localhost:8001/
+[2015-01-10T15:04:33Z] INFO: Nikola: Scanning posts.
+[2015-01-10T15:04:33Z] INFO: Comet: COMET CMS running @ http://localhost:8001/
+[2015-01-10T15:04:34Z] INFO: Nikola: Scanning posts.
+[2015-01-10T15:04:34Z] INFO: Comet: COMET CMS running @ http://localhost:8001/
+[2015-01-10T15:04:47Z] INFO: Nikola: Scanning posts...
+[2015-01-10T15:04:47Z] INFO: Nikola: Posts scanned.
+[2015-01-10T15:04:47Z] INFO: Comet: COMET CMS running @ http://localhost:8001/
+[2015-01-10T15:05:10Z] INFO: Nikola: Scanning posts...
+[2015-01-10T15:05:10Z] INFO: Nikola: Posts scanned.
+[2015-01-10T15:05:10Z] INFO: Comet: COMET CMS running @ http://localhost:8001/
+[2015-01-10T15:05:13Z] CometHTTP [500] 127.0.0.1 POST http://localhost:8001/new/post <new_post_or_page>
+[2015-01-10T15:05:18Z] INFO: Nikola: Scanning posts...
+[2015-01-10T15:05:18Z] INFO: Nikola: Posts scanned.
+[2015-01-10T15:05:18Z] CometHTTP [302] 127.0.0.1 POST http://localhost:8001/new/post <new_post_or_page>
+[2015-01-10T15:05:18Z] CometHTTP [200] 127.0.0.1 GET http://localhost:8001/ <index>
+[2015-01-10T15:06:17Z] INFO: Nikola: Scanning posts...
+[2015-01-10T15:06:17Z] INFO: Nikola: Posts scanned.
+[2015-01-10T15:06:17Z] INFO: Comet: COMET CMS running @ http://localhost:8001/
+[2015-01-10T15:16:50Z] INFO: Nikola: Scanning posts...
+[2015-01-10T15:16:50Z] INFO: Nikola: Posts scanned.
+[2015-01-10T15:16:50Z] INFO: Comet: COMET CMS running @ http://localhost:8001/
+[2015-01-10T15:18:20Z] INFO: Nikola: Scanning posts...
+[2015-01-10T15:18:20Z] INFO: Nikola: Posts scanned.
+[2015-01-10T15:18:20Z] INFO: Comet: COMET CMS running @ http://localhost:8001/
+[2015-01-10T15:18:29Z] CometHTTP [200] 127.0.0.1 GET http://localhost:8001/ <index>
+[2015-01-10T15:18:29Z] CometHTTP [304] 127.0.0.1 GET http://localhost:8001/assets/css/all-nocdn.css <serve_assets>
+[2015-01-10T15:18:29Z] CometHTTP [304] 127.0.0.1 GET http://localhost:8001/comet_assets/css/comet.css <serve_comet_assets>
+[2015-01-10T15:18:29Z] CometHTTP [304] 127.0.0.1 GET http://localhost:8001/assets/js/all-nocdn.js <serve_assets>
+[2015-01-10T15:18:29Z] CometHTTP [304] 127.0.0.1 GET http://localhost:8001/comet_assets/js/comet.js <serve_comet_assets>
+[2015-01-10T15:18:51Z] INFO: Nikola: Scanning posts...
+[2015-01-10T15:18:51Z] INFO: Nikola: Posts scanned.
+[2015-01-10T15:18:51Z] INFO: Comet: COMET CMS running @ http://localhost:8001/
+[2015-01-10T15:19:02Z] INFO: Nikola: Scanning posts...
+[2015-01-10T15:19:02Z] INFO: Nikola: Posts scanned.
+[2015-01-10T15:19:02Z] INFO: Comet: COMET CMS running @ http://localhost:8001/
+[2015-01-10T15:19:34Z] INFO: Nikola: Scanning posts...
+[2015-01-10T15:19:34Z] INFO: Nikola: Posts scanned.
+[2015-01-10T15:19:34Z] INFO: Comet: COMET CMS running @ http://localhost:8001/
+[2015-01-10T15:19:39Z] CometHTTP [200] 127.0.0.1 GET http://localhost:8001/ <index>
+[2015-01-10T15:19:39Z] CometHTTP [304] 127.0.0.1 GET http://localhost:8001/assets/css/all-nocdn.css <serve_assets>
+[2015-01-10T15:19:39Z] CometHTTP [304] 127.0.0.1 GET http://localhost:8001/comet_assets/css/comet.css <serve_comet_assets>
+[2015-01-10T15:19:39Z] CometHTTP [304] 127.0.0.1 GET http://localhost:8001/assets/js/all-nocdn.js <serve_assets>
+[2015-01-10T15:19:39Z] CometHTTP [304] 127.0.0.1 GET http://localhost:8001/comet_assets/js/comet.js <serve_comet_assets>
+[2015-01-10T15:19:41Z] CometHTTP [500] 127.0.0.1 GET http://localhost:8001/rebuild <rebuild>
+[2015-01-10T15:19:50Z] INFO: Nikola: Scanning posts...
+[2015-01-10T15:19:50Z] INFO: Nikola: Posts scanned.
+[2015-01-10T15:19:50Z] INFO: Comet: COMET CMS running @ http://localhost:8001/
+[2015-01-10T15:20:03Z] INFO: Nikola: Scanning posts...
+[2015-01-10T15:20:03Z] INFO: Nikola: Posts scanned.
+[2015-01-10T15:20:03Z] INFO: Comet: COMET CMS running @ http://localhost:8001/
+[2015-01-10T15:21:20Z] CometHTTP [200] 127.0.0.1 GET http://localhost:8001/ <index>
+[2015-01-10T15:21:20Z] CometHTTP [304] 127.0.0.1 GET http://localhost:8001/assets/css/all-nocdn.css <serve_assets>
+[2015-01-10T15:21:20Z] CometHTTP [304] 127.0.0.1 GET http://localhost:8001/comet_assets/css/comet.css <serve_comet_assets>
+[2015-01-10T15:21:21Z] CometHTTP [304] 127.0.0.1 GET http://localhost:8001/assets/js/all-nocdn.js <serve_assets>
+[2015-01-10T15:21:21Z] CometHTTP [304] 127.0.0.1 GET http://localhost:8001/comet_assets/js/comet.js <serve_comet_assets>
+[2015-01-10T15:21:25Z] INFO: Nikola: Scanning posts...
+[2015-01-10T15:21:25Z] INFO: Nikola: Posts scanned.
+[2015-01-10T15:21:25Z] INFO: Comet: COMET CMS running @ http://localhost:8001/
+[2015-01-10T15:21:26Z] INFO: Nikola: Scanning posts...
+[2015-01-10T15:21:26Z] INFO: Nikola: Posts scanned.
+[2015-01-10T15:21:26Z] INFO: Comet: COMET CMS running @ http://localhost:8001/
+[2015-01-10T15:21:26Z] CometHTTP [200] 127.0.0.1 GET http://localhost:8001/ <index>
+[2015-01-10T15:21:26Z] CometHTTP [304] 127.0.0.1 GET http://localhost:8001/assets/css/all-nocdn.css <serve_assets>
+[2015-01-10T15:21:26Z] CometHTTP [304] 127.0.0.1 GET http://localhost:8001/comet_assets/css/comet.css <serve_comet_assets>
+[2015-01-10T15:21:26Z] CometHTTP [304] 127.0.0.1 GET http://localhost:8001/assets/js/all-nocdn.js <serve_assets>
+[2015-01-10T15:21:26Z] CometHTTP [304] 127.0.0.1 GET http://localhost:8001/comet_assets/js/comet.js <serve_comet_assets>
+[2015-01-10T15:22:18Z] INFO: Nikola: Scanning posts...
+[2015-01-10T15:22:18Z] INFO: Nikola: Posts scanned.
+[2015-01-10T15:22:18Z] INFO: Comet: COMET CMS running @ http://localhost:8001/
+[2015-01-10T15:22:23Z] INFO: Nikola: Scanning posts...
+[2015-01-10T15:22:23Z] INFO: Nikola: Posts scanned.
+[2015-01-10T15:22:23Z] CometHTTP [302] 127.0.0.1 GET http://localhost:8001/rescan <rescan>
+[2015-01-10T15:22:23Z] CometHTTP [200] 127.0.0.1 GET http://localhost:8001/ <index>

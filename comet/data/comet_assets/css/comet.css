@@ -1,0 +1,12 @@
+/*
+ * Copyright © 2014-2015, Chris Warrick et al.
+ * See /LICENSE for licensing information.
+ */
+
+.save-btn, .save-icon {
+    transition: all 0.5s ease;
+}
+
+.page-header {
+    text-align: center;
+}
