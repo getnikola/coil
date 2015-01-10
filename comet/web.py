@@ -103,7 +103,8 @@ def configure_site():
     if site.configured:
         scan_site()
     else:
-        raise Exception("Not a Nikola site.")
+        app.logger("Not a Nikola site.")
+        return
 
     app.secret_key = site.config.get('COMET_SECRET_KEY')
     app.config['COMET_URL'] = site.config.get('COMET_URL')
@@ -378,7 +379,8 @@ def read_users():
     app.config['USERS'] = {}
 
     if not os.path.exists(app.config['USERS_PATH']):
-        raise Exception("Cannot find comet_users.json.")
+        app.logger.error("Cannot find comet_users.json.")
+        return
 
     with io.open(app.config['USERS_PATH'], 'r', encoding='utf-8') as fh:
         udict = json.load(fh)
