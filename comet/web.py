@@ -46,9 +46,9 @@ app = None
 
 def scan_site():
     """Rescan the site."""
-    nikola.utils.LOGGER.info("Scanning posts...")
+    app.logger.info(os.getcwd())
     site.scan_posts(really=True, quiet=True)
-    nikola.utils.LOGGER.info("Posts scanned.")
+    app.logger.info("Posts scanned.")
 
 
 def configure_url(url):
@@ -270,6 +270,7 @@ def find_post(path):
     :return: A post matching the path
     :rtype: Post or None
     """
+    scan_site()
     for p in site.timeline:
         if p.source_path == path:
             return p
@@ -457,6 +458,7 @@ def index():
 
     :param int all: Whether or not should show all posts
     """
+    scan_site()
     if not os.path.exists(os.path.join(site.config["OUTPUT_FOLDER"],
                                        'assets')):
         return redirect('/setup')
@@ -538,7 +540,6 @@ def edit(path):
             meta['author.uid'] = post.meta('author.uid') or current_user.uid
         post.compiler.create_post(post.source_path, onefile=True,
                                   is_page=False, **meta)
-        scan_site()
         post = find_post(path)
         context['action'] = 'save'
         context['post_content'] = meta['content']
@@ -563,14 +564,10 @@ def edit(path):
 def delete():
     """Delete a post."""
     path = request.form['path']
-    for p in site.timeline:
-        if p.source_path == path:
-            post = p
-            break
+    post = find_post(path)
     if post is None:
         return error("No such post or page.", 404, '/delete')
     os.unlink(path)
-    scan_site()
     return redirect('/')
 
 
@@ -579,14 +576,6 @@ def delete():
 def rebuild():
     """Rebuild the site."""
     return "<h1>Not implemented.</h1>", 500
-
-
-@app.route('/rescan')
-@login_required
-def rescan():
-    """Rescan posts."""
-    scan_site()
-    return redirect('/')
 
 
 @app.route('/bower_components/<path:path>')
