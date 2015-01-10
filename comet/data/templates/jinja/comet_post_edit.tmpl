@@ -1,41 +1,4 @@
 {% extends 'base.tmpl' %}
-{% block extra_head %}
-<style>
-#post-meta-line, #toolbar, #post-meta-panel, #content-area {
-    margin-top: 10px;
-}
-
-#post-meta-line {
-    padding-left: 0px;
-    padding-right: 0px;
-}
-
-#post-meta-line .input-group-addon {
-    border-radius: 0;
-    width: 1%;
-}
-
-#post-meta-line .form-control {
-    border-right: 0;
-    border-radius: 0;
-}
-
-#post-meta-line .input-group:first-child .input-group-addon {
-    border-top-left-radius: 4px;
-    border-bottom-left-radius: 4px;
-}
-
-#post-meta-line .input-group:last-child .form-control {
-    border-top-right-radius: 4px;
-    border-bottom-right-radius: 4px;
-    border-right: 1px solid #ccc;
-}
-
-#post-meta-line .input-group:last-child .form-control:focus {
-    border-color: #66afe9;
-}
-</style>
-{% endblock %}
 {% block extra_js %}
 {% if action == 'save' %}
 <script>$(document).ready(function() { save_anim(); });</script>
@@ -80,7 +43,7 @@
 {% endfor %}
 
         <div id="toolbar" class="btn-toolbar">
-        <div class="btn-group"><button type="submit" class="btn btn-sm btn-primary save-btn"><i id="fa fa-save fa-fw save-icon"></i> Save</button></div>
+        <div class="btn-group"><button type="submit" class="btn btn-sm btn-primary save-btn"><i class="fa fa-save fa-fw save-icon"></i> Save</button></div>
 
         <div class="btn-group">
           <a class="btn btn-default btn-sm" data-wysihtml5-command="bold" title="CTRL+B"><i class="fa fa-bold"></i></a>

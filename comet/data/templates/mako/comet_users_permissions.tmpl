@@ -1,17 +1,4 @@
 <%inherit file="base.tmpl"/>
-<%block name="extra_head">
-<style>
-.uid {
-    text-align: right;
-}
-.perm, .select_all {
-    text-align: center;
-}
-td {
-    vertical-align: middle !important;
-}
-</style>
-</%block>
 <%block name="extra_js">
 <script>
 var PERMISSIONS = ${json.dumps(PERMISSIONS)};
@@ -64,7 +51,7 @@ $(document).ready(function() {
 % endif
 
 <form action="/users/permissions" method="POST">
-<table class="table table-hover" style="table-layout: fixed;">
+<table class="table table-hover users" style="table-layout: fixed;">
 <thead><tr>
     <th class="uid">#</th>
     <th class="username">Username</th>

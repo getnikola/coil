@@ -1,16 +1,4 @@
 {% extends 'base.tmpl' %}
-{% block extra_head %}
-<style>
-.list-group {
-    margin-top: 10px;
-}
-
-h2 {
-    margin-top: 20px;
-    padding-top: 0;
-}
-</style>
-{% endblock %}
 {% block extra_js %}
 <script>
 $('#deleteModal').on('show.bs.modal', function (event) {
@@ -50,7 +38,7 @@ Show posts of:
               <input class="form-control" name="title" id="title" placeholder="Title">
               <span class="input-group-btn"><button type="submit" class="btn btn-success"><i class="fa fa-file-o"></i> Create Post</button></span>
         </form>
-        <div class="list-group">
+        <div class="list-group posts">
         {% for p in posts %}
             <div class="list-group-item">
                 <h3 class="media-heading">{{ p.title() }}</h3>
@@ -73,8 +61,7 @@ Show posts of:
               <input class="form-control" name="title" id="title" placeholder="Title">
               <span class="input-group-btn"><button type="submit" class="btn btn-success"><i class="fa fa-file-o"></i> Create Page</button></span>
         </form>
-        <div class="page_holder"></div>
-        <div class="list-group">
+        <div class="list-group pages">
         {% for p in pages %}
             <div class="list-group-item">
                 <h3 class="media-heading">{{ p.title() }}</h3>

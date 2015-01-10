@@ -10,3 +10,92 @@
 .page-header {
     text-align: center;
 }
+
+.list-group.posts, .list-group.pages {
+    margin-top: 22px;
+}
+
+#post-meta-line, #toolbar, #post-meta-panel, #content-area {
+    margin-top: 10px;
+}
+
+#post-meta-line {
+    padding-left: 0px;
+    padding-right: 0px;
+}
+
+#post-meta-line .input-group-addon {
+    border-radius: 0;
+    width: 1%;
+}
+
+#post-meta-line .form-control {
+    border-right: 0;
+    border-radius: 0;
+}
+
+#post-meta-line .input-group:first-child .input-group-addon {
+    border-top-left-radius: 4px;
+    border-bottom-left-radius: 4px;
+}
+
+#post-meta-line .input-group:last-child .form-control {
+    border-top-right-radius: 4px;
+    border-bottom-right-radius: 4px;
+    border-right: 1px solid #ccc;
+}
+
+#post-meta-line .input-group:last-child .form-control:focus {
+    border-color: #66afe9;
+}
+
+.inactive-user .username, .inactive-user .realname {
+    text-decoration: line-through;
+}
+
+table.users .uid {
+    text-align: right;
+}
+
+.users td {
+    vertical-align: middle !important;
+}
+
+.perm, .select_all {
+    text-align: center;
+}
+
+.form-signin {
+  max-width: 330px;
+  padding: 15px;
+  margin: 0 auto;
+}
+.form-signin .form-signin-heading,
+.form-signin .checkbox {
+  margin-bottom: 10px;
+}
+.form-signin .checkbox {
+  font-weight: normal;
+}
+.form-signin .form-control {
+  position: relative;
+  height: auto;
+  -webkit-box-sizing: border-box;
+     -moz-box-sizing: border-box;
+          box-sizing: border-box;
+  padding: 10px;
+  font-size: 16px;
+}
+.form-signin .form-control:focus {
+  z-index: 2;
+}
+.form-signin input[type="text"] {
+  margin-bottom: -1px;
+  border-bottom-right-radius: 0;
+  border-bottom-left-radius: 0;
+}
+.form-signin input[type="password"] {
+  margin-bottom: 10px;
+  border-top-left-radius: 0;
+  border-top-right-radius: 0;
+}
