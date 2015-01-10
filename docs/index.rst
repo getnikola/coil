@@ -18,16 +18,16 @@ Administrator documentation
 
 .. toctree::
    :maxdepth: 2
+   :numbered:
 
-   setup
-   web
-
+   admin/*
 
 Appendices
 ----------
 
 .. toctree::
    :maxdepth: 2
+   :numbered:
 
    AUTHORS
    CHANGELOG
