@@ -43,6 +43,7 @@ Options:
 """
 
 import comet
+import comet.utils
 import sys
 import docopt
 import webbrowser
@@ -69,7 +70,8 @@ def init(arguments):
 
 def write_users(arguments):
     import comet.init
-    return comet.init.write_users()
+    u = comet.utils.ask("Redis URL", "redis://")
+    return comet.init.write_users(u)
 
 
 def devserver(arguments):

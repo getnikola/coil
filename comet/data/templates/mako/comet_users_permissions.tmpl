@@ -55,6 +55,10 @@ $(document).ready(function() {
 <thead><tr>
     <th class="uid">#</th>
     <th class="username">Username</th>
+    <th class="perm is_active">Active<br>
+        <button type="button" class="btn btn-info btn-xs select_all-perm" data-perm="is_active"><i class="fa fa-check-square-o fa-fw"></i></button>
+        <button type="button" class="btn btn-info btn-xs select_none-perm" data-perm="is_active"><i class="fa fa-square-o fa-fw"></i></button>
+    </th>
     <th class="perm is_admin">Admin<br>
         <button type="button" class="btn btn-info btn-xs select_all-perm" data-perm="is_admin"><i class="fa fa-check-square-o fa-fw"></i></button>
         <button type="button" class="btn btn-info btn-xs select_none-perm" data-perm="is_admin"><i class="fa fa-square-o fa-fw"></i></button>
@@ -82,12 +86,18 @@ $(document).ready(function() {
     <th class="select_all">Select all</th>
 </tr></thead>
 % for uid, user in USERS.items():
-% if user.active:
+% if user.is_active:
 <tr class="u${uid}">
     <td class="uid">${uid}</td>
     <td class="username">${user.username}</td>
     % for p in PERMISSIONS:
-    <td class="perm ${p}">${display_permission(user, p)}</td>
+    <td class="perm
+% if p == 'active':
+is_active
+% else:
+${p}
+%endif
+">${display_permission(user, p)}</td>
     % endfor
     <td class="select_all"><button type="button" class="btn btn-info select_all-user" data-uid="${uid}"><i class="fa fa-check-square-o fa-fw"></i></button> <button type="button" class="btn btn-info select_none-user" data-uid="${uid}"><i class="fa fa-square-o fa-fw"></i></button></td>
 </tr>

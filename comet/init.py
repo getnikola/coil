@@ -26,21 +26,32 @@
 # SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 from __future__ import print_function, unicode_literals
-import pkg_resources
-import os
+from comet.utils import PERMISSIONS, parse_redis
+import redis
 
+__all__ = ['init', 'write_users']
 
 def init():
     print("ERROR: Not implemented.")
     return 255
 
 
-def write_users():
-    with open('comet_users.json', 'wb') as fh:
-        fh.write(pkg_resources.resource_string(
-            'comet', os.path.join('data', 'comet_users.json')))
+def write_users(dburl):
+    data = {
+        'username': 'admin',
+        'realname': 'Website Administrator',
+        'password': '$2a$12$.qMCcA2uOo0BKkDtEF/bueYtHjcdPBmfEdpxtktRwRTgsR7ZVTWmW',
+    }
 
-    print("Wrote comet_users.json.\n")
+    for p in PERMISSIONS:
+        data[p] = '1'
+
+    db = redis.StrictRedis(**parse_redis(dburl))
+    db.hmset('user:1', data)
+    db.hset('users', 'admin', '1')
+    if not db.exists('last_uid'):
+        db.incr('last_uid')
+
     print("Username: admin")
     print("Password: admin")
     return 0

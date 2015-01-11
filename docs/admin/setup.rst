@@ -27,6 +27,12 @@ Create a virtualenv in ``/var/comet`` and instal Comet in it.
     # source bin/activate
     # pip install comet uwsgi
 
+Redis
+=====
+
+You need to set up a `Redis <http://redis.io/>`_ server.  Make sure it starts
+at boot.
+
 Nikola and ``conf.py``
 ======================
 
@@ -47,12 +53,12 @@ Start by setting up Nikola.  This can be done using ``nikola init``.
 
 Then, you must make some changes to the config:
 
- * Add ``COMET_SECRET_KEY`` — a bunch of random characters, needed for sessions.
+ * ``COMET_SECRET_KEY`` — a bunch of random characters, needed for sessions.
    **Store it in a safe place** — git is not one!  You can use
    ``os.urandom(24)`` to generate something good.
- * Add ``COMET_URL`` — the URL under which Comet can be accessed.
+ * ``COMET_URL`` — the URL under which Comet can be accessed.
+ * ``REDIS_URL`` — the URL of your Redis database.  Syntax is `Celery’s <http://docs.celeryproject.org/en/latest/getting-started/brokers/redis.html#configuration>`_.
  * Modify ``POSTS`` and ``PAGES``, replacing ``.txt`` by ``.html``.
-
 
 Finally, you must add `some CSS`__ for wysihtml5.  The easiest way to do this
 is by downloading the raw ``.css`` file as ``files/assets/css/custom.css``.
@@ -76,8 +82,7 @@ Run ``comet write_users``:
 .. code-block:: console
 
     # comet write_users
-    Wrote comet_users.json.
-
+    Redis URL [redis://]:
     Username: admin
     Password: admin
 

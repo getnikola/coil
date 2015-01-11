@@ -40,7 +40,7 @@ from flask import Flask, request, redirect, send_from_directory, g, session
 from flask.ext.login import (LoginManager, login_required, login_user,
                              logout_user, current_user, make_secure_token)
 from flask.ext.bcrypt import Bcrypt
-
+from comet.utils import USER_FIELDS, PERMISSIONS, parse_redis
 
 site = None
 app = None
@@ -71,12 +71,6 @@ def configure_site():
     app.config['BCRYPT_LOG_ROUNDS'] = 12
     app.config['NIKOLA_ROOT'] = os.getcwd()
     app.config['DEBUG'] = False
-    # TODO REMOVE THE TWO SETTINGS
-    # TODO REMOVE read_users write_users
-    # TODO DOCUMENT REDIS
-    app.config['USERS'] = {}
-    app.config['USERS_PATH'] = os.path.join(app.config['NIKOLA_ROOT'],
-                                            'comet_users.json')
 
     # Logging configuration
 
@@ -119,11 +113,7 @@ def configure_site():
     app.config['COMET_URL'] = site.config.get('COMET_URL')
     app.config['REDIS_URL'] = site.config.get('COMET_REDIS_URL', 'redis://')
     # Redis configuration
-    redis_raw = kombu.parse_url(app.config['REDIS_URL'])
-    redis_conn = {'host': redis_raw['hostname'] or 'localhost',
-                  'port': redis_raw['port'] or 6379,
-                  'db': int(redis_raw['virtual_host'] or 0),
-                  'password': redis_raw['password']}
+    redis_conn = parse_redis(app.config['REDIS_URL'])
     db = redis.StrictRedis(**redis_conn)
 
     site.template_hooks['menu_alt'].append(generate_menu_alt)
@@ -312,9 +302,6 @@ bcrypt = Bcrypt(app)
 login_manager = LoginManager()
 login_manager.init_app(app)
 login_manager.unauthorized_callback = _unauthorized
-PERMISSIONS = ['is_admin', 'can_edit_all_posts', 'wants_all_posts',
-               'can_upload_attachments', 'can_rebuild_site',
-               'can_transfer_post_authorship']
 
 
 class User(object):
@@ -324,7 +311,7 @@ class User(object):
                  can_upload_attachments, can_rebuild_site,
                  can_transfer_post_authorship):
         """Initialize an user with specified settings."""
-        self.uid = uid
+        self.uid = int(uid)
         self.username = username
         self.realname = realname
         self.password = password
@@ -394,6 +381,22 @@ def find_user_by_name(username):
         return None
 
 
+def write_user(user):
+    """Write an user ot the database.
+
+    :param User user: User to write
+    """
+
+    udata = {}
+
+    for f in USER_FIELDS:
+        udata[f] = getattr(user, f)
+
+    for p in PERMISSIONS:
+        udata[p] = '1' if getattr(user, p) else '0'
+    db.hmset('user:{0}'.format(user.uid), udata)
+
+
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     """Handle user authentication.
@@ -413,7 +416,7 @@ def login():
             code = 401
         else:
             if check_password(user.password,
-                              request.form['password']) and user.active:
+                              request.form['password']) and user.is_active:
                 login_user(user, remember=('remember-me' in request.form))
                 return redirect('/')
             else:
@@ -516,7 +519,7 @@ def edit(path):
             meta[k] = v
         meta.pop('_wysihtml5_mode', '')
         try:
-            meta['author'] = get_user(int(meta['author.uid'])).realname
+            meta['author'] = get_user(meta['author.uid']).realname
             author_change_success = True
         except:
             author_change_success = False
@@ -526,6 +529,7 @@ def edit(path):
             meta['author.uid'] = post.meta('author.uid') or current_user.uid
         post.compiler.create_post(post.source_path, onefile=True,
                                   is_page=False, **meta)
+        scan_site()
         post = find_post(path)
         context['action'] = 'save'
         context['post_content'] = meta['content']
@@ -535,10 +539,13 @@ def edit(path):
             context['post_content'] = fh.read().split('\n\n', 1)[1]
 
     context['post'] = post
-    safe_users = []
-    for u in app.config['USERS'].values():
-        safe_users.append((u.uid, u.realname))
-    context['USERS'] = sorted(safe_users)
+    users = []
+    last_uid = int(db.get('last_uid'))
+    for u in range(1, last_uid + 1):
+        realname, active = db.hmget('user:{0}'.format(u), 'realname', 'active')
+        if active == '1':
+            users.append((u, realname))
+    context['users'] = sorted(users)
     context['current_auid'] = int(post.meta('author.uid') or current_user.uid)
     context['title'] = 'Editing {0}'.format(post.title())
     context['permalink'] = '/edit/' + path
@@ -554,6 +561,7 @@ def delete():
     if post is None:
         return error("No such post or page.", 404, '/delete')
     os.unlink(path)
+    scan_site()
     return redirect('/')
 
 
@@ -658,7 +666,7 @@ def acp_user_account():
                 action = 'save_fail'
         current_user.realname = data['realname']
         current_user.wants_all_posts = 'wants_all_posts' in data
-        write_users()
+        write_user(current_user)
 
     return render('comet_account.tmpl',
                   context={'title': 'My account',
@@ -683,10 +691,12 @@ def acp_users():
     if not current_user.is_admin:
         return error("Not authorized to edit users.", 401, "/users")
     else:
+        last_uid = int(db.get('last_uid'))
+        USERS = {i: get_user(i) for i in range(1, last_uid + 1)}
         return render('comet_users.tmpl',
                       context={'title': 'Users',
                                'permalink': '/users',
-                               'USERS': app.config['USERS'],
+                               'USERS': USERS,
                                'alert': alert,
                                'alert_status': alert_status})
 
@@ -695,16 +705,22 @@ def acp_users():
 @login_required
 def acp_users_edit():
     """Edit an user account."""
+    global current_user
+
     if not current_user.is_admin:
         return error("Not authorized to edit users.", 401, "/users/edit")
     data = request.form
     action = data['action']
 
     if action == 'new':
-        uid = max(app.config['USERS']) + 1
-        app.config['USERS'][uid] = User(uid, data['username'], '', '', True,
-                                        False, True, True, True, True)
-        user = app.config['USERS'][uid]
+        if not data['username']:
+            return error("No username to create specified.", 400, "/users/edit")
+        uid = db.incr('last_uid')
+        pf = [False for p in PERMISSIONS]
+        pf[0] = True  # active
+        user = User(uid, data['username'], '', '', *pf)
+        write_user(user)
+        db.hset('users', user.username, user.uid)
         new = True
     else:
         user = get_user(data['uid'])
@@ -728,14 +744,19 @@ def acp_users_edit():
             alert = 'Must set a password.'
             alert_status = 'danger'
             action = 'save_fail'
-        user.username = data['username']
+
+        if data['username'] != user.username:
+            db.hdel('users', user.username)
+            user.username = data['username']
+            db.hset('users', user.username, user.uid)
         user.realname = data['realname']
         for p in PERMISSIONS:
             setattr(user, p, p in data)
-        if user == current_user:
+        user.active = True
+        if user.uid == current_user.uid:
             user.is_admin = True
-
-        write_users()
+            current_user = user
+        write_user(user)
 
     return render('comet_users_edit.tmpl',
                   context={'title': 'Edit user',
@@ -758,10 +779,10 @@ def acp_users_delete():
     if not user:
         return error("User does not exist.", 404, "/users/edit/delete")
     else:
-        user.active = direction == 'undel'
         for p in PERMISSIONS:
             setattr(user, p, False)
-        write_users()
+        user.active = direction == 'undel'
+        write_user(user)
         return redirect('/users?status={_del}eted'.format(_del=direction))
 
 
@@ -773,16 +794,21 @@ def acp_users_permissions():
         return error("Not authorized to edit users.",
                      401, "/users/permissions")
 
+    users = {}
+    last_uid = int(db.get('last_uid'))
     if request.method == 'POST':
-        for uid, user in app.config['USERS'].items():
+        for uid in range(1, last_uid + 1):
+            user = get_user(uid)
             for perm in PERMISSIONS:
                 if '{0}.{1}'.format(uid, perm) in request.form:
                     setattr(user, perm, True)
                 else:
                     setattr(user, perm, False)
-        current_user.is_admin = True  # cannot deadmin oneself
+            if uid == current_user.uid:
+                user.is_admin = True  # cannot deadmin oneself
+            write_user(user)
+            users[uid] = user
         action = 'save'
-        write_users()
     else:
         action = 'edit'
 
@@ -791,7 +817,7 @@ def acp_users_permissions():
         if permission == 'wants_all_posts' and not user.can_edit_all_posts:
             # If this happens, permissions are damaged.
             checked = ''
-        if user == current_user and permission == 'is_admin':
+        if user.uid == current_user.uid and permission in ['active', 'is_admin']:
             disabled = 'disabled'
         else:
             disabled = ''
@@ -799,10 +825,13 @@ def acp_users_permissions():
              'data-perm="{1}" class="u{0}" {2} {3}>')
         return d.format(user.uid, permission, checked, disabled)
 
+    for uid in range(1, last_uid + 1):
+        users[uid] = get_user(uid)
+
     return render('comet_users_permissions.tmpl',
                   context={'title': 'Permissions',
                            'permalink': '/users/permissions',
-                           'USERS': app.config['USERS'],
+                           'USERS': users,
                            'PERMISSIONS': PERMISSIONS,
                            'action': action,
                            'json': json,
