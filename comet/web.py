@@ -32,6 +32,8 @@ import io
 import pkg_resources
 import nikola.__main__
 import logbook
+import kombu
+import redis
 from nikola.utils import unicode_str, get_logger, ColorfulStderrHandler
 import nikola.plugins.command.new_post
 from flask import Flask, request, redirect, send_from_directory, g, session
@@ -42,6 +44,7 @@ from flask.ext.bcrypt import Bcrypt
 
 site = None
 app = None
+db = None
 
 
 def scan_site():
@@ -59,17 +62,23 @@ def configure_url(url):
 
 def configure_site():
     """Configure the site for Comet."""
-    global site
+    global site, db
 
     nikola.__main__._RETURN_DOITNIKOLA = True
     _dn = nikola.__main__.main([])
     _dn.sub_cmds = _dn.get_commands()
     site = _dn.nikola
+    app.config['BCRYPT_LOG_ROUNDS'] = 12
     app.config['NIKOLA_ROOT'] = os.getcwd()
     app.config['DEBUG'] = False
+    # TODO REMOVE THE TWO SETTINGS
+    # TODO REMOVE read_users write_users
+    # TODO DOCUMENT REDIS
     app.config['USERS'] = {}
     app.config['USERS_PATH'] = os.path.join(app.config['NIKOLA_ROOT'],
                                             'comet_users.json')
+
+    # Logging configuration
 
     logf = (u'[{record.time:%Y-%m-%dT%H:%M:%SZ}] {record.level_name}: '
             u'{record.channel}: {record.message}')
@@ -108,8 +117,14 @@ def configure_site():
 
     app.secret_key = site.config.get('COMET_SECRET_KEY')
     app.config['COMET_URL'] = site.config.get('COMET_URL')
-
-    read_users()
+    app.config['REDIS_URL'] = site.config.get('COMET_REDIS_URL', 'redis://')
+    # Redis configuration
+    redis_raw = kombu.parse_url(app.config['REDIS_URL'])
+    redis_conn = {'host': redis_raw['hostname'] or 'localhost',
+                  'port': redis_raw['port'] or 6379,
+                  'db': int(redis_raw['virtual_host'] or 0),
+                  'password': redis_raw['password']}
+    db = redis.StrictRedis(**redis_conn)
 
     site.template_hooks['menu_alt'].append(generate_menu_alt)
 
@@ -277,8 +292,6 @@ def find_post(path):
 
 
 app = Flask('comet')
-app.config['BCRYPT_LOG_ROUNDS'] = 12
-
 
 @app.after_request
 def log_request(resp):
@@ -358,7 +371,13 @@ def get_user(uid):
     :raises ValueError: uid is not an integer
     :raises KeyError: if user does not exist
     """
-    return app.config['USERS'][int(uid)]
+    d = db.hgetall('user:{0}'.format(uid))
+    if d:
+        for p in PERMISSIONS:
+            d[p] = d[p] == '1'
+        return User(uid=uid, **d)
+    else:
+        return None
 
 
 def find_user_by_name(username):
@@ -368,42 +387,11 @@ def find_user_by_name(username):
     :return: the user
     :rtype: User object or None
     """
-    for uid, u in app.config['USERS'].items():
-        if u.username == username:
-            return u
-            break
-
-
-def read_users():
-    """Read user data from the JSON file."""
-    app.config['USERS'] = {}
-
-    if not os.path.exists(app.config['USERS_PATH']):
-        app.logger.error("Cannot find comet_users.json.")
-        return
-
-    with io.open(app.config['USERS_PATH'], 'r', encoding='utf-8') as fh:
-        udict = json.load(fh)
-    for uid, data in udict.items():
-        uid = int(uid)
-        app.config['USERS'][uid] = User(uid, **data)
-
-
-def write_users():
-    """Write user data to the JSON file."""
-    udict = {}
-    for uid, user in app.config['USERS'].items():
-        uid = unicode_str(uid)
-        udict[uid] = {
-            'username': user.username,
-            'realname': user.realname,
-            'password': user.password,
-            'active': user.active,
-        }
-        for p in PERMISSIONS:
-            udict[uid][p] = getattr(user, p)
-    with open(app.config['USERS_PATH'], 'w') as fh:
-        json.dump(udict, fh, indent=4, sort_keys=True, separators=(',', ': '))
+    uid = db.hget('users', username)
+    if uid:
+        return get_user(uid)
+    else:
+        return None
 
 
 @app.route('/login', methods=['GET', 'POST'])
