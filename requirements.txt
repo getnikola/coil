@@ -1,5 +1,4 @@
 git+https://github.com/getnikola/nikola#egg=Nikola
-redis==2.10.3
 amqp==1.4.6
 anyjson==0.3.3
 billiard==3.3.0.19
