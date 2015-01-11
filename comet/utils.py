@@ -32,10 +32,10 @@ import sys
 
 __all__ = ['PERMISSIONS', 'USER_FIELDS', 'USER_ALL', 'parse_redis', 'ask', 'ask_yesno']
 
+USER_FIELDS = ['username', 'realname', 'password', 'email']
 PERMISSIONS = ['active', 'is_admin', 'can_edit_all_posts', 'wants_all_posts',
                'can_upload_attachments', 'can_rebuild_site',
                'can_transfer_post_authorship']
-USER_FIELDS = ['username', 'realname', 'password',]
 USER_ALL = USER_FIELDS + PERMISSIONS
 
 

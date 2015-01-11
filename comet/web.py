@@ -306,8 +306,8 @@ login_manager.unauthorized_callback = _unauthorized
 
 class User(object):
     """An user.  Compatible with Flask-Login."""
-    def __init__(self, uid, username, realname, password, active, is_admin,
-                 can_edit_all_posts, wants_all_posts,
+    def __init__(self, uid, username, realname, password, email, active,
+                 is_admin, can_edit_all_posts, wants_all_posts,
                  can_upload_attachments, can_rebuild_site,
                  can_transfer_post_authorship):
         """Initialize an user with specified settings."""
@@ -315,6 +315,7 @@ class User(object):
         self.username = username
         self.realname = realname
         self.password = password
+        self.email = email
         self.active = active
         self.is_admin = is_admin
         self.can_edit_all_posts = can_edit_all_posts
@@ -665,6 +666,7 @@ def acp_user_account():
                 alert_status = 'danger'
                 action = 'save_fail'
         current_user.realname = data['realname']
+        current_user.email = data['email']
         current_user.wants_all_posts = 'wants_all_posts' in data
         write_user(current_user)
 
@@ -750,6 +752,7 @@ def acp_users_edit():
             user.username = data['username']
             db.hset('users', user.username, user.uid)
         user.realname = data['realname']
+        user.email = data['email']
         for p in PERMISSIONS:
             setattr(user, p, p in data)
         user.active = True
@@ -806,6 +809,7 @@ def acp_users_permissions():
                     setattr(user, perm, False)
             if uid == current_user.uid:
                 user.is_admin = True  # cannot deadmin oneself
+                user.active = True  # cannot deactivate oneself
             write_user(user)
             users[uid] = user
         action = 'save'
@@ -821,9 +825,12 @@ def acp_users_permissions():
             disabled = 'disabled'
         else:
             disabled = ''
+        permission_a = permission
+        if permission == 'active':
+            permission_a = 'is_active'
         d = ('<input type="checkbox" name="{0}.{1}" data-uid="{0}" '
-             'data-perm="{1}" class="u{0}" {2} {3}>')
-        return d.format(user.uid, permission, checked, disabled)
+             'data-perm="{4}" class="u{0}" {2} {3}>')
+        return d.format(user.uid, permission, checked, disabled, permission_a)
 
     for uid in range(1, last_uid + 1):
         users[uid] = get_user(uid)
