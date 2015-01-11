@@ -270,7 +270,6 @@ def find_post(path):
     :return: A post matching the path
     :rtype: Post or None
     """
-    scan_site()
     for p in site.timeline:
         if p.source_path == path:
             return p
@@ -458,7 +457,6 @@ def index():
 
     :param int all: Whether or not should show all posts
     """
-    scan_site()
     if not os.path.exists(os.path.join(site.config["OUTPUT_FOLDER"],
                                        'assets')):
         return redirect('/setup')

@@ -95,13 +95,17 @@ Permissions
 Chown ``my_comet_site`` *recursively* to ``nobody``, or whatever
 user Comet will run as.  Comet must be able to write to this directory.
 
-Server: uWSGI and nginx
-=======================
+Server
+======
 
 For testing purposes, you can use ``comet devserver``.  It should **NOT** be used
 in production.  You should use uWSGI Emperor and nginx in a real environment.
 
+uWSGI
+-----
+
 Sample uWSGI configuration:
+
 
 .. code-block:: ini
 
@@ -118,11 +122,22 @@ Sample uWSGI configuration:
     plugins = python2
     uid = nobody
     gid = nobody
-    processes = 3
+    processes = 1
     logger = file:/var/comet/my_comet_site/uwsgi.log
 
+.. note::
 
-(``python2`` may also be ``python``, this depends on your environment)
+   ``python2`` may also be ``python`` this depending on your environment.
+
+.. danger::
+
+   Comet **CANNOT** be run with more than one ``process``.  Otherwise, bad
+   things will happen as Comet changes some things during the runtime.
+   Supporting multiple processes would require reloading files from the
+   filesystem on *every request*.
+
+nginx
+-----
 
 Sample nginx configuration:
 
