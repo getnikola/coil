@@ -36,3 +36,4 @@ SITE/cache/
 SITE/output/
 SITE/.doit.db
 SITE/comet.log
+docs/comet.log
