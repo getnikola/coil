@@ -3,6 +3,8 @@
  * See /LICENSE for licensing information.
  */
 
+/* global styles */
+
 .save-btn, .save-icon {
     transition: all 0.5s ease;
 }
@@ -11,9 +13,13 @@
     text-align: center;
 }
 
+/* index */
+
 .list-group.posts, .list-group.pages {
     margin-top: 22px;
 }
+
+/* edit */
 
 #post-meta-line, #toolbar, #post-meta-panel, #content-area {
     margin-top: 10px;
@@ -49,6 +55,13 @@
     border-color: #66afe9;
 }
 
+.markup-warning {
+    vertical-align: middle;
+    float: none !important;
+}
+
+/* user management */
+
 .inactive-user .username, .inactive-user .realname {
     text-decoration: line-through;
 }
@@ -61,9 +74,13 @@ table.users .uid {
     vertical-align: middle !important;
 }
 
+/* permission management */
+
 .perm, .select_all {
     text-align: center;
 }
+
+/* login (copied from Bootstrap example) */
 
 .form-signin {
   max-width: 330px;

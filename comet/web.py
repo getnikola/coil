@@ -565,6 +565,7 @@ def edit(path):
     context['current_auid'] = int(post.meta('author.uid') or current_user.uid)
     context['title'] = 'Editing {0}'.format(post.title())
     context['permalink'] = '/edit/' + path
+    context['is_html'] = post.compiler.name == 'html'
     return render('comet_post_edit.tmpl', context)
 
 
