@@ -20,12 +20,12 @@ $('#deleteModal').on('show.bs.modal', function (event) {
         modal.find('.del-noun').text('deletion');
         modal.find('.del-verb').text('delete');
         modal.find('.del-verb-capital').text('Delete');
-        modal.find('.del-verb-capital').addClass('btn btn-sm-danger');
+        modal.find('.del-verb-capital').addClass('btn-danger');
     } else {
         modal.find('.del-noun').text('undeletion');
         modal.find('.del-verb').text('undelete');
         modal.find('.del-verb-capital').text('Undelete');
-        modal.find('.del-verb-capital').addClass('btn btn-sm-success');
+        modal.find('.del-verb-capital').addClass('btn-success');
     }
 });
 </script>
@@ -109,7 +109,7 @@ $('#deleteModal').on('show.bs.modal', function (event) {
         <form method="POST" action="/users/delete" class="delete-button">
         <input type="hidden" name="uid" class="del-uid">
         <input type="hidden" name="direction" class="del-direction">
-        <button type="button" class="btn btn btn-sm-default" data-dismiss="modal">Cancel</button>
+        <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
         <button type="submit" class="btn del-verb-capital">Delete</button>
       </div>
     </div>

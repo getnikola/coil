@@ -1,3 +1,4 @@
+{#  -*- coding: utf-8 -*- #}
 {% extends 'base.tmpl' %}
 {% block extra_js %}
 <script>
@@ -11,6 +12,8 @@ $(document).ready(function() {
 
     for (var i = 0; i < PERMISSIONS.length; i++) {
         var p = PERMISSIONS[i];
+        // .active is significant in Bootstrap, so we're changing the name here
+        if (p == 'active') { p = 'is_active'; }
         $('th.' + p + ' button.select_all-perm').click(function() {
             p = this.attributes['data-perm'].value;
             $('.' + p + ' input').each(function() { this.checked = true; });
@@ -18,7 +21,7 @@ $(document).ready(function() {
         $('th.' + p + ' button.select_none-perm').click(function() {
             p = this.attributes['data-perm'].value;
             $('.' + p + ' input').each(function() {
-                if (p != 'is_admin' || this.attributes['data-uid'].value != {{ current_user.uid }}) {
+                if ((p != 'is_admin' && p != 'is_active') || this.attributes['data-uid'].value != {{ current_user.uid }}) {
                     this.checked = false;
                 }
             });
@@ -34,7 +37,7 @@ $(document).ready(function() {
         $('.u' + uid + ' button.select_none-user').click(function() {
             uid = this.attributes['data-uid'].value;
             $('input.u' + uid).each(function() {
-                if (uid != current_uid || this.attributes['data-perm'].value != 'is_admin') { this.checked = false; }
+                if (uid != current_uid || ((this.attributes['data-perm'].value != 'is_admin') && (this.attributes['data-perm'].value != 'is_active'))) { this.checked = false; }
             });
         });
     }

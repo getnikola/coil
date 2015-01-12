@@ -1,3 +1,4 @@
+{#  -*- coding: utf-8 -*- #}
 {% extends 'base.tmpl' %}
 {% block extra_js %}
 {% if action == 'save' %}
@@ -43,6 +44,7 @@ $('#deleteModal').on('show.bs.modal', function (event) {
     <th class="uid">#</th>
     <th class="username">Username</th>
     <th class="realname">Real name</th>
+    <th class="email">E-mail address</th>
     <th class="is_admin">Admin</th>
     <th class="actions">Actions</th>
 </tr></thead>
@@ -55,6 +57,7 @@ $('#deleteModal').on('show.bs.modal', function (event) {
     <td class="uid">{{ uid }}</td>
     <td class="username">{{ user.username }}</td>
     <td class="realname">{{ user.realname }}</td>
+    <td class="email">{{ user.email }}</td>
     <td class="actions">
     {% if user.is_admin %}
     <i class="fa fa-check"></i>
@@ -68,15 +71,15 @@ $('#deleteModal').on('show.bs.modal', function (event) {
     <input type="hidden" name="action" value="edit">
     <div class="btn-group" role="group">
     {% if user.active %}
-        <button type="submit" class="btn btn-info" title="Edit"><i class="fa fa-pencil fa-fw"></i> Edit</button>
-        {% if user == current_user %}
-        <button type="button" class="btn btn-danger" title="Delete" disabled><i class="fa fa-trash fa-fw"></i> Delete</button>
+        <button type="submit" class="btn btn-sm btn-info" title="Edit"><i class="fa fa-pencil fa-fw"></i> Edit</button>
+        {% if user.uid == current_user.uid %}
+        <button type="button" class="btn btn-sm btn-danger" title="Delete" disabled><i class="fa fa-trash fa-fw"></i> Delete</button>
         {% else %}
-        <button type="button" class="btn btn-danger" data-toggle="modal" data-target="#deleteModal" data-username="{{ user.username }}" data-uid="{{ uid }}" data-direction="del" title="Delete"><i class="fa fa-trash fa-fw"></i> Delete</button>
+        <button type="button" class="btn btn-sm btn-danger" data-toggle="modal" data-target="#deleteModal" data-username="{{ user.username }}" data-uid="{{ uid }}" data-direction="del" title="Delete"><i class="fa fa-trash fa-fw"></i> Delete</button>
         {% endif %}
     {% else %}
-        <button type="button" class="btn btn-info" title="Edit" disabled><i class="fa fa-pencil fa-fw"></i> Edit</button>
-        <button type="button" class="btn btn-success" data-toggle="modal" data-target="#deleteModal" data-username="{{ user.username }}" data-uid="{{ uid }}" data-direction="undel" title="Undelete"><i class="fa fa-trash-o fa-fw"></i> Undelete</button>
+        <button type="button" class="btn btn-sm btn-info" title="Edit" disabled><i class="fa fa-pencil fa-fw"></i> Edit</button>
+        <button type="button" class="btn btn-sm btn-success" data-toggle="modal" data-target="#deleteModal" data-username="{{ user.username }}" data-uid="{{ uid }}" data-direction="undel" title="Undelete"><i class="fa fa-trash-o fa-fw"></i> Undelete</button>
     {% endif %}
     </div>
     </form>
@@ -87,7 +90,8 @@ $('#deleteModal').on('show.bs.modal', function (event) {
     <td><input name="username" placeholder="New user" class="form-control"></td>
     <td><input name="action" value="new" type="hidden"></td>
     <td></td>
-    <td><button type="submit" class="btn btn-primary"><i class="fa fa-plus-square fa-fw"></i> Create</button></td>
+    <td></td>
+    <td><button type="submit" class="btn btn-sm btn-primary"><i class="fa fa-plus-square fa-fw"></i> Create</button></td>
 </form></tr>
 </table>
 

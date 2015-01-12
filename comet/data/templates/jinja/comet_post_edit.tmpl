@@ -1,3 +1,4 @@
+{#  -*- coding: utf-8 -*- #}
 {% extends 'base.tmpl' %}
 {% block extra_js %}
 {% if action == 'save' %}
@@ -45,6 +46,7 @@
         <div id="toolbar" class="btn-toolbar">
         <div class="btn-group"><button type="submit" class="btn btn-sm btn-primary save-btn"><i class="fa fa-save fa-fw save-icon"></i> Save</button></div>
 
+{% if is_html %}
         <div class="btn-group">
           <a class="btn btn-default btn-sm" data-wysihtml5-command="bold" title="CTRL+B"><i class="fa fa-bold"></i></a>
           <a class="btn btn-default btn-sm" data-wysihtml5-command="italic" title="CTRL+I"><i class="fa fa-italic"></i></a>
@@ -96,10 +98,14 @@
               </select>
             </label>
           </div>
-        </div>
+{% else %}
+<div class="btn-group btn btn-sm disabled markup-warning text-warning"><i class="fa fa-warning"></i> Format: <strong>{{ post.compiler.name }}</strong> — editor unavailable</div>
+{% endif %}
+</div>
 
 <textarea name="content" id="content-area" class="form-control" rows="24">{{ post_content }}</textarea>
 </form>
+{% if is_html %}
 <script src="/bower_components/wysihtml/dist/wysihtml5x-toolbar.min.js"></script>
 <script src="/bower_components/wysihtml/parser_rules/advanced_and_extended.js"></script>
 <script type="text/javascript">
@@ -109,4 +115,5 @@
     stylesheets: ['/comet_assets/css/wysihtml5x.css']
   });
 </script>
+{% endif %}
 {% endblock %}
