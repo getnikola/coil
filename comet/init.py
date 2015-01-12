@@ -31,6 +31,7 @@ import redis
 
 __all__ = ['init', 'write_users']
 
+
 def init():
     print("ERROR: Not implemented.")
     return 255
@@ -40,7 +41,8 @@ def write_users(dburl):
     data = {
         'username': 'admin',
         'realname': 'Website Administrator',
-        'password': '$2a$12$.qMCcA2uOo0BKkDtEF/bueYtHjcdPBmfEdpxtktRwRTgsR7ZVTWmW',
+        'password':
+            '$2a$12$.qMCcA2uOo0BKkDtEF/bueYtHjcdPBmfEdpxtktRwRTgsR7ZVTWmW',
     }
 
     for p in PERMISSIONS:

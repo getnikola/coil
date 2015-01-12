@@ -32,7 +32,6 @@ import io
 import pkg_resources
 import nikola.__main__
 import logbook
-import kombu
 import redis
 from nikola.utils import unicode_str, get_logger, ColorfulStderrHandler
 import nikola.plugins.command.new_post
@@ -140,10 +139,11 @@ def configure_site():
     <script src="/comet_assets/js/comet.js"></scripts>
     """
 
-    # Theme must inherit from bootstrap3, because we have hardcoded HTML for that.
+    # Theme must inherit from bootstrap3, because we have hardcoded HTML.
     bs3 = ('bootstrap3' in site.THEMES) or ('bootstrap3-jinja' in site.THEMES)
     if not bs3:
-        app.logger.notice("THEME does not inherit from 'bootstrap3' or 'bootstrap3-jinja', using 'bootstrap3' instead.")
+        app.logger.notice("THEME does not inherit from 'bootstrap3' or "
+                          "'bootstrap3-jinja', using 'bootstrap3' instead.")
         site.config['THEME'] = 'bootstrap3'
         # Reloading some things
         site._THEMES = None
@@ -296,6 +296,7 @@ def find_post(path):
 
 
 app = Flask('comet')
+
 
 @app.after_request
 def log_request(resp):
@@ -730,7 +731,8 @@ def acp_users_edit():
 
     if action == 'new':
         if not data['username']:
-            return error("No username to create specified.", 400, "/users/edit")
+            return error("No username to create specified.", 400,
+                         "/users/edit")
         uid = db.incr('last_uid')
         pf = [False for p in PERMISSIONS]
         pf[0] = True  # active
@@ -835,7 +837,8 @@ def acp_users_permissions():
         if permission == 'wants_all_posts' and not user.can_edit_all_posts:
             # If this happens, permissions are damaged.
             checked = ''
-        if user.uid == current_user.uid and permission in ['active', 'is_admin']:
+        if user.uid == current_user.uid and permission in ['active',
+                                                           'is_admin']:
             disabled = 'disabled'
         else:
             disabled = ''

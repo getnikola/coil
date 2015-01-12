@@ -30,7 +30,8 @@ import kombu
 import sys
 
 
-__all__ = ['PERMISSIONS', 'USER_FIELDS', 'USER_ALL', 'parse_redis', 'ask', 'ask_yesno']
+__all__ = ['PERMISSIONS', 'USER_FIELDS', 'USER_ALL', 'parse_redis', 'ask',
+           'ask_yesno']
 
 USER_FIELDS = ['username', 'realname', 'password', 'email']
 PERMISSIONS = ['active', 'is_admin', 'can_edit_all_posts', 'wants_all_posts',
@@ -67,9 +68,11 @@ def ask(query, default=None):
     else:
         default_q = ''
     if sys.version_info[0] == 3:
-        inp = raw_input("{query}{default_q}: ".format(query=query, default_q=default_q)).strip()
+        inp = raw_input("{query}{default_q}: ".format(
+            query=query, default_q=default_q)).strip()
     else:
-        inp = raw_input("{query}{default_q}: ".format(query=query, default_q=default_q).encode('utf-8')).strip()
+        inp = raw_input("{query}{default_q}: ".format(
+            query=query, default_q=default_q).encode('utf-8')).strip()
     if inp or default is None:
         return inp
     else:
@@ -85,9 +88,11 @@ def ask_yesno(query, default=None):
     elif default is False:
         default_q = ' [y/N]'
     if sys.version_info[0] == 3:
-        inp = raw_input("{query}{default_q} ".format(query=query, default_q=default_q)).strip()
+        inp = raw_input("{query}{default_q} ".format(
+            query=query, default_q=default_q)).strip()
     else:
-        inp = raw_input("{query}{default_q} ".format(query=query, default_q=default_q).encode('utf-8')).strip()
+        inp = raw_input("{query}{default_q} ".format(
+            query=query, default_q=default_q).encode('utf-8')).strip()
     if inp:
         return inp.lower().startswith('y')
     elif default is not None:
