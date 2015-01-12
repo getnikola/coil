@@ -482,7 +482,7 @@ def index():
         wants = wants_now
 
     if current_user.can_edit_all_posts and wants:
-        posts = site.posts
+        posts = site.all_posts
         pages = site.pages
     else:
         wants = False
@@ -492,7 +492,7 @@ def index():
             if (p.meta('author.uid')
                     and p.meta('author.uid') != str(current_user.uid)):
                 continue
-            if p.use_in_feeds:
+            if p.is_post:
                 posts.append(p)
             else:
                 pages.append(p)
@@ -543,8 +543,15 @@ def edit(path):
                 or not author_change_success):
             meta['author'] = post.meta('author') or current_user.realname
             meta['author.uid'] = post.meta('author.uid') or current_user.uid
-        post.compiler.create_post(post.source_path, onefile=True,
+
+        twofile = post.is_two_file
+        onefile = not twofile
+        post.compiler.create_post(post.source_path, onefile=onefile,
                                   is_page=False, **meta)
+        if twofile:
+            meta_path = os.path.splitext(path)[0] + '.meta'
+            with io.open(meta_path, 'w+', encoding='utf-8') as fh:
+                fh.write(nikola.utils.write_metadata(meta))
         scan_site()
         post = find_post(path)
         context['action'] = 'save'
@@ -552,7 +559,9 @@ def edit(path):
     else:
         context['action'] = 'edit'
         with io.open(path, 'r', encoding='utf-8') as fh:
-            context['post_content'] = fh.read().split('\n\n', 1)[1]
+            context['post_content'] = fh.read()
+            if not post.is_two_file:
+                context['post_content'] = context['post_content'].split('\n\n', 1)[1]
 
     context['post'] = post
     users = []
