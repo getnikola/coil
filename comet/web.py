@@ -844,4 +844,8 @@ def acp_users_permissions():
                            'json': json,
                            'display_permission': display_permission})
 
-configure_site()
+if not os.path.exists('._COMET_NO_CONFIG') and os.path.exists('conf.py'):
+    configure_site()
+else:
+    # no Nikola site available
+    app = None

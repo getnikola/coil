@@ -76,17 +76,21 @@ def write_users(arguments):
 
 def devserver(arguments):
     import comet.web
-    port = int(arguments['--port'])
-    url = 'http://localhost:{0}/'.format(port)
-    comet.web.configure_url(url)
-    comet.web.app.config['DEBUG'] = True
+    if comet.web.app:
+        port = int(arguments['--port'])
+        url = 'http://localhost:{0}/'.format(port)
+        comet.web.configure_url(url)
+        comet.web.app.config['DEBUG'] = True
 
-    if arguments['--browser']:
-        webbrowser.open(url)
+        if arguments['--browser']:
+            webbrowser.open(url)
 
-    comet.web.app.logger.info(u"Comet CMS running @ {0}".format(url))
-    comet.web.app.run('localhost', port, debug=True)
-    return 0
+        comet.web.app.logger.info(u"Comet CMS running @ {0}".format(url))
+        comet.web.app.run('localhost', port, debug=True)
+        return 0
+    else:
+        print("FATAL: no conf.py found")
+        return 255
 
 if __name__ == '__main__':
     main()
