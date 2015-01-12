@@ -39,8 +39,9 @@ from flask import Flask, request, redirect, send_from_directory, g, session
 from flask.ext.login import (LoginManager, login_required, login_user,
                              logout_user, current_user, make_secure_token)
 from flask.ext.bcrypt import Bcrypt
-from comet.utils import USER_FIELDS, PERMISSIONS, parse_redis
+from comet.utils import USER_FIELDS, PERMISSIONS, parse_redis, SiteProxy
 
+_site = None
 site = None
 app = None
 db = None
@@ -48,25 +49,26 @@ db = None
 
 def scan_site():
     """Rescan the site."""
-    app.logger.info(os.getcwd())
     site.scan_posts(really=True, quiet=True)
-    app.logger.info("Posts scanned.")
 
 
 def configure_url(url):
     """Configure site URL."""
-    app.config['COMET_URL'] = site.config['SITE_URL'] =\
-        site.config['BASE_URL'] = site.GLOBAL_CONTEXT['blog_url'] = url
+    app.config['COMET_URL'] = \
+        _site.config['SITE_URL'] = _site.config['BASE_URL'] =\
+        _site.GLOBAL_CONTEXT['blog_url'] =\
+        site.config['SITE_URL'] = site.config['BASE_URL'] =\
+        url
 
 
 def configure_site():
     """Configure the site for Comet."""
-    global site, db
+    global _site, site, db
 
     nikola.__main__._RETURN_DOITNIKOLA = True
     _dn = nikola.__main__.main([])
     _dn.sub_cmds = _dn.get_commands()
-    site = _dn.nikola
+    _site = _dn.nikola
     app.config['BCRYPT_LOG_ROUNDS'] = 12
     app.config['NIKOLA_ROOT'] = os.getcwd()
     app.config['DEBUG'] = False
@@ -92,7 +94,7 @@ def configure_site():
                             bubble=True)
     ]
 
-    site.loghandlers = loghandlers
+    _site.loghandlers = loghandlers
     nikola.utils.LOGGER.handlers = loghandlers
 
     nikola.plugins.command.new_post.POSTLOGGER.handlers = loghandlers
@@ -102,65 +104,69 @@ def configure_site():
     app._logger = get_logger('Comet', loghandlers)
     app.http_logger = get_logger('CometHTTP', hloghandlers)
 
-    if not site.configured:
+    if not _site.configured:
         app.logger("Not a Nikola site.")
         return
 
-    app.secret_key = site.config.get('COMET_SECRET_KEY')
-    app.config['COMET_URL'] = site.config.get('COMET_URL')
-    app.config['REDIS_URL'] = site.config.get('COMET_REDIS_URL', 'redis://')
+    app.secret_key = _site.config.get('COMET_SECRET_KEY')
+    app.config['COMET_URL'] = _site.config.get('COMET_URL')
+    app.config['REDIS_URL'] = _site.config.get('COMET_REDIS_URL', 'redis://')
     # Redis configuration
     redis_conn = parse_redis(app.config['REDIS_URL'])
     db = redis.StrictRedis(**redis_conn)
 
-    site.template_hooks['menu_alt'].append(generate_menu_alt)
+    _site.template_hooks['menu_alt'].append(generate_menu_alt)
 
-    app.config['NIKOLA_URL'] = site.config['SITE_URL']
-    configure_url(app.config['COMET_URL'])
-    site.config['NAVIGATION_LINKS'] = {
+    app.config['NIKOLA_URL'] = _site.config['SITE_URL']
+    _site.config['NAVIGATION_LINKS'] = {
         'en': (
             (app.config['NIKOLA_URL'],
              '<i class="fa fa-globe"></i> Back to website'),
             ('/rebuild', '<i class="fa fa-cog rebuild"></i> Rebuild'),
         )
     }
-    site.GLOBAL_CONTEXT['navigation_links'] = site.config['NAVIGATION_LINKS']
-    TITLE = site.GLOBAL_CONTEXT['blog_title']('en') + ' Administration'
-    site.config['BLOG_TITLE'] = lambda _: TITLE
-    site.GLOBAL_CONTEXT['blog_title'] = lambda _: TITLE
-    site.GLOBAL_CONTEXT['lang'] = 'en'
-    site.GLOBAL_CONTEXT['extra_head_data'] = lambda _: (
+    _site.GLOBAL_CONTEXT['navigation_links'] = _site.config['NAVIGATION_LINKS']
+    TITLE = _site.GLOBAL_CONTEXT['blog_title']('en') + ' Administration'
+    _site.config['BLOG_TITLE'] = lambda _: TITLE
+    _site.GLOBAL_CONTEXT['blog_title'] = lambda _: TITLE
+    _site.GLOBAL_CONTEXT['lang'] = 'en'
+    _site.GLOBAL_CONTEXT['extra_head_data'] = lambda _: (
         """<link href="//maxcdn.bootstrapcdn.com/font-awesome/4.2.0/css/"""
         """font-awesome.min.css" rel="stylesheet">
     <link href="/comet_assets/css/comet.css" rel="stylesheet">""")
     # HACK: body_end appears after extra_js from templates, so we must use
     #       social_buttons_code instead
-    site.GLOBAL_CONTEXT['social_buttons_code'] = lambda _: """
+    _site.GLOBAL_CONTEXT['social_buttons_code'] = lambda _: """
     <script src="/comet_assets/js/comet.js"></scripts>
     """
 
     # Theme must inherit from bootstrap3, because we have hardcoded HTML.
-    bs3 = ('bootstrap3' in site.THEMES) or ('bootstrap3-jinja' in site.THEMES)
+    bs3 = (('bootstrap3' in _site.THEMES)
+           or ('bootstrap3-jinja' in _site.THEMES))
     if not bs3:
         app.logger.notice("THEME does not inherit from 'bootstrap3' or "
                           "'bootstrap3-jinja', using 'bootstrap3' instead.")
-        site.config['THEME'] = 'bootstrap3'
+        _site.config['THEME'] = 'bootstrap3'
         # Reloading some things
-        site._THEMES = None
-        site._get_themes()
-        site._template_system = None
-        site._get_template_system()
-        if 'has_custom_css' in site._GLOBAL_CONTEXT:
-            del site._GLOBAL_CONTEXT['has_custom_css']
-        site._get_global_context()
-
-    scan_site()
+        _site._THEMES = None
+        _site._get_themes()
+        _site._template_system = None
+        _site._get_template_system()
+        if 'has_custom_css' in _site._GLOBAL_CONTEXT:
+            del _site._GLOBAL_CONTEXT['has_custom_css']
+        _site._get_global_context()
 
     tmpl_dir = pkg_resources.resource_filename(
-        'comet', os.path.join('data', 'templates', site.template_system.name))
+        'comet', os.path.join('data', 'templates', _site.template_system.name))
     if os.path.isdir(tmpl_dir):
         # Inject tmpl_dir low in the theme chain
-        site.template_system.inject_directory(tmpl_dir)
+        _site.template_system.inject_directory(tmpl_dir)
+
+    # Site proxy
+    site = SiteProxy(db, _site, app.logger)
+    configure_url(app.config['COMET_URL'])
+
+    scan_site()
 
 
 def password_hash(password):
@@ -257,7 +263,7 @@ def render(template_name, context=None, code=200, headers=None):
     headers['Pragma'] = 'no-cache'
     headers['Cache-Control'] = 'private, max-age=0, no-cache'
 
-    return site.render_template(template_name, None, context), code, headers
+    return _site.render_template(template_name, None, context), code, headers
 
 
 def error(desc, code, permalink):
@@ -464,7 +470,7 @@ def index():
 
     :param int all: Whether or not should show all posts
     """
-    if not os.path.exists(os.path.join(site.config["OUTPUT_FOLDER"],
+    if not os.path.exists(os.path.join(_site.config["OUTPUT_FOLDER"],
                                        'assets')):
         return redirect('/setup')
 
@@ -509,10 +515,14 @@ def index():
 @app.route('/setup')
 def setup():
     """TEMPORARY setup function."""
-    ns = not os.path.exists(os.path.join(site.config["OUTPUT_FOLDER"],
+    ns = not os.path.exists(os.path.join(_site.config["OUTPUT_FOLDER"],
                                          'assets'))
     return render("comet_setup.tmpl", context={'needs_setup': ns})
 
+
+@app.route('/d/')
+def debug():
+    return str((site, site.posts, site.all_posts, site.pages))
 
 @app.route('/edit/<path:path>', methods=['GET', 'POST'])
 @login_required
@@ -548,14 +558,18 @@ def edit(path):
         onefile = not twofile
         post.compiler.create_post(post.source_path, onefile=onefile,
                                   is_page=False, **meta)
+
+        context['post_content'] = meta['content']
+
         if twofile:
             meta_path = os.path.splitext(path)[0] + '.meta'
+            # We cannot save `content` as meta, otherwise things break badly
+            meta.pop('content', '')
             with io.open(meta_path, 'w+', encoding='utf-8') as fh:
                 fh.write(nikola.utils.write_metadata(meta))
         scan_site()
         post = find_post(path)
         context['action'] = 'save'
-        context['post_content'] = meta['content']
     else:
         context['action'] = 'edit'
         with io.open(path, 'r', encoding='utf-8') as fh:
@@ -636,7 +650,7 @@ def serve_assets(path):
         /assets/ => output/assets
     """
     res = os.path.join(app.config['NIKOLA_ROOT'],
-                       site.config["OUTPUT_FOLDER"], 'assets')
+                       _site.config["OUTPUT_FOLDER"], 'assets')
     return send_from_directory(res, path)
 
 
@@ -648,13 +662,13 @@ def new(obj):
     :param str obj: Object to create (post or page)
     """
     title = request.form['title']
-    site.config['ADDITIONAL_METADATA']['author.uid'] = current_user.uid
+    _site.config['ADDITIONAL_METADATA']['author.uid'] = current_user.uid
     try:
         if obj == 'post':
-            site.commands.new_post(title=title, author=current_user.realname,
+            _site.commands.new_post(title=title, author=current_user.realname,
                                    content_format='html')
         elif obj == 'page':
-            site.commands.new_page(title=title, author=current_user.realname,
+            _site.commands.new_page(title=title, author=current_user.realname,
                                    content_format='html')
         else:
             return error("Cannot create {0} — unknown type.".format(obj),
@@ -663,7 +677,7 @@ def new(obj):
         return error("This {0} already exists!".format(obj),
                      500, '/new/' + obj)
     finally:
-        del site.config['ADDITIONAL_METADATA']['author.uid']
+        del _site.config['ADDITIONAL_METADATA']['author.uid']
     # reload post list and go to index
     scan_site()
     return redirect('/')

@@ -127,19 +127,12 @@ Sample uWSGI configuration:
     plugins = python2
     uid = nobody
     gid = nobody
-    processes = 1
+    processes = 3
     logger = file:/var/comet/my_comet_site/uwsgi.log
 
 .. note::
 
    ``python2`` may also be ``python`` this depending on your environment.
-
-.. danger::
-
-   Comet **CANNOT** be run with more than one ``process``.  Otherwise, bad
-   things will happen as Comet changes some things during the runtime.
-   Supporting multiple processes would require reloading files from the
-   filesystem on *every request*.
 
 nginx
 -----
