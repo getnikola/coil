@@ -33,7 +33,8 @@ import pkg_resources
 import nikola.__main__
 import logbook
 import redis
-from nikola.utils import unicode_str, get_logger, ColorfulStderrHandler
+from nikola.utils import (unicode_str, get_logger, ColorfulStderrHandler,
+                          write_metadata, TranslatableSetting)
 import nikola.plugins.command.new_post
 from flask import Flask, request, redirect, send_from_directory, g, session
 from flask.ext.login import (LoginManager, login_required, login_user,
@@ -127,18 +128,22 @@ def configure_site():
     }
     _site.GLOBAL_CONTEXT['navigation_links'] = _site.config['NAVIGATION_LINKS']
     TITLE = _site.GLOBAL_CONTEXT['blog_title']('en') + ' Administration'
-    _site.config['BLOG_TITLE'] = lambda _: TITLE
-    _site.GLOBAL_CONTEXT['blog_title'] = lambda _: TITLE
+    _site.config['BLOG_TITLE'] = TranslatableSetting(
+        'BLOG_TITLE', TITLE, _site.config['TRANSLATIONS'])
+    _site.GLOBAL_CONTEXT['blog_title'] = _site.config['BLOG_TITLE']
     _site.GLOBAL_CONTEXT['lang'] = 'en'
-    _site.GLOBAL_CONTEXT['extra_head_data'] = lambda _: (
+    _site.GLOBAL_CONTEXT['extra_head_data'] = TranslatableSetting(
+        'EXTRA_HEAD_DATA',
         """<link href="//maxcdn.bootstrapcdn.com/font-awesome/4.2.0/css/"""
-        """font-awesome.min.css" rel="stylesheet">
-    <link href="/comet_assets/css/comet.css" rel="stylesheet">""")
+        """font-awesome.min.css" rel="stylesheet">\n"""
+        """<link href="/comet_assets/css/comet.css" rel="stylesheet">""",
+        _site.config['TRANSLATIONS'])
     # HACK: body_end appears after extra_js from templates, so we must use
     #       social_buttons_code instead
-    _site.GLOBAL_CONTEXT['social_buttons_code'] = lambda _: """
-    <script src="/comet_assets/js/comet.js"></scripts>
-    """
+    _site.GLOBAL_CONTEXT['social_buttons_code'] = TranslatableSetting(
+        'SOCIAL_BUTTONS_CODE',
+        """<script src="/comet_assets/js/comet.js"></scripts>""",
+        _site.config['TRANSLATIONS'])
 
     # Theme must inherit from bootstrap3, because we have hardcoded HTML.
     bs3 = (('bootstrap3' in _site.THEMES)
@@ -520,10 +525,6 @@ def setup():
     return render("comet_setup.tmpl", context={'needs_setup': ns})
 
 
-@app.route('/d/')
-def debug():
-    return str((site, site.posts, site.all_posts, site.pages))
-
 @app.route('/edit/<path:path>', methods=['GET', 'POST'])
 @login_required
 def edit(path):
@@ -566,7 +567,7 @@ def edit(path):
             # We cannot save `content` as meta, otherwise things break badly
             meta.pop('content', '')
             with io.open(meta_path, 'w+', encoding='utf-8') as fh:
-                fh.write(nikola.utils.write_metadata(meta))
+                fh.write(write_metadata(meta))
         scan_site()
         post = find_post(path)
         context['action'] = 'save'
