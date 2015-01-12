@@ -103,9 +103,7 @@ def configure_site():
     app._logger = get_logger('Comet', loghandlers)
     app.http_logger = get_logger('CometHTTP', hloghandlers)
 
-    if site.configured:
-        scan_site()
-    else:
+    if not site.configured:
         app.logger("Not a Nikola site.")
         return
 
@@ -141,6 +139,22 @@ def configure_site():
     site.GLOBAL_CONTEXT['social_buttons_code'] = lambda _: """
     <script src="/comet_assets/js/comet.js"></scripts>
     """
+
+    # Theme must inherit from bootstrap3, because we have hardcoded HTML for that.
+    bs3 = ('bootstrap3' in site.THEMES) or ('bootstrap3-jinja' in site.THEMES)
+    if not bs3:
+        app.logger.notice("THEME does not inherit from 'bootstrap3' or 'bootstrap3-jinja', using 'bootstrap3' instead.")
+        site.config['THEME'] = 'bootstrap3'
+        # Reloading some things
+        site._THEMES = None
+        site._get_themes()
+        site._template_system = None
+        site._get_template_system()
+        if 'has_custom_css' in site._GLOBAL_CONTEXT:
+            del site._GLOBAL_CONTEXT['has_custom_css']
+        site._get_global_context()
+
+    scan_site()
 
     tmpl_dir = pkg_resources.resource_filename(
         'comet', os.path.join('data', 'templates', site.template_system.name))
