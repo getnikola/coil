@@ -51,6 +51,8 @@ def parse_redis(url):
     :rtype: dict
     :raises ValueError: invalid URL
     """
+
+    # TODO get rid of kombu and roll our own
     redis_raw = kombu.parse_url(url)
     if redis_raw['transport'] == 'redis':
         return {'host': redis_raw['hostname'] or 'localhost',
@@ -140,7 +142,7 @@ class SiteProxy(object):
             self._read_indexlist('pages')
 
             self.revision = rev
-            self.logger.error("Site updated to revision {0}.".format(rev))
+            self.logger.info("Site updated to revision {0}.".format(rev))
         elif rev == self.revision and self.db.exists('site:rev'):
             pass
         else:
@@ -159,11 +161,11 @@ class SiteProxy(object):
     def scan_posts(self, really=True, ignore_quit=False, quiet=True):
         """Rescan the site."""
         while self.db.exists('site:lock') and int(self.db.get('site:lock')) != 0:
-            self.logger.error("Waiting for DB lock...")
+            self.logger.info("Waiting for DB lock...")
             time.sleep(0.5)
         self.db.incr('site:lock')
-        self.logger.error("Lock acquired.")
-        self.logger.error("Scanning site...")
+        self.logger.info("Lock acquired.")
+        self.logger.info("Scanning site...")
 
         self._site.scan_posts(really, ignore_quit, quiet)
 
@@ -181,8 +183,8 @@ class SiteProxy(object):
         self.db.incr('site:rev')
 
         self.db.decr('site:lock')
-        self.logger.error("Lock released.")
-        self.logger.error("Site scanned.")
+        self.logger.info("Lock released.")
+        self.logger.info("Site scanned.")
         self.reload_site()
 
     @property

@@ -28,11 +28,14 @@
 from __future__ import print_function, unicode_literals
 import json
 import os
+import sys
 import io
 import pkg_resources
 import nikola.__main__
 import logbook
 import redis
+import rq
+import comet.tasks
 from nikola.utils import (unicode_str, get_logger, ColorfulStderrHandler,
                           write_metadata, TranslatableSetting)
 import nikola.plugins.command.new_post
@@ -42,11 +45,14 @@ from flask.ext.login import (LoginManager, login_required, login_user,
 from flask.ext.bcrypt import Bcrypt
 from comet.utils import USER_FIELDS, PERMISSIONS, parse_redis, SiteProxy
 
+
 _site = None
 site = None
 app = None
 db = None
-
+q = None
+build_job = None
+orphans_job = None
 
 def scan_site():
     """Rescan the site."""
@@ -64,7 +70,7 @@ def configure_url(url):
 
 def configure_site():
     """Configure the site for Comet."""
-    global _site, site, db
+    global _site, site, db, q
 
     nikola.__main__._RETURN_DOITNIKOLA = True
     _dn = nikola.__main__.main([])
@@ -115,6 +121,7 @@ def configure_site():
     # Redis configuration
     redis_conn = parse_redis(app.config['REDIS_URL'])
     db = redis.StrictRedis(**redis_conn)
+    q = rq.Queue(connection=db)
 
     _site.template_hooks['menu_alt'].append(generate_menu_alt)
 
@@ -606,12 +613,41 @@ def delete():
     return redirect('/')
 
 
+@app.route('/api/rebuild')
+@login_required
+def api_rebuild():
+    """Rebuild the site (internally)."""
+
+    #e = {'out': '', 'milestone': 0, 'total': 1, 'return': None , 'status': None}
+
+    build_job = q.fetch_job('build')
+    orphans_job = q.fetch_job('orphans')
+
+    o = json.dumps({'build': build_job.meta, 'orphans': orphans_job.meta})
+
+    if 'status' in build_job.meta and build_job.meta['status'] is True and 'status' in orphans_job.meta and orphans_job.meta['status'] is True:
+        build_job = None
+        orphans_job = None
+
+    return o
+
+
 @app.route('/rebuild')
 @login_required
 def rebuild():
-    """Rebuild the site."""
-    return "<h1>Not implemented.</h1>", 500
+    """Rebuild the site with a nice UI."""
 
+    executable = sys.executable
+    if executable.endswith('uwsgi'):
+        import uwsgi
+        executable = os.path.join(uwsgi.opt['virtualenv'], 'bin', 'python')
+
+    if not q.fetch_job('build') and not q.fetch_job('orphans'):
+        b = q.enqueue(comet.tasks.build, executable, job_id='build')
+        o = q.enqueue(comet.tasks.orphans, executable, job_id='orphans', depends_on=b)
+
+    return render('comet_rebuild.tmpl',
+                  {'title': 'Rebuild', 'permalink': '/rebuild'})
 
 @app.route('/bower_components/<path:path>')
 def serve_bower_components(path):
