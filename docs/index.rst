@@ -13,7 +13,8 @@ User documentation
    :maxdepth: 2
    :glob:
 
-    user/*
+   user/index
+   user/*
 
 Administrator documentation
 ---------------------------
@@ -23,6 +24,7 @@ Administrator documentation
    :glob:
    :numbered:
 
+   admin/index
    admin/*
    internals
 
