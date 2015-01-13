@@ -28,7 +28,6 @@
 from __future__ import print_function, unicode_literals
 import json
 import os
-import sys
 import io
 import pkg_resources
 import nikola.__main__
@@ -53,6 +52,7 @@ db = None
 q = None
 build_job = None
 orphans_job = None
+
 
 def scan_site():
     """Rescan the site."""
@@ -119,8 +119,8 @@ def configure_site():
     app.config['COMET_URL'] = _site.config.get('COMET_URL')
     app.config['REDIS_URL'] = _site.config.get('COMET_REDIS_URL', 'redis://')
     # Redis configuration
-    redis_conn = parse_redis(app.config['REDIS_URL'])
-    db = redis.StrictRedis(**redis_conn)
+    app.config['REDIS_CONN'] = parse_redis(app.config['REDIS_URL'])
+    db = redis.StrictRedis(**app.config['REDIS_CONN'])
     q = rq.Queue(connection=db)
 
     _site.template_hooks['menu_alt'].append(generate_menu_alt)
@@ -583,7 +583,8 @@ def edit(path):
         with io.open(path, 'r', encoding='utf-8') as fh:
             context['post_content'] = fh.read()
             if not post.is_two_file:
-                context['post_content'] = context['post_content'].split('\n\n', 1)[1]
+                context['post_content'] = context['post_content'].split(
+                    '\n\n', 1)[1]
 
     context['post'] = post
     users = []
@@ -617,17 +618,17 @@ def delete():
 @login_required
 def api_rebuild():
     """Rebuild the site (internally)."""
-
-    #e = {'out': '', 'milestone': 0, 'total': 1, 'return': None , 'status': None}
-
     build_job = q.fetch_job('build')
     orphans_job = q.fetch_job('orphans')
 
     o = json.dumps({'build': build_job.meta, 'orphans': orphans_job.meta})
 
-    if 'status' in build_job.meta and build_job.meta['status'] is True and 'status' in orphans_job.meta and orphans_job.meta['status'] is True:
-        build_job = None
-        orphans_job = None
+    if ('status' in build_job.meta and
+            build_job.meta['status'] is not None
+            and 'status' in orphans_job.meta and
+            orphans_job.meta['status'] is not None):
+        rq.cancel_job('build', db)
+        rq.cancel_job('orphans', db)
 
     return o
 
@@ -636,18 +637,19 @@ def api_rebuild():
 @login_required
 def rebuild():
     """Rebuild the site with a nice UI."""
-
-    executable = sys.executable
-    if executable.endswith('uwsgi'):
-        import uwsgi
-        executable = os.path.join(uwsgi.opt['virtualenv'], 'bin', 'python')
-
+    scan_site()  # for good measure
     if not q.fetch_job('build') and not q.fetch_job('orphans'):
-        b = q.enqueue(comet.tasks.build, executable, job_id='build')
-        o = q.enqueue(comet.tasks.orphans, executable, job_id='orphans', depends_on=b)
+        b = q.enqueue_call(func=comet.tasks.build,
+                           args=(app.config['REDIS_CONN'],
+                                 app.config['NIKOLA_ROOT']), job_id='build')
+        q.enqueue_call(func=comet.tasks.orphans,
+                       args=(app.config['REDIS_CONN'],
+                             app.config['NIKOLA_ROOT']), job_id='orphans',
+                       depends_on=b)
 
     return render('comet_rebuild.tmpl',
                   {'title': 'Rebuild', 'permalink': '/rebuild'})
+
 
 @app.route('/bower_components/<path:path>')
 def serve_bower_components(path):
@@ -703,10 +705,10 @@ def new(obj):
     try:
         if obj == 'post':
             _site.commands.new_post(title=title, author=current_user.realname,
-                                   content_format='html')
+                                    content_format='html')
         elif obj == 'page':
             _site.commands.new_page(title=title, author=current_user.realname,
-                                   content_format='html')
+                                    content_format='html')
         else:
             return error("Cannot create {0} — unknown type.".format(obj),
                          400, '/new/' + obj)

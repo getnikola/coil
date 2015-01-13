@@ -106,6 +106,7 @@ def ask_yesno(query, default=None):
         # Loop if no answer and no default.
         return ask_yesno(query, default)
 
+
 class SiteProxy(object):
     """A proxy for accessing the site in a multiprocessing-safe manner."""
 
@@ -123,7 +124,7 @@ class SiteProxy(object):
         self._all_posts = []
         self._pages = []
 
-        self.reload_site()
+        self.scan_posts()
 
     def reload_site(self):
         """Reload the site from the database."""
@@ -150,7 +151,9 @@ class SiteProxy(object):
 
     def _read_indexlist(self, name):
         """Read a list of indexes."""
-        setattr(self, '_' + name, [self._timeline[int(i)] for i in self.db.lrange('site:{0}'.format(name), 0, -1)])
+        setattr(self, '_' + name, [self._timeline[int(i)] for i in
+                                   self.db.lrange('site:{0}'.format(name), 0,
+                                                  -1)])
 
     def _write_indexlist(self, name):
         """Write a list of indexes."""
@@ -160,7 +163,8 @@ class SiteProxy(object):
 
     def scan_posts(self, really=True, ignore_quit=False, quiet=True):
         """Rescan the site."""
-        while self.db.exists('site:lock') and int(self.db.get('site:lock')) != 0:
+        while (self.db.exists('site:lock')
+               and int(self.db.get('site:lock')) != 0):
             self.logger.info("Waiting for DB lock...")
             time.sleep(0.5)
         self.db.incr('site:lock')
@@ -171,7 +175,8 @@ class SiteProxy(object):
 
         timeline = []
         for post in self._site.timeline:
-            data = [post.source_path, post.folder, post.is_post, post._template_name, post.compiler.name]
+            data = [post.source_path, post.folder, post.is_post,
+                    post._template_name, post.compiler.name]
             timeline.append(json.dumps(data))
         self.db.delete('site:timeline')
         self.db.rpush('site:timeline', *timeline)
