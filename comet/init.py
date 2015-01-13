@@ -26,18 +26,20 @@
 # SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 from __future__ import print_function, unicode_literals
-from comet.utils import PERMISSIONS, parse_redis
+from comet.utils import PERMISSIONS
 import redis
 
 __all__ = ['init', 'write_users']
 
 
 def init():
+    """Initialize a site."""
     print("ERROR: Not implemented.")
     return 255
 
 
 def write_users(dburl):
+    """Write users to the DB."""
     data = {
         'username': 'admin',
         'realname': 'Website Administrator',
@@ -48,7 +50,7 @@ def write_users(dburl):
     for p in PERMISSIONS:
         data[p] = '1'
 
-    db = redis.StrictRedis(**parse_redis(dburl))
+    db = redis.StrictRedis.from_url(dburl)
     db.hmset('user:1', data)
     db.hset('users', 'admin', '1')
     if not db.exists('last_uid'):

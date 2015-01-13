@@ -64,17 +64,20 @@ def main():
 
 
 def init(arguments):
+    u"""Run comet init."""
     import comet.init
     return comet.init.init()
 
 
 def write_users(arguments):
+    u"""Write users to the DB."""
     import comet.init
-    u = comet.utils.ask("Redis URL", "redis://")
+    u = comet.utils.ask("Redis URL", "redis://localhost:6379/0")
     return comet.init.write_users(u)
 
 
 def devserver(arguments):
+    u"""Run a development server."""
     import comet.web
     if comet.web.app:
         port = int(arguments['--port'])

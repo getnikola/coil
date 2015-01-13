@@ -526,7 +526,7 @@ def index():
     return render('comet_index.tmpl', context)
 
 
-# TODO: delete (with redirects) as soon as `comet init` and real docs exist
+# TODO: delete (with redirects) as soon as `comet init` exists
 @app.route('/setup')
 def setup():
     """TEMPORARY setup function."""
@@ -942,6 +942,7 @@ def acp_users_permissions():
         action = 'edit'
 
     def display_permission(user, permission):
+        """Display a permission."""
         checked = 'checked' if getattr(user, permission) else ''
         if permission == 'wants_all_posts' and not user.can_edit_all_posts:
             # If this happens, permissions are damaged.
