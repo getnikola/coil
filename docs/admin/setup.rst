@@ -33,6 +33,28 @@ Redis
 You need to set up a `Redis <http://redis.io/>`_ server.  Make sure it starts
 at boot.
 
+RQ
+==
+
+You need to set up a `RQ <http://python-rq.org>`_ worker.  Make sure it starts
+at boot, after Redis.  Here is a sample ``.service`` file for systemd:
+
+.. code-block:: ini
+
+    [Unit]
+    Description=RQWorker Service
+    After=redis.service
+
+    [Service]
+    Type=simple
+    ExecStart=/var/comet/bin/rqworker
+    User=nobody
+    Group=nobody
+
+    [Install]
+    WantedBy=multi-user.target
+
+
 Nikola and ``conf.py``
 ======================
 
@@ -57,8 +79,20 @@ Then, you must make some changes to the config:
    **Store it in a safe place** — git is not one!  You can use
    ``os.urandom(24)`` to generate something good.
  * ``COMET_URL`` — the URL under which Comet can be accessed.
- * ``REDIS_URL`` — the URL of your Redis database.  Syntax is `Celery’s <http://docs.celeryproject.org/en/latest/getting-started/brokers/redis.html#configuration>`_.
+ * ``REDIS_URL`` — the URL of your Redis database.
  * Modify ``POSTS`` and ``PAGES``, replacing ``.txt`` by ``.html``.
+
+Redis URL syntax
+----------------
+
+* ``redis://[:password]@localhost:6379/0`` (TCP)
+* ``rediss://[:password]@localhost:6379/0`` (TCP over SSL)
+* ``unix://[:password]@/path/to/socket.sock?db=0`` (Unix socket)
+
+The default URL is ``redis://localhost:6379/0``.
+
+CSS for the site
+----------------
 
 Finally, you must add `some CSS`__ for wysihtml5.  The easiest way to do this
 is by downloading the raw ``.css`` file as ``files/assets/css/custom.css``.
@@ -99,6 +133,8 @@ Permissions
 
 Chown ``my_comet_site`` *recursively* to ``nobody``, or whatever
 user Comet will run as.  Comet must be able to write to this directory.
+
+Make sure to fix permissions if you fool around the site directory!
 
 Server
 ======

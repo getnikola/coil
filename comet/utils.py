@@ -27,42 +27,19 @@
 
 from __future__ import unicode_literals
 from nikola.post import Post
-import kombu
 import sys
 import json
 import time
 
 
-__all__ = ['PERMISSIONS', 'USER_FIELDS', 'USER_ALL', 'parse_redis', 'ask',
-           'ask_yesno', 'SiteProxy']
+__all__ = ['PERMISSIONS', 'USER_FIELDS', 'USER_ALL', 'ask', 'ask_yesno',
+           'SiteProxy']
 
 USER_FIELDS = ['username', 'realname', 'password', 'email']
 PERMISSIONS = ['active', 'is_admin', 'can_edit_all_posts', 'wants_all_posts',
                'can_upload_attachments', 'can_rebuild_site',
                'can_transfer_post_authorship']
 USER_ALL = USER_FIELDS + PERMISSIONS
-
-
-def parse_redis(url):
-    """Parse Redis URL.
-
-    :param str url: Redis URL
-    :return: data for connection
-    :rtype: dict
-    :raises ValueError: invalid URL
-    """
-
-    # TODO get rid of kombu and roll our own
-    redis_raw = kombu.parse_url(url)
-    if redis_raw['transport'] == 'redis':
-        return {'host': redis_raw['hostname'] or 'localhost',
-                'port': redis_raw['port'] or 6379,
-                'db': int(redis_raw['virtual_host'] or 0),
-                'password': redis_raw['password']}
-    elif redis_raw['transport'] == 'redis+socket':
-        return {'unix_socket_path`': redis_raw['virtual_host']}
-    else:
-        raise ValueError("invalid Redis URL")
 
 
 # The following two functions come from Nikola.

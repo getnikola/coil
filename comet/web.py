@@ -42,7 +42,7 @@ from flask import Flask, request, redirect, send_from_directory, g, session
 from flask.ext.login import (LoginManager, login_required, login_user,
                              logout_user, current_user, make_secure_token)
 from flask.ext.bcrypt import Bcrypt
-from comet.utils import USER_FIELDS, PERMISSIONS, parse_redis, SiteProxy
+from comet.utils import USER_FIELDS, PERMISSIONS, SiteProxy
 
 
 _site = None
@@ -50,8 +50,6 @@ site = None
 app = None
 db = None
 q = None
-build_job = None
-orphans_job = None
 
 
 def scan_site():
@@ -117,10 +115,8 @@ def configure_site():
 
     app.secret_key = _site.config.get('COMET_SECRET_KEY')
     app.config['COMET_URL'] = _site.config.get('COMET_URL')
-    app.config['REDIS_URL'] = _site.config.get('COMET_REDIS_URL', 'redis://')
-    # Redis configuration
-    app.config['REDIS_CONN'] = parse_redis(app.config['REDIS_URL'])
-    db = redis.StrictRedis(**app.config['REDIS_CONN'])
+    app.config['REDIS_URL'] = _site.config.get('COMET_REDIS_URL', 'redis://localhost:6379/0')
+    db = redis.StrictRedis.from_url(app.config['REDIS_URL'])
     q = rq.Queue(connection=db)
 
     _site.template_hooks['menu_alt'].append(generate_menu_alt)
@@ -130,7 +126,7 @@ def configure_site():
         'en': (
             (app.config['NIKOLA_URL'],
              '<i class="fa fa-globe"></i> Back to website'),
-            ('/rebuild', '<i class="fa fa-cog rebuild"></i> Rebuild'),
+            ('/rebuild', '<i class="fa fa-cog rebuild build-status-icon"></i> Rebuild'),
         )
     }
     _site.GLOBAL_CONTEXT['navigation_links'] = _site.config['NAVIGATION_LINKS']
@@ -177,8 +173,6 @@ def configure_site():
     # Site proxy
     site = SiteProxy(db, _site, app.logger)
     configure_url(app.config['COMET_URL'])
-
-    scan_site()
 
 
 def password_hash(password):
@@ -621,7 +615,17 @@ def api_rebuild():
     build_job = q.fetch_job('build')
     orphans_job = q.fetch_job('orphans')
 
-    o = json.dumps({'build': build_job.meta, 'orphans': orphans_job.meta})
+    if not build_job and not orphans_job:
+        build_job = q.enqueue_call(func=comet.tasks.build,
+                                   args=(app.config['REDIS_URL'],
+                                         app.config['NIKOLA_ROOT']),
+                                   job_id='build')
+        orphans_job = q.enqueue_call(func=comet.tasks.orphans,
+                                     args=(app.config['REDIS_URL'],
+                                           app.config['NIKOLA_ROOT']),
+                                     job_id='orphans', depends_on=build_job)
+
+    d = json.dumps({'build': build_job.meta, 'orphans': orphans_job.meta})
 
     if ('status' in build_job.meta and
             build_job.meta['status'] is not None
@@ -630,7 +634,7 @@ def api_rebuild():
         rq.cancel_job('build', db)
         rq.cancel_job('orphans', db)
 
-    return o
+    return d
 
 
 @app.route('/rebuild')
@@ -640,10 +644,10 @@ def rebuild():
     scan_site()  # for good measure
     if not q.fetch_job('build') and not q.fetch_job('orphans'):
         b = q.enqueue_call(func=comet.tasks.build,
-                           args=(app.config['REDIS_CONN'],
+                           args=(app.config['REDIS_URL'],
                                  app.config['NIKOLA_ROOT']), job_id='build')
         q.enqueue_call(func=comet.tasks.orphans,
-                       args=(app.config['REDIS_CONN'],
+                       args=(app.config['REDIS_URL'],
                              app.config['NIKOLA_ROOT']), job_id='orphans',
                        depends_on=b)
 

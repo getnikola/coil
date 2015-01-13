@@ -32,11 +32,11 @@ from sys import executable
 from redis import StrictRedis
 
 
-def build(dbdata, sitedir):
+def build(dburl, sitedir):
     """Build a site."""
     oldcwd = os.getcwd()
     os.chdir(sitedir)
-    db = StrictRedis(**dbdata)
+    db = StrictRedis.from_url(dburl)
     job = get_current_job(db)
     job.meta.update({'out': '', 'milestone': 0, 'total': 1, 'return': None,
                      'status': None})
@@ -76,11 +76,11 @@ def build(dbdata, sitedir):
     return p.returncode
 
 
-def orphans(dbdata, sitedir):
+def orphans(dburl, sitedir):
     """Remove all orphans in the site."""
     oldcwd = os.getcwd()
     os.chdir(sitedir)
-    db = StrictRedis(**dbdata)
+    db = StrictRedis.from_url(dburl)
     job = get_current_job(db)
     job.meta.update({'out': '', 'return': None, 'status': None})
     job.save()
