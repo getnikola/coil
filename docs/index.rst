@@ -9,9 +9,11 @@ Comet CMS
 User documentation
 ------------------
 
-Currently none.
+.. toctree::
+   :maxdepth: 2
+   :glob:
 
-watch this space
+    user/*
 
 Administrator documentation
 ---------------------------
