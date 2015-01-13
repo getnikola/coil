@@ -104,6 +104,7 @@
 </div>
 
 <textarea name="content" id="content-area" class="form-control" rows="24">${post_content}</textarea>
+${form.csrf_token}
 </form>
 % if is_html:
 <script src="/bower_components/wysihtml/dist/wysihtml5x-toolbar.min.js"></script>

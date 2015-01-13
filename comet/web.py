@@ -43,7 +43,9 @@ from flask.ext.login import (LoginManager, login_required, login_user,
                              logout_user, current_user, make_secure_token)
 from flask.ext.bcrypt import Bcrypt
 from comet.utils import USER_FIELDS, PERMISSIONS, SiteProxy
-
+from comet.forms import (LoginForm, NewPostForm, NewPageForm, DeleteForm,
+                         UserDeleteForm, UserEditForm, AccountForm,
+                         PermissionsForm, PostEditForm)
 
 _site = None
 site = None
@@ -437,19 +439,24 @@ def login():
     alert = None
     alert_status = 'danger'
     code = 200
+    form = LoginForm()
     if request.method == 'POST':
-        user = find_user_by_name(request.form['username'])
-        if not user:
+        if form.validate():
+            user = find_user_by_name(request.form['username'])
+            if not user:
+                alert = 'Invalid credentials.'
+                code = 401
+            else:
+                if check_password(user.password,
+                                request.form['password']) and user.is_active:
+                    login_user(user, remember=('remember' in request.form))
+                    return redirect('/')
+                else:
+                    alert = "Invalid credentials."
+                    code = 401
+        else:
             alert = 'Invalid credentials.'
             code = 401
-        else:
-            if check_password(user.password,
-                              request.form['password']) and user.is_active:
-                login_user(user, remember=('remember-me' in request.form))
-                return redirect('/')
-            else:
-                alert = "Invalid credentials."
-                code = 401
     else:
         if request.args.get('status') == 'unauthorized':
             alert = 'Please log in to access this page.'
@@ -457,7 +464,7 @@ def login():
             alert = 'Logged out successfully.'
             alert_status = 'success'
     return render('comet_login.tmpl', {'title': 'Login', 'permalink': '/login',
-                                       'alert': alert,
+                                       'alert': alert, 'form': form,
                                        'alert_status': alert_status}, code)
 
 
@@ -480,7 +487,9 @@ def index():
                                        'assets')):
         return redirect('/setup')
 
-    context = {}
+    context = {'postform': NewPostForm(),
+               'pageform': NewPageForm(),
+               'delform': DeleteForm()}
 
     n = request.args.get('all')
     if n is None:
@@ -541,7 +550,11 @@ def edit(path):
     if post is None:
         return error("No such post or page.", 404, '/edit/' + path)
 
+    form = PostEditForm()
+
     if request.method == 'POST':
+        if not form.validate():
+            return error("Bad Request", 400, '/edit/' + path)
         meta = {}
         for k, v in request.form.items():
             meta[k] = v
@@ -592,6 +605,7 @@ def edit(path):
     context['title'] = 'Editing {0}'.format(post.title())
     context['permalink'] = '/edit/' + path
     context['is_html'] = post.compiler.name == 'html'
+    context['form'] = form
     return render('comet_post_edit.tmpl', context)
 
 
@@ -599,10 +613,13 @@ def edit(path):
 @login_required
 def delete():
     """Delete a post."""
+    form = DeleteForm()
     path = request.form['path']
     post = find_post(path)
     if post is None:
         return error("No such post or page.", 404, '/delete')
+    if not form.validate():
+        return error("Bad Request", 400, '/delete')
     os.unlink(path)
     scan_site()
     return redirect('/')
@@ -708,11 +725,19 @@ def new(obj):
     _site.config['ADDITIONAL_METADATA']['author.uid'] = current_user.uid
     try:
         if obj == 'post':
-            _site.commands.new_post(title=title, author=current_user.realname,
-                                    content_format='html')
+            f = NewPostForm()
+            if f.validate():
+                _site.commands.new_post(title=title, author=current_user.realname,
+                                        content_format='html')
+            else:
+                return error("Bad Request", 400, '/new/' + obj)
         elif obj == 'page':
-            _site.commands.new_page(title=title, author=current_user.realname,
-                                    content_format='html')
+            f = NewPageForm()
+            if f.validate():
+                _site.commands.new_page(title=title, author=current_user.realname,
+                                        content_format='html')
+            else:
+                return error("Bad Request", 400, '/new/' + obj)
         else:
             return error("Cannot create {0} — unknown type.".format(obj),
                          400, '/new/' + obj)
@@ -736,7 +761,10 @@ def acp_user_account():
     alert = ''
     alert_status = ''
     action = 'edit'
+    form = AccountForm()
     if request.method == 'POST':
+        if not form.validate():
+            return error("Bad Request", 400, "/account")
         action = 'save'
         data = request.form
         if data['newpwd1']:
@@ -757,7 +785,8 @@ def acp_user_account():
                            'permalink': '/account',
                            'action': action,
                            'alert': alert,
-                           'alert_status': alert_status})
+                           'alert_status': alert_status,
+                           'form': form})
 
 
 @app.route('/users')
@@ -782,7 +811,9 @@ def acp_users():
                                'permalink': '/users',
                                'USERS': USERS,
                                'alert': alert,
-                               'alert_status': alert_status})
+                               'alert_status': alert_status,
+                               'delform': UserDeleteForm(),
+                               'editform': UserEditForm()})
 
 
 @app.route('/users/edit', methods=['POST'])
@@ -794,6 +825,10 @@ def acp_users_edit():
     if not current_user.is_admin:
         return error("Not authorized to edit users.", 401, "/users/edit")
     data = request.form
+
+    form = UserEditForm()
+    if not form.validate():
+        return error("Bad Request", 400, "/users/edit")
     action = data['action']
 
     if action == 'new':
@@ -851,7 +886,8 @@ def acp_users_edit():
                            'new': new,
                            'action': action,
                            'alert': alert,
-                           'alert_status': alert_status})
+                           'alert_status': alert_status,
+                           'form': form})
 
 
 @app.route('/users/delete', methods=['POST'])
@@ -860,10 +896,13 @@ def acp_users_delete():
     """Delete or undelete an user account."""
     if not current_user.is_admin:
         return error("Not authorized to edit users.", 401, "/users/delete")
+    form = UserDeleteForm()
+    if not form.validate():
+        return error("Bad Request", 400, '/users/delete')
     user = get_user(int(request.form['uid']))
     direction = request.form['direction']
     if not user:
-        return error("User does not exist.", 404, "/users/edit/delete")
+        return error("User does not exist.", 404, "/users/delete")
     else:
         for p in PERMISSIONS:
             setattr(user, p, False)
@@ -880,9 +919,12 @@ def acp_users_permissions():
         return error("Not authorized to edit users.",
                      401, "/users/permissions")
 
+    form = PermissionsForm()
     users = {}
     last_uid = int(db.get('last_uid'))
     if request.method == 'POST':
+        if not form.validate():
+            return error("Bad Request", 400, '/users/permissions')
         for uid in range(1, last_uid + 1):
             user = get_user(uid)
             for perm in PERMISSIONS:
@@ -926,6 +968,7 @@ def acp_users_permissions():
                            'PERMISSIONS': PERMISSIONS,
                            'action': action,
                            'json': json,
+                           'form': form,
                            'display_permission': display_permission})
 
 if not os.path.exists('._COMET_NO_CONFIG') and os.path.exists('conf.py'):
