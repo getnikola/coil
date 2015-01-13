@@ -6,27 +6,13 @@
 Comet CMS
 =========
 
-User documentation
-------------------
-
-.. toctree::
-   :maxdepth: 2
-   :glob:
-
-   user/index
-   user/*
-
-Administrator documentation
----------------------------
-
 .. toctree::
    :maxdepth: 2
    :glob:
    :numbered:
 
+   user/index
    admin/index
-   admin/*
-   internals
 
 Appendices
 ----------
