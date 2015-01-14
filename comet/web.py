@@ -28,6 +28,7 @@
 from __future__ import print_function, unicode_literals
 import json
 import os
+import sys
 import io
 import pkg_resources
 import nikola.__main__
@@ -45,7 +46,7 @@ from flask.ext.bcrypt import Bcrypt
 from comet.utils import USER_FIELDS, PERMISSIONS, SiteProxy
 from comet.forms import (LoginForm, NewPostForm, NewPageForm, DeleteForm,
                          UserDeleteForm, UserEditForm, AccountForm,
-                         PermissionsForm, PostEditForm)
+                         PermissionsForm)
 
 _site = None
 site = None
@@ -121,6 +122,7 @@ def configure_site():
     db = redis.StrictRedis.from_url(app.config['REDIS_URL'])
     q = rq.Queue(connection=db)
 
+    _site.template_hooks['menu'].append(generate_menu)
     _site.template_hooks['menu_alt'].append(generate_menu_alt)
 
     app.config['NIKOLA_URL'] = _site.config['SITE_URL']
@@ -128,7 +130,6 @@ def configure_site():
         'en': (
             (app.config['NIKOLA_URL'],
              '<i class="fa fa-globe"></i> Back to website'),
-            ('/rebuild', '<i class="fa fa-cog rebuild build-status-icon"></i> Rebuild'),
         )
     }
     _site.GLOBAL_CONTEXT['navigation_links'] = _site.config['NAVIGATION_LINKS']
@@ -196,6 +197,18 @@ def check_password(pwdhash, password):
     :rtype: bool
     """
     return bcrypt.check_password_hash(pwdhash, password)
+
+
+def generate_menu():
+    """Generate ``menu`` with the rebuild link.
+
+    :return: HTML fragment
+    :rtype: str
+    """
+    if db.get('site:needs_rebuild') not in ('0', '-1'):
+        return """<li><li><a href="/rebuild"><i class="fa fa-fw fa-warning"></i> Rebuild</a></li>"""
+    else:
+        return """<li><li><a href="/rebuild"><i class="fa fa-fw fa-cog"></i> Rebuild</a></li>"""
 
 
 def generate_menu_alt():
@@ -550,11 +563,7 @@ def edit(path):
     if post is None:
         return error("No such post or page.", 404, '/edit/' + path)
 
-    form = PostEditForm()
-
     if request.method == 'POST':
-        if not form.validate():
-            return error("Bad Request", 400, '/edit/' + path)
         meta = {}
         for k, v in request.form.items():
             meta[k] = v
@@ -583,6 +592,7 @@ def edit(path):
             with io.open(meta_path, 'w+', encoding='utf-8') as fh:
                 fh.write(write_metadata(meta))
         scan_site()
+        db.set('site:needs_rebuild', '1')
         post = find_post(path)
         context['action'] = 'save'
     else:
@@ -605,7 +615,6 @@ def edit(path):
     context['title'] = 'Editing {0}'.format(post.title())
     context['permalink'] = '/edit/' + path
     context['is_html'] = post.compiler.name == 'html'
-    context['form'] = form
     return render('comet_post_edit.tmpl', context)
 
 
@@ -621,7 +630,11 @@ def delete():
     if not form.validate():
         return error("Bad Request", 400, '/delete')
     os.unlink(path)
+    if post.is_two_file:
+        meta_path = os.path.splitext(path)[0] + '.meta'
+        os.unlink(meta_path)
     scan_site()
+    db.set('site:needs_rebuild', '1')
     return redirect('/')
 
 
@@ -650,6 +663,7 @@ def api_rebuild():
             orphans_job.meta['status'] is not None):
         rq.cancel_job('build', db)
         rq.cancel_job('orphans', db)
+        db.set('site:needs_rebuild', '0')
 
     return d
 
@@ -659,6 +673,7 @@ def api_rebuild():
 def rebuild():
     """Rebuild the site with a nice UI."""
     scan_site()  # for good measure
+    db.set('site:needs_rebuild', '-1')
     if not q.fetch_job('build') and not q.fetch_job('orphans'):
         b = q.enqueue_call(func=comet.tasks.build,
                            args=(app.config['REDIS_URL'],
@@ -724,6 +739,10 @@ def new(obj):
     title = request.form['title']
     _site.config['ADDITIONAL_METADATA']['author.uid'] = current_user.uid
     try:
+        title = title.encode(sys.stdin.encoding)
+    except (AttributeError, TypeError):
+        title = title.encode('utf-8')
+    try:
         if obj == 'post':
             f = NewPostForm()
             if f.validate():
@@ -748,6 +767,7 @@ def new(obj):
         del _site.config['ADDITIONAL_METADATA']['author.uid']
     # reload post list and go to index
     scan_site()
+    db.set('site:needs_rebuild', '1')
     return redirect('/')
 
 

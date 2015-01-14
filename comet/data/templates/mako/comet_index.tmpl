@@ -36,8 +36,8 @@ Show posts of:
         <h2>Posts</h2>
         </div>
         <form method="POST" action="/new/post" class="input-group">
-              ${postform.csrf_token}
               <input class="form-control" name="title" id="title" placeholder="Title">
+              ${postform.csrf_token}
               <span class="input-group-btn"><button type="submit" class="btn btn-success"><i class="fa fa-file-o"></i> Create Post</button></span>
         </form>
         <div class="list-group posts">

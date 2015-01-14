@@ -77,8 +77,3 @@ class UserEditForm(Form):
 class PermissionsForm(Form):
     """A permissions form, used for CSRF protection only."""
     pass
-
-
-class PostEditForm(Form):
-    """A post editor form, used for CSRF protection only."""
-    pass
