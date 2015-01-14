@@ -66,7 +66,7 @@ $('#deleteModal').on('show.bs.modal', function (event) {
     {% endif %}
     </td>
     <td class="actions">
-    <form action="/users/edit" method="POST">
+    <form action="/users/edit" method="POST">{{ editform.csrf_token }}
     <input type="hidden" name="uid" value="{{ uid }}">
     <input type="hidden" name="action" value="edit">
     <div class="btn-group" role="group">
@@ -89,7 +89,7 @@ $('#deleteModal').on('show.bs.modal', function (event) {
     <td></td>
     <td><input name="username" placeholder="New user" class="form-control"></td>
     <td><input name="action" value="new" type="hidden"></td>
-    <td></td>
+    <td>{{ editform.csrf_token }}</td>
     <td></td>
     <td><button type="submit" class="btn btn-sm btn-primary"><i class="fa fa-plus-square fa-fw"></i> Create</button></td>
 </form></tr>
@@ -110,6 +110,7 @@ $('#deleteModal').on('show.bs.modal', function (event) {
         <input type="hidden" name="uid" class="del-uid">
         <input type="hidden" name="direction" class="del-direction">
         <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+        {{ delform.csrf_token }}
         <button type="submit" class="btn del-verb-capital">Delete</button>
       </div>
     </div>

@@ -67,6 +67,9 @@ $(document).ready(function() {
                 fs.removeClass('fa-cog');
                 fs.addClass('fa-times');
                 fsc.addClass('text-danger');
+                $("#collapseOutput").collapse({
+                    show: true
+                });
             }
         });
     }, 500);
