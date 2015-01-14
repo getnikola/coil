@@ -20,4 +20,3 @@ function save_fail_anim() {
         $(".save-icon").removeClass("fa-times").addClass("fa-save");
     }, 2000);
 }
-

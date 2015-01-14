@@ -148,7 +148,7 @@ def configure_site():
     #       social_buttons_code instead
     _site.GLOBAL_CONTEXT['social_buttons_code'] = TranslatableSetting(
         'SOCIAL_BUTTONS_CODE',
-        """<script src="/comet_assets/js/comet.js"></scripts>""",
+        """<script src="/comet_assets/js/comet.js"></script>""",
         _site.config['TRANSLATIONS'])
 
     # Theme must inherit from bootstrap3, because we have hardcoded HTML.
@@ -206,7 +206,7 @@ def generate_menu():
     :rtype: str
     """
     if db.get('site:needs_rebuild') not in ('0', '-1'):
-        return """<li><li><a href="/rebuild"><i class="fa fa-fw fa-warning"></i> Rebuild</a></li>"""
+        return """<li><li><a href="/rebuild"><i class="fa fa-fw fa-warning"></i> <strong>Rebuild</strong></a></li>"""
     else:
         return """<li><li><a href="/rebuild"><i class="fa fa-fw fa-cog"></i> Rebuild</a></li>"""
 
