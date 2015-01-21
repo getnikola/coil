@@ -1,7 +1,7 @@
 Editing posts
 =============
 
-.. note:: Permissions
+.. admonition:: Permissions
 
    You need the “can edit others’ posts” permission to edit posts of other
    users.  You can always edit your own posts.
@@ -14,7 +14,7 @@ creation.
 
 The next line features four fields: date, author, tags and category.
 
-.. note:: Permissions
+.. admonition:: Permissions
 
    Post author may be changed only if you have the “transfer post authorship”
    permission.

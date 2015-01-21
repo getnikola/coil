@@ -1,7 +1,7 @@
 Deleting posts
 ==============
 
-.. note:: Permissions
+.. admonition:: Permissions
 
    You need the “can edit others’ posts” permission to delete posts of other
    users.  You can always delete your own posts.

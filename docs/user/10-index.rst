@@ -4,7 +4,7 @@ Index Page
 On the top of the index page, you can switch between displaying only your own
 posts and displaying posts of all authors.
 
-.. note:: Permissions
+.. admonition:: Permissions
 
    In order to view posts of other authors, you must have the “can edit others’
    posts” permission.

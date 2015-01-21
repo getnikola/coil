@@ -13,7 +13,7 @@ If an error occurs, you will see the output.  The error will be displayed
 in the Advanced information box.  If you cannot understand and solve the
 problem yourself, contact your administrator.
 
-.. note:: Permissions
+.. admonition:: Permissions
 
    In order to rebuild the site, you need the “can rebuild site” permission.
 
