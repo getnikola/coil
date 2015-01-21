@@ -1,3 +1,4 @@
 graft comet
-include README.rst LICENSE CHANGELOG.rst setup.py setup.cfg setup_virtualenv.sh requirements.txt
+graft docs
+include README.rst AUTHORS LICENSE CHANGELOG.rst setup.py setup.cfg requirements.txt
 global-exclude __pycache__ *.pyc

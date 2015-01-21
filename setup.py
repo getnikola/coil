@@ -4,7 +4,7 @@ import io
 from setuptools import setup
 
 setup(name='comet-cms',
-      version='0.6.0',
+      version='1.0.0',
       description='Getting rid of the dinosaurs (WordPress and friends).',
       keywords='comet',
       author='Chris Warrick, Roberto Alsina, Henry Hirsch et al.',

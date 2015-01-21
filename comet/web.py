@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Comet CMS v0.6.0
+# Comet CMS v1.0.0
 # Copyright © 2014-2015 Chris Warrick, Roberto Alsina, Henry Hirsch et al.
 
 # Permission is hereby granted, free of charge, to any
@@ -118,7 +118,8 @@ def configure_site():
 
     app.secret_key = _site.config.get('COMET_SECRET_KEY')
     app.config['COMET_URL'] = _site.config.get('COMET_URL')
-    app.config['REDIS_URL'] = _site.config.get('COMET_REDIS_URL', 'redis://localhost:6379/0')
+    app.config['REDIS_URL'] = _site.config.get('COMET_REDIS_URL',
+                                               'redis://localhost:6379/0')
     db = redis.StrictRedis.from_url(app.config['REDIS_URL'])
     q = rq.Queue(connection=db)
 
@@ -130,6 +131,8 @@ def configure_site():
         'en': (
             (app.config['NIKOLA_URL'],
              '<i class="fa fa-globe"></i> Back to website'),
+            ('http://comet-cms.readthedocs.org/en/latest/user/',
+             '<i class="fa fa-question-circle"></i> Comet CMS Help'),
         )
     }
     _site.GLOBAL_CONTEXT['navigation_links'] = _site.config['NAVIGATION_LINKS']
@@ -206,9 +209,11 @@ def generate_menu():
     :rtype: str
     """
     if db.get('site:needs_rebuild') not in ('0', '-1'):
-        return """<li><li><a href="/rebuild"><i class="fa fa-fw fa-warning"></i> <strong>Rebuild</strong></a></li>"""
+        return ('</li><li><a href="/rebuild"><i class="fa fa-fw '
+                'fa-warning"></i> <strong>Rebuild</strong></a></li>')
     else:
-        return """<li><li><a href="/rebuild"><i class="fa fa-fw fa-cog"></i> Rebuild</a></li>"""
+        return ('</li><li><a href="/rebuild"><i class="fa fa-fw '
+                'fa-cog"></i> Rebuild</a></li>')
 
 
 def generate_menu_alt():
@@ -461,7 +466,7 @@ def login():
                 code = 401
             else:
                 if check_password(user.password,
-                                request.form['password']) and user.is_active:
+                                  request.form['password']) and user.is_active:
                     login_user(user, remember=('remember' in request.form))
                     return redirect('/')
                 else:
@@ -496,10 +501,6 @@ def index():
 
     :param int all: Whether or not should show all posts
     """
-    if not os.path.exists(os.path.join(_site.config["OUTPUT_FOLDER"],
-                                       'assets')):
-        return redirect('/setup')
-
     context = {'postform': NewPostForm(),
                'pageform': NewPageForm(),
                'delform': DeleteForm()}
@@ -539,15 +540,6 @@ def index():
     return render('comet_index.tmpl', context)
 
 
-# TODO: delete (with redirects) as soon as `comet init` exists
-@app.route('/setup')
-def setup():
-    """TEMPORARY setup function."""
-    ns = not os.path.exists(os.path.join(_site.config["OUTPUT_FOLDER"],
-                                         'assets'))
-    return render("comet_setup.tmpl", context={'needs_setup': ns})
-
-
 @app.route('/edit/<path:path>', methods=['GET', 'POST'])
 @login_required
 def edit(path):
@@ -563,6 +555,13 @@ def edit(path):
     if post is None:
         return error("No such post or page.", 404, '/edit/' + path)
 
+    current_auid = int(post.meta('author.uid') or current_user.uid)
+
+    if (not current_user.can_edit_all_posts
+            and current_auid != current_user.uid):
+        return error("Cannot edit posts of other users.", 401,
+                     '/edit/' + path)
+
     if request.method == 'POST':
         meta = {}
         for k, v in request.form.items():
@@ -576,7 +575,7 @@ def edit(path):
         if (not current_user.can_transfer_post_authorship
                 or not author_change_success):
             meta['author'] = post.meta('author') or current_user.realname
-            meta['author.uid'] = post.meta('author.uid') or current_user.uid
+            meta['author.uid'] = str(current_auid)
 
         twofile = post.is_two_file
         onefile = not twofile
@@ -611,7 +610,7 @@ def edit(path):
         if active == '1':
             users.append((u, realname))
     context['users'] = sorted(users)
-    context['current_auid'] = int(post.meta('author.uid') or current_user.uid)
+    context['current_auid'] = current_auid
     context['title'] = 'Editing {0}'.format(post.title())
     context['permalink'] = '/edit/' + path
     context['is_html'] = post.compiler.name == 'html'
@@ -629,6 +628,13 @@ def delete():
         return error("No such post or page.", 404, '/delete')
     if not form.validate():
         return error("Bad Request", 400, '/delete')
+
+    current_auid = int(post.meta('author.uid') or current_user.uid)
+
+    if (not current_user.can_edit_all_posts
+            and current_auid != current_user.uid):
+        return error("Cannot edit posts of other users.", 401, '/delete')
+
     os.unlink(path)
     if post.is_two_file:
         meta_path = os.path.splitext(path)[0] + '.meta'
@@ -673,6 +679,10 @@ def api_rebuild():
 def rebuild():
     """Rebuild the site with a nice UI."""
     scan_site()  # for good measure
+    if not current_user.can_rebuild_site:
+        return error('You are not permitted to rebuild the site.</p>'
+                     '<p class="lead">Contact an administartor for '
+                     'more information.', 401, '/rebuild')
     db.set('site:needs_rebuild', '-1')
     if not q.fetch_job('build') and not q.fetch_job('orphans'):
         b = q.enqueue_call(func=comet.tasks.build,
@@ -746,14 +756,16 @@ def new(obj):
         if obj == 'post':
             f = NewPostForm()
             if f.validate():
-                _site.commands.new_post(title=title, author=current_user.realname,
+                _site.commands.new_post(title=title,
+                                        author=current_user.realname,
                                         content_format='html')
             else:
                 return error("Bad Request", 400, '/new/' + obj)
         elif obj == 'page':
             f = NewPageForm()
             if f.validate():
-                _site.commands.new_page(title=title, author=current_user.realname,
+                _site.commands.new_page(title=title,
+                                        author=current_user.realname,
                                         content_format='html')
             else:
                 return error("Bad Request", 400, '/new/' + obj)

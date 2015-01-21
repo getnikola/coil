@@ -20,7 +20,6 @@ Appendices
 .. toctree::
    :maxdepth: 2
 
-   AUTHORS
    CHANGELOG
    LICENSE
 

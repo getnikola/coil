@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Comet CMS v0.6.0
+# Comet CMS v1.0.0
 # Copyright © 2014-2015 Chris Warrick, Roberto Alsina, Henry Hirsch et al.
 
 # Permission is hereby granted, free of charge, to any
@@ -34,7 +34,8 @@ __all__ = ['init', 'write_users']
 
 def init():
     """Initialize a site."""
-    print("ERROR: Not implemented.")
+    print("Please read the documentation and set up manually.")
+    print("http://comet-cms.readthedocs.org/en/latest/admin/setup/")
     return 255
 
 

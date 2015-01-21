@@ -1,5 +1,5 @@
 ===================
-Appendix C. License
+Appendix B. License
 ===================
 
 Copyright © 2014-2015 Chris Warrick, Roberto Alsina, Henry Hirsch et al.

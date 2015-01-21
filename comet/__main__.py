@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Comet CMS v0.6.0
+# Comet CMS v1.0.0
 # Copyright © 2014-2015 Chris Warrick, Roberto Alsina, Henry Hirsch et al.
 
 # Permission is hereby granted, free of charge, to any
@@ -30,7 +30,6 @@ u"""Comet CMS v{0}
 
 Usage:
   comet devserver [-b | --browser] [-p <port> | --port=<port>]
-  comet init [directory]
   comet write_users
   comet -h | --help
   comet --version
@@ -42,6 +41,8 @@ Options:
  -p <port>, --port=<port>  Port to use [default: 8001].
 """
 
+from __future__ import unicode_literals
+
 import comet
 import comet.utils
 import sys
@@ -52,32 +53,30 @@ __doc__ = __doc__.format(comet.__version__)
 
 
 def main():
-    u"""The main function."""
-    arguments = docopt.docopt(__doc__, version=u'Comet CMS v{0}'.format(
+    """The main function."""
+    arguments = docopt.docopt(__doc__, version='Comet CMS v{0}'.format(
         comet.__version__))
-    if arguments[u'init']:
-        sys.exit(init(arguments))
-    elif arguments[u'write_users']:
+    if arguments['write_users']:
         sys.exit(write_users(arguments))
-    elif arguments[u'devserver']:
+    elif arguments['devserver']:
         sys.exit(devserver(arguments))
 
 
 def init(arguments):
-    u"""Run comet init."""
+    """Run comet init."""
     import comet.init
     return comet.init.init()
 
 
 def write_users(arguments):
-    u"""Write users to the DB."""
+    """Write users to the DB."""
     import comet.init
     u = comet.utils.ask("Redis URL", "redis://localhost:6379/0")
     return comet.init.write_users(u)
 
 
 def devserver(arguments):
-    u"""Run a development server."""
+    """Run a development server."""
     import comet.web
     if comet.web.app:
         port = int(arguments['--port'])
@@ -88,7 +87,7 @@ def devserver(arguments):
         if arguments['--browser']:
             webbrowser.open(url)
 
-        comet.web.app.logger.info(u"Comet CMS running @ {0}".format(url))
+        comet.web.app.logger.info("Comet CMS running @ {0}".format(url))
         comet.web.app.run('localhost', port, debug=True)
         return 0
     else:

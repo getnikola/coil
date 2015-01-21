@@ -18,7 +18,7 @@ As such, you must configure Nikola first before you start Comet.
 Virtualenv
 ==========
 
-Create a virtualenv in ``/var/comet`` and instal Comet in it.
+Create a virtualenv in ``/var/comet`` and install Comet in it.
 
 .. code-block:: console
 

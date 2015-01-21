@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Comet CMS v0.6.0
+# Comet CMS v1.0.0
 # Copyright © 2014-2015 Chris Warrick, Roberto Alsina, Henry Hirsch et al.
 
 # Permission is hereby granted, free of charge, to any
@@ -29,4 +29,4 @@ from __future__ import unicode_literals
 
 __all__ = ['__version__']
 
-__version__ = '0.6.0'
+__version__ = '1.0.0'

@@ -1,6 +1,14 @@
 =====================
-Appendix B. Changelog
+Appendix A. Changelog
 =====================
+
+v1.0.0
+------
+
+* User documentation
+* Form validation
+* Redis for storing data
+* Rebuilding the site, using RQ as a task queue
 
 v0.6.0
 ------
