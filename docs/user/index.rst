@@ -13,4 +13,9 @@ administrators.  Comet CMS strives to be user-friendly and easy to use.
    :glob:
    :numbered:
 
-   *
+   getting-started
+   index-page
+   edit
+   delete
+   rebuild
+   account
