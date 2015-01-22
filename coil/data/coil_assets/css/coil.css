@@ -90,6 +90,10 @@ table.users .uid {
     text-align: center;
 }
 
+.perm-descr {
+    font-size: x-small;
+}
+
 /* login (copied from Bootstrap example) */
 
 .form-signin {

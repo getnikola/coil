@@ -36,9 +36,15 @@ __all__ = ['PERMISSIONS', 'USER_FIELDS', 'USER_ALL', 'ask', 'ask_yesno',
            'SiteProxy']
 
 USER_FIELDS = ['username', 'realname', 'password', 'email']
+# internal order
 PERMISSIONS = ['active', 'is_admin', 'can_edit_all_posts', 'wants_all_posts',
                'can_upload_attachments', 'can_rebuild_site',
-               'can_transfer_post_authorship']
+               'can_transfer_post_authorship', 'must_change_password']
+# special display order
+PERMISSIONS_E = ['active', 'is_admin', 'must_change_password',
+                 'can_edit_all_posts', 'wants_all_posts',
+                 'can_upload_attachments', 'can_rebuild_site',
+                 'can_transfer_post_authorship']
 USER_ALL = USER_FIELDS + PERMISSIONS
 
 

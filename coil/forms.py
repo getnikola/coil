@@ -28,7 +28,7 @@
 from __future__ import print_function, unicode_literals
 
 from flask.ext.wtf import Form
-from wtforms.fields import TextField, PasswordField, BooleanField
+from wtforms.fields import TextField, PasswordField, FileField, BooleanField
 from wtforms.validators import Required, ValidationError
 
 
@@ -68,6 +68,10 @@ class AccountForm(Form):
     """An account form, used for CSRF protection only."""
     pass
 
+
+class UserImportForm(Form):
+    """A user import form."""
+    tsv = FileField("TSV File")
 
 class UserEditForm(Form):
     """A user editor form, used for CSRF protection only."""

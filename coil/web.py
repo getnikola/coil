@@ -44,10 +44,10 @@ from flask import (Flask, request, redirect, send_from_directory, g, session,
 from flask.ext.login import (LoginManager, login_required, login_user,
                              logout_user, current_user, make_secure_token)
 from flask.ext.bcrypt import Bcrypt
-from coil.utils import USER_FIELDS, PERMISSIONS, SiteProxy
+from coil.utils import USER_FIELDS, PERMISSIONS, PERMISSIONS_E, SiteProxy
 from coil.forms import (LoginForm, NewPostForm, NewPageForm, DeleteForm,
                          UserDeleteForm, UserEditForm, AccountForm,
-                         PermissionsForm)
+                         PermissionsForm, UserImportForm)
 
 _site = None
 site = None
@@ -366,7 +366,7 @@ class User(object):
     def __init__(self, uid, username, realname, password, email, active,
                  is_admin, can_edit_all_posts, wants_all_posts,
                  can_upload_attachments, can_rebuild_site,
-                 can_transfer_post_authorship):
+                 can_transfer_post_authorship, must_change_password):
         """Initialize an user with specified settings."""
         self.uid = int(uid)
         self.username = username
@@ -380,6 +380,7 @@ class User(object):
         self.can_upload_attachments = can_upload_attachments
         self.can_rebuild_site = can_rebuild_site
         self.can_transfer_post_authorship = can_transfer_post_authorship
+        self.must_change_password = must_change_password
 
     def get_id(self):
         """Get user ID."""
@@ -419,7 +420,7 @@ def get_user(uid):
     d = db.hgetall('user:{0}'.format(uid))
     if d:
         for p in PERMISSIONS:
-            d[p] = d[p] == '1'
+            d[p] = d.get(p) == '1'
         return User(uid=uid, **d)
     else:
         return None
@@ -511,6 +512,9 @@ def index():
 
     :param int all: Whether or not should show all posts
     """
+    if current_user.must_change_password:
+        return redirect(url_for('acp_account') + '?status=pwdchange')
+
     context = {'postform': NewPostForm(),
                'pageform': NewPageForm(),
                'delform': DeleteForm()}
@@ -559,6 +563,9 @@ def edit(path):
 
     :param path: Path to post to edit.
     """
+    if current_user.must_change_password:
+        return redirect(url_for('acp_account') + '?status=pwdchange')
+
     context = {'path': path, 'site': site}
     post = find_post(path)
     if post is None:
@@ -628,6 +635,9 @@ def edit(path):
 @login_required
 def delete():
     """Delete a post."""
+    if current_user.must_change_password:
+        return redirect(url_for('acp_account') + '?status=pwdchange')
+
     form = DeleteForm()
     path = request.form['path']
     post = find_post(path)
@@ -687,6 +697,9 @@ def api_rebuild():
 @login_required
 def rebuild(mode=''):
     """Rebuild the site with a nice UI."""
+    if current_user.must_change_password:
+        return redirect(url_for('acp_account') + '?status=pwdchange')
+
     scan_site()  # for good measure
     if not current_user.can_rebuild_site:
         return error('You are not permitted to rebuild the site.</p>'
@@ -703,6 +716,51 @@ def rebuild(mode=''):
                        depends_on=b)
 
     return render('coil_rebuild.tmpl', {'title': 'Rebuild'})
+
+
+@app.route('/new/<obj>/', methods=['POST'])
+@login_required
+def new(obj):
+    """Create a new post or page.
+
+    :param str obj: Object to create (post or page)
+    """
+    if current_user.must_change_password:
+        return redirect(url_for('acp_account') + '?status=pwdchange')
+
+    title = request.form['title']
+    _site.config['ADDITIONAL_METADATA']['author.uid'] = current_user.uid
+    try:
+        title = title.encode(sys.stdin.encoding)
+    except (AttributeError, TypeError):
+        title = title.encode('utf-8')
+    try:
+        if obj == 'post':
+            f = NewPostForm()
+            if f.validate():
+                _site.commands.new_post(title=title,
+                                        author=current_user.realname,
+                                        content_format='html')
+            else:
+                return error("Bad Request", 400)
+        elif obj == 'page':
+            f = NewPageForm()
+            if f.validate():
+                _site.commands.new_page(title=title,
+                                        author=current_user.realname,
+                                        content_format='html')
+            else:
+                return error("Bad Request", 400)
+        else:
+            return error("Cannot create {0} — unknown type.".format(obj), 400)
+    except SystemExit:
+        return error("This {0} already exists!".format(obj), 500)
+    finally:
+        del _site.config['ADDITIONAL_METADATA']['author.uid']
+    # reload post list and go to index
+    scan_site()
+    db.set('site:needs_rebuild', '1')
+    return redirect(url_for('index'))
 
 
 @app.route('/bower_components/<path:path>')
@@ -747,48 +805,6 @@ def serve_assets(path):
     return send_from_directory(res, path)
 
 
-@app.route('/new/<obj>/', methods=['POST'])
-@login_required
-def new(obj):
-    """Create a new post or page.
-
-    :param str obj: Object to create (post or page)
-    """
-    title = request.form['title']
-    _site.config['ADDITIONAL_METADATA']['author.uid'] = current_user.uid
-    try:
-        title = title.encode(sys.stdin.encoding)
-    except (AttributeError, TypeError):
-        title = title.encode('utf-8')
-    try:
-        if obj == 'post':
-            f = NewPostForm()
-            if f.validate():
-                _site.commands.new_post(title=title,
-                                        author=current_user.realname,
-                                        content_format='html')
-            else:
-                return error("Bad Request", 400)
-        elif obj == 'page':
-            f = NewPageForm()
-            if f.validate():
-                _site.commands.new_page(title=title,
-                                        author=current_user.realname,
-                                        content_format='html')
-            else:
-                return error("Bad Request", 400)
-        else:
-            return error("Cannot create {0} — unknown type.".format(obj), 400)
-    except SystemExit:
-        return error("This {0} already exists!".format(obj), 500)
-    finally:
-        del _site.config['ADDITIONAL_METADATA']['author.uid']
-    # reload post list and go to index
-    scan_site()
-    db.set('site:needs_rebuild', '1')
-    return redirect(url_for('index'))
-
-
 @app.route('/account/', methods=['POST', 'GET'])
 @login_required
 def acp_account():
@@ -796,8 +812,12 @@ def acp_account():
 
     This does NOT accept admin-specific options.
     """
-    alert = ''
-    alert_status = ''
+    if request.args.get('status') == 'pwdchange':
+        alert = 'You must change your password before proceeding.'
+        alert_status = 'danger'
+    else:
+        alert = ''
+        alert_status = ''
     action = 'edit'
     form = AccountForm()
     if request.method == 'POST':
@@ -809,6 +829,7 @@ def acp_account():
             if data['newpwd1'] == data['newpwd2'] and check_password(
                     current_user.password, data['oldpwd']):
                 current_user.password = password_hash(data['newpwd1'])
+                current_user.must_change_password = False
             else:
                 alert = 'Passwords don’t match.'
                 alert_status = 'danger'
@@ -830,6 +851,11 @@ def acp_account():
 @login_required
 def acp_users():
     """List all users."""
+    if current_user.must_change_password:
+        return redirect(url_for('acp_account') + '?status=pwdchange')
+    elif not current_user.is_admin:
+        return error("Not authorized to edit users.", 401)
+
     alert = ''
     alert_status = ''
     if request.args.get('status') == 'deleted':
@@ -838,8 +864,6 @@ def acp_users():
     if request.args.get('status') == 'undeleted':
         alert = 'User undeleted.'
         alert_status = 'success'
-    if not current_user.is_admin:
-        return error("Not authorized to edit users.", 401)
     else:
         uids = db.hgetall('users').values()
         USERS = sorted([(i, get_user(i)) for i in uids])
@@ -849,7 +873,8 @@ def acp_users():
                                'alert': alert,
                                'alert_status': alert_status,
                                'delform': UserDeleteForm(),
-                               'editform': UserEditForm()})
+                               'editform': UserEditForm(),
+                               'importform': UserImportForm()})
 
 
 @app.route('/users/edit/', methods=['POST'])
@@ -857,8 +882,9 @@ def acp_users():
 def acp_users_edit():
     """Edit an user account."""
     global current_user
-
-    if not current_user.is_admin:
+    if current_user.must_change_password:
+        return redirect(url_for('acp_account') + '?status=pwdchange')
+    elif not current_user.is_admin:
         return error("Not authorized to edit users.", 401)
     data = request.form
 
@@ -873,6 +899,7 @@ def acp_users_edit():
         uid = max(db.hgetall('users').values()) + 1
         pf = [False for p in PERMISSIONS]
         pf[0] = True  # active
+        pf[7] = True  # must_change_password
         user = User(uid, data['username'], '', '', '', *pf)
         write_user(user)
         db.hset('users', user.username, user.uid)
@@ -911,6 +938,7 @@ def acp_users_edit():
         user.active = True
         if user.uid == current_user.uid:
             user.is_admin = True
+            user.must_change_password = False
             current_user = user
         write_user(user)
 
@@ -924,12 +952,33 @@ def acp_users_edit():
                            'form': form})
 
 
+@app.route('/users/import/', methods=['POST'])
+@login_required
+def acp_users_import():
+    """Import users from a TSV file."""
+    if current_user.must_change_password:
+        return redirect(url_for('acp_account') + '?status=pwdchange')
+    elif not current_user.is_admin:
+        return error("Not authorized to edit users.", 401)
+
+    form = UserImportForm()
+    if not form.validate():
+        return error("Bad Request", 400)
+    fh = request.files['tsv'].stream
+    tsv = fh.read()
+    return tsv
+    # TODO
+
+
 @app.route('/users/delete/', methods=['POST'])
 @login_required
 def acp_users_delete():
     """Delete or undelete an user account."""
-    if not current_user.is_admin:
+    if current_user.must_change_password:
+        return redirect(url_for('acp_account') + '?status=pwdchange')
+    elif not current_user.is_admin:
         return error("Not authorized to edit users.", 401)
+
     form = UserDeleteForm()
     if not form.validate():
         return error("Bad Request", 400)
@@ -950,7 +999,9 @@ def acp_users_delete():
 @login_required
 def acp_users_permissions():
     """Change user permissions."""
-    if not current_user.is_admin:
+    if current_user.must_change_password:
+        return redirect(url_for('acp_account') + '?status=pwdchange')
+    elif not current_user.is_admin:
         return error("Not authorized to edit users.", 401)
 
     form = PermissionsForm()
@@ -966,9 +1017,11 @@ def acp_users_permissions():
                     setattr(user, perm, True)
                 else:
                     setattr(user, perm, False)
-            if uid == current_user.uid:
-                user.is_admin = True  # cannot deadmin oneself
-                user.active = True  # cannot deactivate oneself
+            if int(uid) == current_user.uid:
+                # Some permissions cannot apply to the current user.
+                user.is_admin = True
+                user.active = True
+                user.must_change_password = False
             write_user(user)
             users.append((uid, user))
         action = 'save'
@@ -981,8 +1034,8 @@ def acp_users_permissions():
         if permission == 'wants_all_posts' and not user.can_edit_all_posts:
             # If this happens, permissions are damaged.
             checked = ''
-        if user.uid == current_user.uid and permission in ['active',
-                                                           'is_admin']:
+        if (user.uid == current_user.uid and permission in [
+                'active', 'is_admin', 'must_change_password']):
             disabled = 'disabled'
         else:
             disabled = ''
@@ -993,13 +1046,14 @@ def acp_users_permissions():
              'data-perm="{4}" class="u{0}" {2} {3}>')
         return d.format(user.uid, permission, checked, disabled, permission_a)
 
-    users = [(i, get_user(i)) for i in uids]
+    if not users:
+        users = [(i, get_user(i)) for i in uids]
 
     return render('coil_users_permissions.tmpl',
                   context={'title': 'Permissions',
                            'USERS': sorted(users),
                            'UIDS': sorted(uids),
-                           'PERMISSIONS': PERMISSIONS,
+                           'PERMISSIONS_E': PERMISSIONS_E,
                            'action': action,
                            'json': json,
                            'form': form,

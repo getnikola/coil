@@ -2,7 +2,7 @@
 <%inherit file="base.tmpl"/>
 <%block name="extra_js">
 <script>
-var PERMISSIONS = ${json.dumps(PERMISSIONS)};
+var PERMISSIONS = ${json.dumps(PERMISSIONS_E)};
 var UIDS = ${json.dumps(UIDS)};
 var current_uid = ${current_user.uid};
 $(document).ready(function() {
@@ -54,35 +54,39 @@ $(document).ready(function() {
 % endif
 
 <form action="${url_for('acp_users_permissions')}" method="POST">
-<table class="table table-hover users" style="table-layout: fixed;">
+<table class="table table-hover users">
 <thead><tr>
     <th class="uid">#</th>
     <th class="username">Username</th>
-    <th class="perm is_active">Active<br>
+    <th class="perm is_active"><div class="perm-descr">Active</div>
         <button type="button" class="btn btn-info btn-xs select_all-perm" data-perm="is_active"><i class="fa fa-check-square-o fa-fw"></i></button>
         <button type="button" class="btn btn-info btn-xs select_none-perm" data-perm="is_active"><i class="fa fa-square-o fa-fw"></i></button>
     </th>
-    <th class="perm is_admin">Admin<br>
+    <th class="perm is_admin"><div class="perm-descr">Admin</div>
         <button type="button" class="btn btn-info btn-xs select_all-perm" data-perm="is_admin"><i class="fa fa-check-square-o fa-fw"></i></button>
         <button type="button" class="btn btn-info btn-xs select_none-perm" data-perm="is_admin"><i class="fa fa-square-o fa-fw"></i></button>
     </th>
-    <th class="perm can_edit_all_posts">Can all posts<br>
+    <th class="perm must_change_password"><div class="perm-descr">Must change password</div>
+        <button type="button" class="btn btn-info btn-xs select_all-perm" data-perm="must_change_password"><i class="fa fa-check-square-o fa-fw"></i></button>
+        <button type="button" class="btn btn-info btn-xs select_none-perm" data-perm="must_change_password"><i class="fa fa-square-o fa-fw"></i></button>
+    </th>
+    <th class="perm can_edit_all_posts"><div class="perm-descr">Can all posts</div>
         <button type="button" class="btn btn-info btn-xs select_all-perm" data-perm="can_edit_all_posts"><i class="fa fa-check-square-o fa-fw"></i></button>
         <button type="button" class="btn btn-info btn-xs select_none-perm" data-perm="can_edit_all_posts"><i class="fa fa-square-o fa-fw"></i></button>
     </th>
-    <th class="perm wants_all_posts">Wants all posts<br>
+    <th class="perm wants_all_posts"><div class="perm-descr">Wants all posts</div>
         <button type="button" class="btn btn-info btn-xs select_all-perm" data-perm="wants_all_posts"><i class="fa fa-check-square-o fa-fw"></i></button>
         <button type="button" class="btn btn-info btn-xs select_none-perm" data-perm="wants_all_posts"><i class="fa fa-square-o fa-fw"></i></button>
     </th>
-    <th class="perm can_upload_attachments">Attachments<br>
+    <th class="perm can_upload_attachments"><div class="perm-descr">Attachments</div>
         <button type="button" class="btn btn-info btn-xs select_all-perm" data-perm="can_upload_attachments"><i class="fa fa-check-square-o fa-fw"></i></button>
         <button type="button" class="btn btn-info btn-xs select_none-perm" data-perm="can_upload_attachments"><i class="fa fa-square-o fa-fw"></i></button>
     </th>
-    <th class="perm can_rebuild_site">Rebuild<br>
+    <th class="perm can_rebuild_site"><div class="perm-descr">Rebuild</div>
         <button type="button" class="btn btn-info btn-xs select_all-perm" data-perm="can_rebuild_site"><i class="fa fa-check-square-o fa-fw"></i></button>
         <button type="button" class="btn btn-info btn-xs select_none-perm" data-perm="can_rebuild_site"><i class="fa fa-square-o fa-fw"></i></button>
     </th>
-    <th class="perm can_transfer_post_authorship">Transfer authorship<br>
+    <th class="perm can_transfer_post_authorship"><div class="perm-descr">Transfer authorship</div>
         <button type="button" class="btn btn-info btn-xs select_all-perm" data-perm="can_transfer_post_authorship"><i class="fa fa-check-square-o fa-fw"></i></button>
         <button type="button" class="btn btn-info btn-xs select_none-perm" data-perm="can_transfer_post_authorship"><i class="fa fa-square-o fa-fw"></i></button>
     </th>
@@ -93,7 +97,7 @@ $(document).ready(function() {
 <tr class="u${uid}">
     <td class="uid">${uid}</td>
     <td class="username">${user.username}</td>
-    % for p in PERMISSIONS:
+    % for p in PERMISSIONS_E:
     <td class="perm
 % if p == 'active':
 is_active
@@ -102,7 +106,7 @@ ${p}
 %endif
 ">${display_permission(user, p)}</td>
     % endfor
-    <td class="select_all"><button type="button" class="btn btn-info select_all-user" data-uid="${uid}"><i class="fa fa-check-square-o fa-fw"></i></button> <button type="button" class="btn btn-info select_none-user" data-uid="${uid}"><i class="fa fa-square-o fa-fw"></i></button></td>
+    <td class="select_all"><button type="button" class="btn btn-sm btn-info select_all-user" data-uid="${uid}"><i class="fa fa-check-square-o fa-fw"></i></button> <button type="button" class="btn btn-sm btn-info select_none-user" data-uid="${uid}"><i class="fa fa-square-o fa-fw"></i></button></td>
 </tr>
 % endif
 % endfor

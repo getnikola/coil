@@ -95,6 +95,15 @@
                     % endif
                     > User is an administrator
                 </label></div>
+            <div class="checkbox"><label><input type="checkbox" name="must_change_password"
+                    % if user.must_change_password:
+                    checked
+                    % endif
+                    % if user.uid == current_user.uid:
+                    disabled
+                    % endif
+                    > User must change password on next login
+                </label></div>
             <div class="checkbox"><label><input type="checkbox" name="can_edit_all_posts"
                     % if user.can_edit_all_posts:
                     checked
