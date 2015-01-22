@@ -131,9 +131,9 @@ def configure_site():
     _site.config['NAVIGATION_LINKS'] = {
         'en': (
             (app.config['NIKOLA_URL'],
-             '<i class="fa fa-globe"></i> Back to website'),
+             '<i class="fa fa-globe"></i>'),
             ('http://coil.readthedocs.org/en/latest/user/',
-             '<i class="fa fa-question-circle"></i> Coil CMS Help'),
+             '<i class="fa fa-question-circle"></i>'),
         )
     }
     _site.GLOBAL_CONTEXT['navigation_links'] = _site.config['NAVIGATION_LINKS']
@@ -225,23 +225,29 @@ def generate_menu_alt():
     :rtype: str
     """
     if not current_user.is_authenticated():
-        return '<li><a href="{0}">Log in</a></li>'.format(url_for('login'))
+        return ('<li><a href="{0}"><i class="fa fa-fw fa-sign-in"></i> '
+                'Log in</a></li>'.format(url_for('login')))
     if current_user.is_admin:
-        edit_entry = ('<li><a href="{0}">Manage users</a></li>'
-                      '<li><a href="{1}">Permissions</a></li>'.format(
-                          url_for('acp_users'),
-                          url_for('acp_users_permissions')))
+        edit_entry = (
+            '<li><a href="{0}"><i class="fa fa-fw fa-users"></i> '
+            'Manage users</a></li>'
+            '<li><a href="{1}"><i class="fa fa-fw fa-cubes"></i> '
+            'Permissions</a></li>'.format(
+                url_for('acp_users'), url_for('acp_users_permissions')))
     else:
         edit_entry = ''
     return """
     <li class="dropdown">
         <a href="#" class="dropdown-toggle" data-toggle="dropdown"
-            role="button" aria-expanded="false">{0} [{1}]<span
-            class="caret"></span></a>
+            role="button" aria-expanded="false">
+            <i class="fa fa-fw fa-user"></i>
+            {0} [{1}] <span class="caret"></span></a>
         <ul class="dropdown-menu" role="menu">
-            <li><a href="{3}">Account</a></li>
+            <li><a href="{3}"><i class="fa fa-fw fa-sliders"></i>
+            Account</a></li>
             {2}
-            <li><a href="{4}">Log out</a></li>
+            <li><a href="{4}"><i class="fa fa-fw fa-sign-out"></i>
+            Log out</a></li>
         </ul>
     </li>""".format(current_user.realname, current_user.username, edit_entry,
                     url_for('acp_account'), url_for('logout'))
