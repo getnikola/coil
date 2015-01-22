@@ -20,7 +20,7 @@
 <div class="alert alert-{{ alert_status }}" role="alert">{{ alert }}</div>
 {% endif %}
 
-<form action="/users/edit" method="POST" class="form-horizontal">
+<form action="{{ url_for('acp_users_edit') }}" method="POST" class="form-horizontal">
     <input type="hidden" name="action" value="save">
     <div class="panel panel-primary">
         <div class="panel-heading">

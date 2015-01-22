@@ -5,7 +5,7 @@
 <div class="alert alert-${alert_status}" role="alert">${alert}</div>
 % endif
 
-      <form class="form-signin" method="POST" action="/login">
+      <form class="form-signin" method="POST" action="${url_for('login')}">
         <h2 class="form-signin-heading">Please sign in</h2>
         <label for="inputUsername" class="sr-only">Username</label>
         <input name="username" type="text" id="inputUsername" class="form-control" placeholder="Username" required autofocus>

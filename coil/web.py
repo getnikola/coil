@@ -39,7 +39,8 @@ import coil.tasks
 from nikola.utils import (unicode_str, get_logger, ColorfulStderrHandler,
                           write_metadata, TranslatableSetting)
 import nikola.plugins.command.new_post
-from flask import Flask, request, redirect, send_from_directory, g, session
+from flask import (Flask, request, redirect, send_from_directory, g, session,
+                   url_for)
 from flask.ext.login import (LoginManager, login_required, login_user,
                              logout_user, current_user, make_secure_token)
 from flask.ext.bcrypt import Bcrypt
@@ -209,11 +210,12 @@ def generate_menu():
     :rtype: str
     """
     if db.get('site:needs_rebuild') not in ('0', '-1'):
-        return ('</li><li><a href="/rebuild"><i class="fa fa-fw '
-                'fa-warning"></i> <strong>Rebuild</strong></a></li>')
+        return ('</li><li><a href="{0}"><i class="fa fa-fw '
+                'fa-warning"></i> <strong>Rebuild</strong></a></li>'.format(
+                url_for('rebuild')))
     else:
-        return ('</li><li><a href="/rebuild"><i class="fa fa-fw '
-                'fa-cog"></i> Rebuild</a></li>')
+        return ('</li><li><a href="{0}"><i class="fa fa-fw '
+                'fa-cog"></i> Rebuild</a></li>'.format(url_for('rebuild')))
 
 
 def generate_menu_alt():
@@ -223,10 +225,12 @@ def generate_menu_alt():
     :rtype: str
     """
     if not current_user.is_authenticated():
-        return """<li><a href="/login">Log in</a></li>"""
+        return '<li><a href="{0}">Log in</a></li>'.format(url_for('login'))
     if current_user.is_admin:
-        edit_entry = """<li><a href="/users">Manage users</a></li>\
-        <li><a href="/users/permissions">Permissions</a></li>"""
+        edit_entry = ('<li><a href="{0}">Manage users</a></li>'
+                      '<li><a href="{1}">Permissions</a></li>'.format(
+                          url_for('acp_users'),
+                          url_for('acp_users_permissions')))
     else:
         edit_entry = ''
     return """
@@ -235,11 +239,12 @@ def generate_menu_alt():
             role="button" aria-expanded="false">{0} [{1}]<span
             class="caret"></span></a>
         <ul class="dropdown-menu" role="menu">
-            <li><a href="/account">Account</a></li>
+            <li><a href="{3}">Account</a></li>
             {2}
-            <li><a href="/logout">Log out</a></li>
+            <li><a href="{4}">Log out</a></li>
         </ul>
-    </li>""".format(current_user.realname, current_user.username, edit_entry)
+    </li>""".format(current_user.realname, current_user.username, edit_entry,
+                    url_for('acp_account'), url_for('logout'))
 
 
 def _author_get(post):
@@ -285,33 +290,32 @@ def render(template_name, context=None, code=200, headers=None):
     context['current_user'] = current_user
     context['_author_get'] = _author_get
     context['_author_uid_get'] = _author_uid_get
-
+    context['permalink'] = request.url
+    context['url_for'] = url_for
     headers['Pragma'] = 'no-cache'
     headers['Cache-Control'] = 'private, max-age=0, no-cache'
 
     return _site.render_template(template_name, None, context), code, headers
 
 
-def error(desc, code, permalink):
+def error(desc, code):
     """Render an error page.
 
     :param str desc: Error description
     :param int code: HTTP status code
-    :param str permalink: Path to page generating errors
     :return: HTML fragment (from :func:`render`)
     :rtype: str
     """
     return render('coil_error.tmpl',
                   {'title': 'Error',
                    'code': code,
-                   'desc': desc,
-                   'permalink': permalink},
+                   'desc': desc},
                   code)
 
 
 def _unauthorized():
     """Redirect to the “unauthorized” page."""
-    return redirect('/login?status=unauthorized')
+    return redirect(url_for('login') + '?status=unauthorized')
 
 
 def find_post(path):
@@ -445,7 +449,7 @@ def write_user(user):
     db.hmset('user:{0}'.format(user.uid), udata)
 
 
-@app.route('/login', methods=['GET', 'POST'])
+@app.route('/login/', methods=['GET', 'POST'])
 def login():
     """Handle user authentication.
 
@@ -468,7 +472,7 @@ def login():
                 if check_password(user.password,
                                   request.form['password']) and user.is_active:
                     login_user(user, remember=('remember' in request.form))
-                    return redirect('/')
+                    return redirect(url_for('index'))
                 else:
                     alert = "Invalid credentials."
                     code = 401
@@ -481,17 +485,17 @@ def login():
         elif request.args.get('status') == 'logout':
             alert = 'Logged out successfully.'
             alert_status = 'success'
-    return render('coil_login.tmpl', {'title': 'Login', 'permalink': '/login',
-                                       'alert': alert, 'form': form,
-                                       'alert_status': alert_status}, code)
+    return render('coil_login.tmpl', {'title': 'Login', 'alert': alert, 'form':
+                                      form, 'alert_status': alert_status},
+                  code)
 
 
-@app.route('/logout')
+@app.route('/logout/')
 @login_required
 def logout():
     """Log the user out and redirect them to the login page."""
     logout_user()
-    return redirect('/login?status=logout')
+    return redirect(url_for('login') + '?status=logout')
 
 
 @app.route('/')
@@ -535,7 +539,6 @@ def index():
     context['posts'] = posts
     context['pages'] = pages
     context['title'] = 'Posts & Pages'
-    context['permalink'] = '/'
     context['wants'] = wants
     return render('coil_index.tmpl', context)
 
@@ -553,14 +556,13 @@ def edit(path):
     context = {'path': path, 'site': site}
     post = find_post(path)
     if post is None:
-        return error("No such post or page.", 404, '/edit/' + path)
+        return error("No such post or page.", 404)
 
     current_auid = int(post.meta('author.uid') or current_user.uid)
 
     if (not current_user.can_edit_all_posts
             and current_auid != current_user.uid):
-        return error("Cannot edit posts of other users.", 401,
-                     '/edit/' + path)
+        return error("Cannot edit posts of other users.", 401)
 
     if request.method == 'POST':
         meta = {}
@@ -604,20 +606,19 @@ def edit(path):
 
     context['post'] = post
     users = []
-    last_uid = int(db.get('last_uid'))
-    for u in range(1, last_uid + 1):
+    uids = db.hgetall('users').values()
+    for u in uids:
         realname, active = db.hmget('user:{0}'.format(u), 'realname', 'active')
         if active == '1':
             users.append((u, realname))
     context['users'] = sorted(users)
     context['current_auid'] = current_auid
     context['title'] = 'Editing {0}'.format(post.title())
-    context['permalink'] = '/edit/' + path
     context['is_html'] = post.compiler.name == 'html'
     return render('coil_post_edit.tmpl', context)
 
 
-@app.route('/delete', methods=['POST'])
+@app.route('/delete/', methods=['POST'])
 @login_required
 def delete():
     """Delete a post."""
@@ -625,15 +626,15 @@ def delete():
     path = request.form['path']
     post = find_post(path)
     if post is None:
-        return error("No such post or page.", 404, '/delete')
+        return error("No such post or page.", 404)
     if not form.validate():
-        return error("Bad Request", 400, '/delete')
+        return error("Bad Request", 400)
 
     current_auid = int(post.meta('author.uid') or current_user.uid)
 
     if (not current_user.can_edit_all_posts
             and current_auid != current_user.uid):
-        return error("Cannot edit posts of other users.", 401, '/delete')
+        return error("Cannot edit posts of other users.", 401)
 
     os.unlink(path)
     if post.is_two_file:
@@ -641,10 +642,10 @@ def delete():
         os.unlink(meta_path)
     scan_site()
     db.set('site:needs_rebuild', '1')
-    return redirect('/')
+    return redirect(url_for('index'))
 
 
-@app.route('/api/rebuild')
+@app.route('/api/rebuild/')
 @login_required
 def api_rebuild():
     """Rebuild the site (internally)."""
@@ -654,7 +655,8 @@ def api_rebuild():
     if not build_job and not orphans_job:
         build_job = q.enqueue_call(func=coil.tasks.build,
                                    args=(app.config['REDIS_URL'],
-                                         app.config['NIKOLA_ROOT']),
+                                         app.config['NIKOLA_ROOT'],
+                                         ''),
                                    job_id='build')
         orphans_job = q.enqueue_call(func=coil.tasks.orphans,
                                      args=(app.config['REDIS_URL'],
@@ -674,27 +676,27 @@ def api_rebuild():
     return d
 
 
-@app.route('/rebuild')
+@app.route('/rebuild/')
+@app.route('/rebuild/<mode>/')
 @login_required
-def rebuild():
+def rebuild(mode=''):
     """Rebuild the site with a nice UI."""
     scan_site()  # for good measure
     if not current_user.can_rebuild_site:
         return error('You are not permitted to rebuild the site.</p>'
                      '<p class="lead">Contact an administartor for '
-                     'more information.', 401, '/rebuild')
+                     'more information.', 401)
     db.set('site:needs_rebuild', '-1')
     if not q.fetch_job('build') and not q.fetch_job('orphans'):
         b = q.enqueue_call(func=coil.tasks.build,
                            args=(app.config['REDIS_URL'],
-                                 app.config['NIKOLA_ROOT']), job_id='build')
+                                 app.config['NIKOLA_ROOT'], mode), job_id='build')
         q.enqueue_call(func=coil.tasks.orphans,
                        args=(app.config['REDIS_URL'],
                              app.config['NIKOLA_ROOT']), job_id='orphans',
                        depends_on=b)
 
-    return render('coil_rebuild.tmpl',
-                  {'title': 'Rebuild', 'permalink': '/rebuild'})
+    return render('coil_rebuild.tmpl', {'title': 'Rebuild'})
 
 
 @app.route('/bower_components/<path:path>')
@@ -739,7 +741,7 @@ def serve_assets(path):
     return send_from_directory(res, path)
 
 
-@app.route('/new/<obj>', methods=['POST'])
+@app.route('/new/<obj>/', methods=['POST'])
 @login_required
 def new(obj):
     """Create a new post or page.
@@ -760,7 +762,7 @@ def new(obj):
                                         author=current_user.realname,
                                         content_format='html')
             else:
-                return error("Bad Request", 400, '/new/' + obj)
+                return error("Bad Request", 400)
         elif obj == 'page':
             f = NewPageForm()
             if f.validate():
@@ -768,24 +770,22 @@ def new(obj):
                                         author=current_user.realname,
                                         content_format='html')
             else:
-                return error("Bad Request", 400, '/new/' + obj)
+                return error("Bad Request", 400)
         else:
-            return error("Cannot create {0} — unknown type.".format(obj),
-                         400, '/new/' + obj)
+            return error("Cannot create {0} — unknown type.".format(obj), 400)
     except SystemExit:
-        return error("This {0} already exists!".format(obj),
-                     500, '/new/' + obj)
+        return error("This {0} already exists!".format(obj), 500)
     finally:
         del _site.config['ADDITIONAL_METADATA']['author.uid']
     # reload post list and go to index
     scan_site()
     db.set('site:needs_rebuild', '1')
-    return redirect('/')
+    return redirect(url_for('index'))
 
 
-@app.route('/account', methods=['POST', 'GET'])
+@app.route('/account/', methods=['POST', 'GET'])
 @login_required
-def acp_user_account():
+def acp_account():
     """Manage the user account of currently-logged-in users.
 
     This does NOT accept admin-specific options.
@@ -796,7 +796,7 @@ def acp_user_account():
     form = AccountForm()
     if request.method == 'POST':
         if not form.validate():
-            return error("Bad Request", 400, "/account")
+            return error("Bad Request", 400)
         action = 'save'
         data = request.form
         if data['newpwd1']:
@@ -814,14 +814,13 @@ def acp_user_account():
 
     return render('coil_account.tmpl',
                   context={'title': 'My account',
-                           'permalink': '/account',
                            'action': action,
                            'alert': alert,
                            'alert_status': alert_status,
                            'form': form})
 
 
-@app.route('/users')
+@app.route('/users/')
 @login_required
 def acp_users():
     """List all users."""
@@ -834,13 +833,12 @@ def acp_users():
         alert = 'User undeleted.'
         alert_status = 'success'
     if not current_user.is_admin:
-        return error("Not authorized to edit users.", 401, "/users")
+        return error("Not authorized to edit users.", 401)
     else:
-        last_uid = int(db.get('last_uid'))
-        USERS = {i: get_user(i) for i in range(1, last_uid + 1)}
+        uids = db.hgetall('users').values()
+        USERS = sorted([(i, get_user(i)) for i in uids])
         return render('coil_users.tmpl',
                       context={'title': 'Users',
-                               'permalink': '/users',
                                'USERS': USERS,
                                'alert': alert,
                                'alert_status': alert_status,
@@ -848,29 +846,28 @@ def acp_users():
                                'editform': UserEditForm()})
 
 
-@app.route('/users/edit', methods=['POST'])
+@app.route('/users/edit/', methods=['POST'])
 @login_required
 def acp_users_edit():
     """Edit an user account."""
     global current_user
 
     if not current_user.is_admin:
-        return error("Not authorized to edit users.", 401, "/users/edit")
+        return error("Not authorized to edit users.", 401)
     data = request.form
 
     form = UserEditForm()
     if not form.validate():
-        return error("Bad Request", 400, "/users/edit")
+        return error("Bad Request", 400)
     action = data['action']
 
     if action == 'new':
         if not data['username']:
-            return error("No username to create specified.", 400,
-                         "/users/edit")
-        uid = db.incr('last_uid')
+            return error("No username to create specified.", 400)
+        uid = max(db.hgetall('users').values()) + 1
         pf = [False for p in PERMISSIONS]
         pf[0] = True  # active
-        user = User(uid, data['username'], '', '', *pf)
+        user = User(uid, data['username'], '', '', '', *pf)
         write_user(user)
         db.hset('users', user.username, user.uid)
         new = True
@@ -879,7 +876,7 @@ def acp_users_edit():
         new = False
 
     if not user:
-        return error("User does not exist.", 404, "/users/edit")
+        return error("User does not exist.", 404)
 
     alert = ''
     alert_status = ''
@@ -913,7 +910,6 @@ def acp_users_edit():
 
     return render('coil_users_edit.tmpl',
                   context={'title': 'Edit user',
-                           'permalink': '/users/edit',
                            'user': user,
                            'new': new,
                            'action': action,
@@ -922,42 +918,42 @@ def acp_users_edit():
                            'form': form})
 
 
-@app.route('/users/delete', methods=['POST'])
+@app.route('/users/delete/', methods=['POST'])
 @login_required
 def acp_users_delete():
     """Delete or undelete an user account."""
     if not current_user.is_admin:
-        return error("Not authorized to edit users.", 401, "/users/delete")
+        return error("Not authorized to edit users.", 401)
     form = UserDeleteForm()
     if not form.validate():
-        return error("Bad Request", 400, '/users/delete')
+        return error("Bad Request", 400)
     user = get_user(int(request.form['uid']))
     direction = request.form['direction']
     if not user:
-        return error("User does not exist.", 404, "/users/delete")
+        return error("User does not exist.", 404)
     else:
         for p in PERMISSIONS:
             setattr(user, p, False)
         user.active = direction == 'undel'
         write_user(user)
-        return redirect('/users?status={_del}eted'.format(_del=direction))
+        return redirect(url_for('acp_users') + '?status={_del}eted'.format(
+            _del=direction))
 
 
-@app.route('/users/permissions', methods=['GET', 'POST'])
+@app.route('/users/permissions/', methods=['GET', 'POST'])
 @login_required
 def acp_users_permissions():
     """Change user permissions."""
     if not current_user.is_admin:
-        return error("Not authorized to edit users.",
-                     401, "/users/permissions")
+        return error("Not authorized to edit users.", 401)
 
     form = PermissionsForm()
-    users = {}
-    last_uid = int(db.get('last_uid'))
+    users = []
+    uids = db.hgetall('users').values()
     if request.method == 'POST':
         if not form.validate():
-            return error("Bad Request", 400, '/users/permissions')
-        for uid in range(1, last_uid + 1):
+            return error("Bad Request", 400)
+        for uid in uids:
             user = get_user(uid)
             for perm in PERMISSIONS:
                 if '{0}.{1}'.format(uid, perm) in request.form:
@@ -968,7 +964,7 @@ def acp_users_permissions():
                 user.is_admin = True  # cannot deadmin oneself
                 user.active = True  # cannot deactivate oneself
             write_user(user)
-            users[uid] = user
+            users.append((uid, user))
         action = 'save'
     else:
         action = 'edit'
@@ -991,13 +987,12 @@ def acp_users_permissions():
              'data-perm="{4}" class="u{0}" {2} {3}>')
         return d.format(user.uid, permission, checked, disabled, permission_a)
 
-    for uid in range(1, last_uid + 1):
-        users[uid] = get_user(uid)
+    users = [(i, get_user(i)) for i in uids]
 
     return render('coil_users_permissions.tmpl',
                   context={'title': 'Permissions',
-                           'permalink': '/users/permissions',
-                           'USERS': users,
+                           'USERS': sorted(users),
+                           'UIDS': sorted(uids),
                            'PERMISSIONS': PERMISSIONS,
                            'action': action,
                            'json': json,

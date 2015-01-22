@@ -2,6 +2,13 @@
 Appendix A. Changelog
 =====================
 
+master
+------
+
+* add trailing slashes to all URLs
+* use ``url_for()``
+* add ``/rebuild/force/`` (== ``nikola build -a``)
+
 v1.0.0
 ------
 

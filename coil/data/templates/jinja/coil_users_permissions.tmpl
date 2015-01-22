@@ -3,7 +3,7 @@
 {% block extra_js %}
 <script>
 var PERMISSIONS = {{ json.dumps(PERMISSIONS) }};
-var USERS = {{ json.dumps(USERS.keys()) }};
+var UIDS = {{ json.dumps(UIDS) }};
 var current_uid = {{ current_user.uid }};
 $(document).ready(function() {
     {% if action == 'save' %}
@@ -28,8 +28,8 @@ $(document).ready(function() {
         });
     }
 
-    for (var i = 0; i < USERS.length; i++) {
-        uid = USERS[i];
+    for (var i = 0; i < UIDS.length; i++) {
+        uid = UIDS[i];
         $('.u' + uid + ' button.select_all-user').click(function() {
             uid = this.attributes['data-uid'].value;
             $('input.u' + uid).each(function() { this.checked = true; });
@@ -53,7 +53,7 @@ $(document).ready(function() {
 <div class="alert alert-{{ alert_status }}" role="alert">{{ alert }}</div>
 {% endif %}
 
-<form action="/users/permissions" method="POST">
+<form action="{{ url_for('acp_users_permissions') }}" method="POST">
 <table class="table table-hover users" style="table-layout: fixed;">
 <thead><tr>
     <th class="uid">#</th>
@@ -88,7 +88,7 @@ $(document).ready(function() {
     </th>
     <th class="select_all">Select all</th>
 </tr></thead>
-{% for uid, user in USERS.items() %}
+{% for uid, user in USERS %}
 {% if user.is_active %}
 <tr class="u{{ uid }}">
     <td class="uid">{{ uid }}</td>

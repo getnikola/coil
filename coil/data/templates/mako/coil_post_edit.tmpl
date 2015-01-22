@@ -6,7 +6,7 @@
 % endif
 </%block>
 <%block name="content">
-<form method="POST" class="form-horizontal" role="form" id="form" action="/edit/${post.source_path}">
+<form method="POST" class="form-horizontal" role="form" id="form" action="${url_for('edit', path=post.source_path)}">
 <input name="title" value="${post.title()}" class="form-control title input-lg" placeholder="Title">
 
 <div id="post-meta-line" class="metadata form-inline container-fluid"><div class="row">

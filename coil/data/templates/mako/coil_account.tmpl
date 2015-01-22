@@ -16,7 +16,7 @@
 <div class="alert alert-${alert_status}" role="alert">${alert}</div>
 % endif
 
-<form action="/account" method="POST" class="form-horizontal">
+<form action="${url_for('acp_account')}" method="POST" class="form-horizontal">
     <div class="panel panel-primary">
         <div class="panel-heading">
             <h3 class="panel-title">Profile</h3>
@@ -66,7 +66,7 @@
 
     % if current_user.is_admin:
     <p class="text-muted">You can edit your permissions in the <a
-    href="/users/permissions">permissions panel</a>.</p>
+    href="${url_for('acp_users_permissions')}">permissions panel</a>.</p>
     % endif
 
     ${form.csrf_token}

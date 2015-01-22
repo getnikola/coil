@@ -32,8 +32,12 @@ from sys import executable
 from redis import StrictRedis
 
 
-def build(dburl, sitedir):
+def build(dburl, sitedir, mode):
     """Build a site."""
+    if mode == 'force':
+        amode = ['-a']
+    else:
+        amode = []
     oldcwd = os.getcwd()
     os.chdir(sitedir)
     db = StrictRedis.from_url(dburl)
@@ -41,7 +45,7 @@ def build(dburl, sitedir):
     job.meta.update({'out': '', 'milestone': 0, 'total': 1, 'return': None,
                      'status': None})
     job.save()
-    p = subprocess.Popen([executable, '-m', 'nikola', 'build'],
+    p = subprocess.Popen([executable, '-m', 'nikola', 'build'] + amode,
                          stderr=subprocess.PIPE)
 
     milestones = {

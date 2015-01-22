@@ -48,7 +48,7 @@ $('#deleteModal').on('show.bs.modal', function (event) {
     <th class="is_admin">Admin</th>
     <th class="actions">Actions</th>
 </tr></thead>
-% for uid, user in USERS.items():
+% for uid, user in USERS:
 % if user.active:
 <tr>
 % else:
@@ -66,7 +66,7 @@ $('#deleteModal').on('show.bs.modal', function (event) {
     % endif
     </td>
     <td class="actions">
-    <form action="/users/edit" method="POST">${editform.csrf_token}
+    <form action="${url_for('acp_users_edit')}" method="POST">${editform.csrf_token}
     <input type="hidden" name="uid" value="${uid}">
     <input type="hidden" name="action" value="edit">
     <div class="btn-group" role="group">
@@ -85,11 +85,11 @@ $('#deleteModal').on('show.bs.modal', function (event) {
     </form>
 </tr>
 % endfor
-<tr><form action="/users/edit" method="POST">
+<tr><form action="${url_for('acp_users_edit')}" method="POST">${editform.csrf_token}
     <td></td>
     <td><input name="username" placeholder="New user" class="form-control"></td>
     <td><input name="action" value="new" type="hidden"></td>
-    <td>${editform.csrf_token}</td>
+    <td></td>
     <td></td>
     <td><button type="submit" class="btn btn-sm btn-primary"><i class="fa fa-plus-square fa-fw"></i> Create</button></td>
 </form></tr>
@@ -106,7 +106,7 @@ $('#deleteModal').on('show.bs.modal', function (event) {
       Really <span class="del-verb">do something to</span> <strong class="del-username">user</strong>?
       </div>
       <div class="modal-footer">
-        <form method="POST" action="/users/delete" class="delete-button">
+        <form method="POST" action="${url_for('acp_users_delete')}" class="delete-button">
         <input type="hidden" name="uid" class="del-uid">
         <input type="hidden" name="direction" class="del-direction">
         <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>

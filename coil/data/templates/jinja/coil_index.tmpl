@@ -35,7 +35,7 @@ Show posts of:
         <div class="page-header">
         <h2>Posts</h2>
         </div>
-        <form method="POST" action="/new/post" class="input-group">
+        <form method="POST" action="{{ url_for('new', obj='post') }}" class="input-group">
               <input class="form-control" name="title" id="title" placeholder="Title">
               {{ postform.csrf_token }}
               <span class="input-group-btn"><button type="submit" class="btn btn-success"><i class="fa fa-file-o"></i> Create Post</button></span>
@@ -47,7 +47,7 @@ Show posts of:
                 <small>Date: {{ p.date }}</small>
                 <br><small>Author: {{ p.meta('author') }}</small>
                 <div class="pull-right">
-                    <a class="btn btn-info btn-xs" href="/edit/{{ p.source_path }}"><i class="fa fa-pencil"></i> Edit</a>
+                    <a class="btn btn-info btn-xs" href="{{ url_for('edit', path=p.source_path) }}"><i class="fa fa-pencil"></i> Edit</a>
                     <button type="button" class="btn btn-danger btn-xs" data-toggle="modal" data-target="#deleteModal" data-sourcepath="{{ p.source_path }}" data-ptitle="{{ p.title() }}"><i class="fa fa-trash"></i> Delete</a>
                 </div>
             </div>
@@ -59,7 +59,7 @@ Show posts of:
         <div class="page-header">
         <h2>Pages</h2>
         </div>
-        <form method="POST" action="/new/page" class="input-group">
+        <form method="POST" action="{{ url_for('new', obj='page') }}" class="input-group">
               <input class="form-control" name="title" id="title" placeholder="Title">
               {{ pageform.csrf_token }}
               <span class="input-group-btn"><button type="submit" class="btn btn-success"><i class="fa fa-file-o"></i> Create Page</button></span>
@@ -71,7 +71,7 @@ Show posts of:
                 <small>Date: {{ p.date }}</small>
                 <br><small>Author: {{ p.meta('author') }}</small>
                 <div class="pull-right">
-                    <a class="btn btn-info btn-xs" href="/edit/{{ p.source_path }}"><i class="fa fa-pencil"></i> Edit</a>
+                    <a class="btn btn-info btn-xs" href="{{ url_for('edit', path=p.source_path) }}"><i class="fa fa-pencil"></i> Edit</a>
                     <button type="button" class="btn btn-danger btn-xs" data-toggle="modal" data-target="#deleteModal" data-sourcepath="{{ p.source_path }}" data-ptitle="{{ p.title() }}"><i class="fa fa-trash"></i> Delete</a>
                 </div>
             </div>
@@ -92,7 +92,7 @@ Show posts of:
       Really delete <strong class="del-title">post</strong>?
       </div>
       <div class="modal-footer">
-        <form method="POST" action="/delete" class="delete-button">
+        <form method="POST" action="{{ url_for('delete') }}" class="delete-button">
         <input type="hidden" name="path" class="sourcepath">
         {{ delform.csrf_token }}
         <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
