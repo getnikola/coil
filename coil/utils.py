@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Comet CMS v1.0.0
+# Coil CMS v1.0.0
 # Copyright © 2014-2015 Chris Warrick, Roberto Alsina, Henry Hirsch et al.
 
 # Permission is hereby granted, free of charge, to any

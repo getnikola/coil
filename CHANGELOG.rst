@@ -5,6 +5,7 @@ Appendix A. Changelog
 v1.0.0
 ------
 
+* RENAME TO *Coil CMS*
 * User documentation
 * Form validation
 * Redis for storing data
@@ -26,6 +27,7 @@ v0.5.0
 * Cookie-based authentication
 * User management
 * Style wysihtml properly
+* Rename to *Comet CMS*
 
 v0.0.1
 ------

@@ -6,26 +6,26 @@ Setup
 
 .. contents::
 
-How Comet works alongside Nikola
-================================
+How Coil works alongside Nikola
+===============================
 
-Comet requires Nikola to work.  `Nikola`_ is a static site generator, written
-in Python.  Comet manages the files that are then used by Nikola to build the
+Coil requires Nikola to work.  `Nikola`_ is a static site generator, written
+in Python.  Coil manages the files that are then used by Nikola to build the
 site.
 
-As such, you must configure Nikola first before you start Comet.
+As such, you must configure Nikola first before you start Coil.
 
 Virtualenv
 ==========
 
-Create a virtualenv in ``/var/comet`` and install Comet in it.
+Create a virtualenv in ``/var/coil`` and install Coil in it.
 
 .. code-block:: console
 
-    # virtualenv-2.7 /var/comet
-    # cd /var/comet
+    # virtualenv-2.7 /var/coil
+    # cd /var/coil
     # source bin/activate
-    # pip install comet uwsgi
+    # pip install coil uwsgi
 
 Redis
 =====
@@ -47,7 +47,7 @@ at boot, after Redis.  Here is a sample ``.service`` file for systemd:
 
     [Service]
     Type=simple
-    ExecStart=/var/comet/bin/rqworker
+    ExecStart=/var/coil/bin/rqworker
     User=nobody
     Group=nobody
 
@@ -62,23 +62,23 @@ Start by setting up Nikola.  This can be done using ``nikola init``.
 
 .. code-block:: console
 
-    # mkdir /var/comet
-    # cd /var/comet
-    # nikola init my_comet_site
+    # mkdir /var/coil
+    # cd /var/coil
+    # nikola init my_coil_site
     Creating Nikola Site
     ====================
 
     [a wizard will guide you through configuration]
 
-    [2015-01-10T18:16:35Z] INFO: init: Created empty site at my_comet_site.
-    # cd my_comet_site
+    [2015-01-10T18:16:35Z] INFO: init: Created empty site at my_coil_site.
+    # cd my_coil_site
 
 Then, you must make some changes to the config:
 
- * ``COMET_SECRET_KEY`` — a bunch of random characters, needed for sessions.
+ * ``coil_SECRET_KEY`` — a bunch of random characters, needed for sessions.
    **Store it in a safe place** — git is not one!  You can use
    ``os.urandom(24)`` to generate something good.
- * ``COMET_URL`` — the URL under which Comet can be accessed.
+ * ``coil_URL`` — the URL under which Coil can be accessed.
  * ``REDIS_URL`` — the URL of your Redis database.
  * Modify ``POSTS`` and ``PAGES``, replacing ``.txt`` by ``.html``.
 
@@ -111,11 +111,11 @@ When you are done configuring nikola, run ``nikola build``.
 Users
 =====
 
-Run ``comet write_users``:
+Run ``coil write_users``:
 
 .. code-block:: console
 
-    # comet write_users
+    # coil write_users
     Redis URL [redis://]:
     Username: admin
     Password: admin
@@ -131,15 +131,15 @@ Permissions
 
     # chown -Rf nobody:nobody .
 
-Chown ``my_comet_site`` *recursively* to ``nobody``, or whatever
-user Comet will run as.  Comet must be able to write to this directory.
+Chown ``my_coil_site`` *recursively* to ``nobody``, or whatever
+user Coil will run as.  Coil must be able to write to this directory.
 
 Make sure to fix permissions if you fool around the site directory!
 
 Server
 ======
 
-For testing purposes, you can use ``comet devserver``.  It should **NOT** be used
+For testing purposes, you can use ``coil devserver``.  It should **NOT** be used
 in production.  You should use uWSGI Emperor and nginx in a real environment.
 
 uWSGI
@@ -153,18 +153,18 @@ Sample uWSGI configuration:
     [uwsgi]
     emperor = true
     socket = 127.0.0.1:3031
-    chdir = /var/comet/my_comet_site
+    chdir = /var/coil/my_coil_site
     master = true
     threads = 5
-    binary-path = /var/comet/bin/uwsgi
-    virtualenv = /var/comet
-    module = comet.web
+    binary-path = /var/coil/bin/uwsgi
+    virtualenv = /var/coil
+    module = coil.web
     callable = app
     plugins = python2
     uid = nobody
     gid = nobody
     processes = 3
-    logger = file:/var/comet/my_comet_site/uwsgi.log
+    logger = file:/var/coil/my_coil_site/uwsgi.log
 
 .. note::
 
@@ -179,8 +179,8 @@ Sample nginx configuration:
 
     server {
         listen 80;
-        server_name comet.example.com;
-        root /var/comet/my_comet_site;
+        server_name coil.example.com;
+        root /var/coil/my_coil_site;
 
         location / {
             include uwsgi_params;
@@ -188,19 +188,19 @@ Sample nginx configuration:
         }
 
         location /favicon.ico {
-            alias /var/comet/my_comet_site/output/favicon.ico;
+            alias /var/coil/my_coil_site/output/favicon.ico;
         }
 
         location /assets {
-            alias /var/comet/my_comet_site/output/assets;
+            alias /var/coil/my_coil_site/output/assets;
         }
 
-        location /comet_assets {
-            alias /var/comet/lib/python2.7/site-packages/comet/data/comet_assets;
+        location /coil_assets {
+            alias /var/coil/lib/python2.7/site-packages/coil/data/coil_assets;
         }
 
         location /bower_components {
-            alias /var/comet/lib/python2.7/site-packages/comet/data/bower_components;
+            alias /var/coil/lib/python2.7/site-packages/coil/data/bower_components;
         }
     }
 

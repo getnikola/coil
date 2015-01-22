@@ -1,12 +1,12 @@
-User documentation for Comet CMS
-================================
+User documentation for Coil CMS
+===============================
 
-Welcome to Comet CMS!
+Welcome to Coil CMS!
 
-Comet CMS is a Content Management System.  A Content Management System is used
-to administer websites.  Comet is one of many of them on the market.  Comet
+Coil CMS is a Content Management System.  A Content Management System is used
+to administer websites.  Coil is one of many of them on the market.  Coil
 offers many benefits over the traditional CMSes to both users and
-administrators.  Comet CMS strives to be user-friendly and easy to use.
+administrators.  Coil CMS strives to be user-friendly and easy to use.
 
 .. toctree::
    :maxdepth: 2

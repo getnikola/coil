@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 #
-# Comet CMS documentation build configuration file, created by
+# Coil CMS documentation build configuration file, created by
 # sphinx-quickstart on Sat Jan 10 17:53:36 2015.
 #
 # This file is execfile()d with the current directory set to its
@@ -47,7 +47,7 @@ source_suffix = '.rst'
 master_doc = 'index'
 
 # General information about the project.
-project = 'Comet CMS'
+project = 'Coil CMS'
 copyright = '2014-2015 Chris Warrick, Roberto Alsina, Henry Hirsch et al'
 
 # The version info for the project you're documenting, acts as replacement for
@@ -180,7 +180,7 @@ html_static_path = ['_static']
 #html_file_suffix = None
 
 # Output file base name for HTML help builder.
-htmlhelp_basename = 'CometCMSdoc'
+htmlhelp_basename = 'CoilCMSdoc'
 
 
 # -- Options for LaTeX output ---------------------------------------------
@@ -200,8 +200,8 @@ latex_elements = {
 # (source start file, target name, title,
 #  author, documentclass [howto, manual, or own class]).
 latex_documents = [
-  ('index', 'CometCMS.tex', 'Comet CMS Documentation',
-   'Chris Warrick and the Comet contributors', 'manual'),
+  ('index', 'CoilCMS.tex', 'Coil CMS Documentation',
+   'Chris Warrick and the Coil contributors', 'manual'),
 ]
 
 # The name of an image file (relative to this directory) to place at the top of
@@ -230,8 +230,8 @@ latex_documents = [
 # One entry per manual page. List of tuples
 # (source start file, name, description, authors, manual section).
 man_pages = [
-    ('index', 'cometcms', 'Comet CMS Documentation',
-     ['Chris Warrick and the Comet contributors'], 1)
+    ('index', 'coil', 'Coil CMS Documentation',
+     ['Chris Warrick and the Coil contributors'], 1)
 ]
 
 # If true, show URL addresses after external links.
@@ -244,8 +244,8 @@ man_pages = [
 # (source start file, target name, title, author,
 #  dir menu entry, description, category)
 texinfo_documents = [
-  ('index', 'CometCMS', 'Comet CMS Documentation',
-   'Chris Warrick and the Comet contributors', 'CometCMS', 'A CMS for Nikola.',
+  ('index', 'CoilCMS', 'Coil CMS Documentation',
+   'Chris Warrick and the Coil contributors', 'CoilCMS', 'A CMS for Nikola.',
    'Miscellaneous'),
 ]
 

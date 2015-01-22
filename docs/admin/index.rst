@@ -1,5 +1,5 @@
-Administrator documentation for Comet CMS
-=========================================
+Administrator documentation for Coil CMS
+========================================
 
 .. toctree::
    :maxdepth: 2

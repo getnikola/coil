@@ -6,7 +6,7 @@ Users
 
 .. contents::
 
-Users of Comet are stored in the Redis database.
+Users of Coil are stored in the Redis database.
 
 Information stored
 ==================
@@ -37,7 +37,7 @@ Name                In Account                               In Permissions
 Permissions
 -----------
 
-Comet uses a very granular permission system.  Each user can have a different
+Coil uses a very granular permission system.  Each user can have a different
 set of permissions, depending on the needs of the organization.
 
 ================================  =============================  ===================

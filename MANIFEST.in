@@ -1,4 +1,4 @@
-graft comet
+graft coil
 graft docs
 include README.rst AUTHORS LICENSE CHANGELOG.rst setup.py setup.cfg requirements.txt
 global-exclude __pycache__ *.pyc

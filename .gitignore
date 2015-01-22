@@ -30,10 +30,3 @@ nosetests.xml
 .mr.developer.cfg
 .project
 .pydevproject
-
-# Nikola site files
-SITE/cache/
-SITE/output/
-SITE/.doit.db
-SITE/comet.log
-docs/comet.log

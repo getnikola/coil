@@ -1,7 +1,7 @@
 Getting Started
 ===============
 
-When you access the Comet CMS instance, you first need to log in by using your
+When you access the Coil CMS app, you first need to log in by using your
 username and password, which were provided by the administrator.  The first
 thing you should do is visiting the :doc:`Account <account>` page and change
 your password to secure your account.

@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Comet CMS v1.0.0
+# Coil CMS v1.0.0
 # Copyright © 2014-2015 Chris Warrick, Roberto Alsina, Henry Hirsch et al.
 
 # Permission is hereby granted, free of charge, to any
@@ -26,36 +26,36 @@
 # SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 
-u"""Comet CMS v{0}
+u"""Coil CMS v{0}
 
 Usage:
-  comet devserver [-b | --browser] [-p <port> | --port=<port>]
-  comet write_users
-  comet -h | --help
-  comet --version
+  coil devserver [-b | --browser] [-p <port> | --port=<port>]
+  coil write_users
+  coil -h | --help
+  coil --version
 
 Options:
  -h, --help                Show help screen.
  --version                 Show version.
- -b, --browser             Open Comet in the browser after starting.
+ -b, --browser             Open Coil CMS in the browser after starting.
  -p <port>, --port=<port>  Port to use [default: 8001].
 """
 
 from __future__ import unicode_literals
 
-import comet
-import comet.utils
+import coil
+import coil.utils
 import sys
 import docopt
 import webbrowser
 
-__doc__ = __doc__.format(comet.__version__)
+__doc__ = __doc__.format(coil.__version__)
 
 
 def main():
     """The main function."""
-    arguments = docopt.docopt(__doc__, version='Comet CMS v{0}'.format(
-        comet.__version__))
+    arguments = docopt.docopt(__doc__, version='Coil CMS v{0}'.format(
+        coil.__version__))
     if arguments['write_users']:
         sys.exit(write_users(arguments))
     elif arguments['devserver']:
@@ -63,32 +63,32 @@ def main():
 
 
 def init(arguments):
-    """Run comet init."""
-    import comet.init
-    return comet.init.init()
+    """Run coil init."""
+    import coil.init
+    return coil.init.init()
 
 
 def write_users(arguments):
     """Write users to the DB."""
-    import comet.init
-    u = comet.utils.ask("Redis URL", "redis://localhost:6379/0")
-    return comet.init.write_users(u)
+    import coil.init
+    u = coil.utils.ask("Redis URL", "redis://localhost:6379/0")
+    return coil.init.write_users(u)
 
 
 def devserver(arguments):
     """Run a development server."""
-    import comet.web
-    if comet.web.app:
+    import coil.web
+    if coil.web.app:
         port = int(arguments['--port'])
         url = 'http://localhost:{0}/'.format(port)
-        comet.web.configure_url(url)
-        comet.web.app.config['DEBUG'] = True
+        coil.web.configure_url(url)
+        coil.web.app.config['DEBUG'] = True
 
         if arguments['--browser']:
             webbrowser.open(url)
 
-        comet.web.app.logger.info("Comet CMS running @ {0}".format(url))
-        comet.web.app.run('localhost', port, debug=True)
+        coil.web.app.logger.info("Coil CMS running @ {0}".format(url))
+        coil.web.app.run('localhost', port, debug=True)
         return 0
     else:
         print("FATAL: no conf.py found")

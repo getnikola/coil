@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Comet CMS v1.0.0
+# Coil CMS v1.0.0
 # Copyright © 2014-2015 Chris Warrick, Roberto Alsina, Henry Hirsch et al.
 
 # Permission is hereby granted, free of charge, to any
@@ -35,7 +35,7 @@ import nikola.__main__
 import logbook
 import redis
 import rq
-import comet.tasks
+import coil.tasks
 from nikola.utils import (unicode_str, get_logger, ColorfulStderrHandler,
                           write_metadata, TranslatableSetting)
 import nikola.plugins.command.new_post
@@ -43,8 +43,8 @@ from flask import Flask, request, redirect, send_from_directory, g, session
 from flask.ext.login import (LoginManager, login_required, login_user,
                              logout_user, current_user, make_secure_token)
 from flask.ext.bcrypt import Bcrypt
-from comet.utils import USER_FIELDS, PERMISSIONS, SiteProxy
-from comet.forms import (LoginForm, NewPostForm, NewPageForm, DeleteForm,
+from coil.utils import USER_FIELDS, PERMISSIONS, SiteProxy
+from coil.forms import (LoginForm, NewPostForm, NewPageForm, DeleteForm,
                          UserDeleteForm, UserEditForm, AccountForm,
                          PermissionsForm)
 
@@ -62,7 +62,7 @@ def scan_site():
 
 def configure_url(url):
     """Configure site URL."""
-    app.config['COMET_URL'] = \
+    app.config['COIL_URL'] = \
         _site.config['SITE_URL'] = _site.config['BASE_URL'] =\
         _site.GLOBAL_CONTEXT['blog_url'] =\
         site.config['SITE_URL'] = site.config['BASE_URL'] =\
@@ -70,7 +70,7 @@ def configure_url(url):
 
 
 def configure_site():
-    """Configure the site for Comet."""
+    """Configure the Nikola site for Coil CMS."""
     global _site, site, db, q
 
     nikola.__main__._RETURN_DOITNIKOLA = True
@@ -91,14 +91,14 @@ def configure_site():
     loghandlers = [
         ColorfulStderrHandler(level=logbook.DEBUG, format_string=logf,
                               bubble=True),
-        logbook.FileHandler('comet.log', 'a', 'utf-8', logbook.DEBUG, logf,
+        logbook.FileHandler('coil.log', 'a', 'utf-8', logbook.DEBUG, logf,
                             bubble=True)
     ]
 
     hloghandlers = [
         ColorfulStderrHandler(level=logbook.DEBUG, format_string=logh,
                               bubble=True),
-        logbook.FileHandler('comet.log', 'a', 'utf-8', logbook.DEBUG, logh,
+        logbook.FileHandler('coil.log', 'a', 'utf-8', logbook.DEBUG, logh,
                             bubble=True)
     ]
 
@@ -108,17 +108,17 @@ def configure_site():
     nikola.plugins.command.new_post.POSTLOGGER.handlers = loghandlers
     nikola.plugins.command.new_post.PAGELOGGER.handlers = loghandlers
 
-    app.config['LOGGER_NAME'] = 'Comet'
-    app._logger = get_logger('Comet', loghandlers)
-    app.http_logger = get_logger('CometHTTP', hloghandlers)
+    app.config['LOGGER_NAME'] = 'Coil'
+    app._logger = get_logger('Coil', loghandlers)
+    app.http_logger = get_logger('CoilHTTP', hloghandlers)
 
     if not _site.configured:
         app.logger("Not a Nikola site.")
         return
 
-    app.secret_key = _site.config.get('COMET_SECRET_KEY')
-    app.config['COMET_URL'] = _site.config.get('COMET_URL')
-    app.config['REDIS_URL'] = _site.config.get('COMET_REDIS_URL',
+    app.secret_key = _site.config.get('COIL_SECRET_KEY')
+    app.config['COIL_URL'] = _site.config.get('COIL_URL')
+    app.config['REDIS_URL'] = _site.config.get('COIL_REDIS_URL',
                                                'redis://localhost:6379/0')
     db = redis.StrictRedis.from_url(app.config['REDIS_URL'])
     q = rq.Queue(connection=db)
@@ -131,8 +131,8 @@ def configure_site():
         'en': (
             (app.config['NIKOLA_URL'],
              '<i class="fa fa-globe"></i> Back to website'),
-            ('http://comet-cms.readthedocs.org/en/latest/user/',
-             '<i class="fa fa-question-circle"></i> Comet CMS Help'),
+            ('http://coil.readthedocs.org/en/latest/user/',
+             '<i class="fa fa-question-circle"></i> Coil CMS Help'),
         )
     }
     _site.GLOBAL_CONTEXT['navigation_links'] = _site.config['NAVIGATION_LINKS']
@@ -145,13 +145,13 @@ def configure_site():
         'EXTRA_HEAD_DATA',
         """<link href="//maxcdn.bootstrapcdn.com/font-awesome/4.2.0/css/"""
         """font-awesome.min.css" rel="stylesheet">\n"""
-        """<link href="/comet_assets/css/comet.css" rel="stylesheet">""",
+        """<link href="/coil_assets/css/coil.css" rel="stylesheet">""",
         _site.config['TRANSLATIONS'])
     # HACK: body_end appears after extra_js from templates, so we must use
     #       social_buttons_code instead
     _site.GLOBAL_CONTEXT['social_buttons_code'] = TranslatableSetting(
         'SOCIAL_BUTTONS_CODE',
-        """<script src="/comet_assets/js/comet.js"></script>""",
+        """<script src="/coil_assets/js/coil.js"></script>""",
         _site.config['TRANSLATIONS'])
 
     # Theme must inherit from bootstrap3, because we have hardcoded HTML.
@@ -171,14 +171,14 @@ def configure_site():
         _site._get_global_context()
 
     tmpl_dir = pkg_resources.resource_filename(
-        'comet', os.path.join('data', 'templates', _site.template_system.name))
+        'coil', os.path.join('data', 'templates', _site.template_system.name))
     if os.path.isdir(tmpl_dir):
         # Inject tmpl_dir low in the theme chain
         _site.template_system.inject_directory(tmpl_dir)
 
     # Site proxy
     site = SiteProxy(db, _site, app.logger)
-    configure_url(app.config['COMET_URL'])
+    configure_url(app.config['COIL_URL'])
 
 
 def password_hash(password):
@@ -301,7 +301,7 @@ def error(desc, code, permalink):
     :return: HTML fragment (from :func:`render`)
     :rtype: str
     """
-    return render('comet_error.tmpl',
+    return render('coil_error.tmpl',
                   {'title': 'Error',
                    'code': code,
                    'desc': desc,
@@ -327,7 +327,7 @@ def find_post(path):
     return None
 
 
-app = Flask('comet')
+app = Flask('coil')
 
 
 @app.after_request
@@ -481,7 +481,7 @@ def login():
         elif request.args.get('status') == 'logout':
             alert = 'Logged out successfully.'
             alert_status = 'success'
-    return render('comet_login.tmpl', {'title': 'Login', 'permalink': '/login',
+    return render('coil_login.tmpl', {'title': 'Login', 'permalink': '/login',
                                        'alert': alert, 'form': form,
                                        'alert_status': alert_status}, code)
 
@@ -537,7 +537,7 @@ def index():
     context['title'] = 'Posts & Pages'
     context['permalink'] = '/'
     context['wants'] = wants
-    return render('comet_index.tmpl', context)
+    return render('coil_index.tmpl', context)
 
 
 @app.route('/edit/<path:path>', methods=['GET', 'POST'])
@@ -614,7 +614,7 @@ def edit(path):
     context['title'] = 'Editing {0}'.format(post.title())
     context['permalink'] = '/edit/' + path
     context['is_html'] = post.compiler.name == 'html'
-    return render('comet_post_edit.tmpl', context)
+    return render('coil_post_edit.tmpl', context)
 
 
 @app.route('/delete', methods=['POST'])
@@ -652,11 +652,11 @@ def api_rebuild():
     orphans_job = q.fetch_job('orphans')
 
     if not build_job and not orphans_job:
-        build_job = q.enqueue_call(func=comet.tasks.build,
+        build_job = q.enqueue_call(func=coil.tasks.build,
                                    args=(app.config['REDIS_URL'],
                                          app.config['NIKOLA_ROOT']),
                                    job_id='build')
-        orphans_job = q.enqueue_call(func=comet.tasks.orphans,
+        orphans_job = q.enqueue_call(func=coil.tasks.orphans,
                                      args=(app.config['REDIS_URL'],
                                            app.config['NIKOLA_ROOT']),
                                      job_id='orphans', depends_on=build_job)
@@ -685,15 +685,15 @@ def rebuild():
                      'more information.', 401, '/rebuild')
     db.set('site:needs_rebuild', '-1')
     if not q.fetch_job('build') and not q.fetch_job('orphans'):
-        b = q.enqueue_call(func=comet.tasks.build,
+        b = q.enqueue_call(func=coil.tasks.build,
                            args=(app.config['REDIS_URL'],
                                  app.config['NIKOLA_ROOT']), job_id='build')
-        q.enqueue_call(func=comet.tasks.orphans,
+        q.enqueue_call(func=coil.tasks.orphans,
                        args=(app.config['REDIS_URL'],
                              app.config['NIKOLA_ROOT']), job_id='orphans',
                        depends_on=b)
 
-    return render('comet_rebuild.tmpl',
+    return render('coil_rebuild.tmpl',
                   {'title': 'Rebuild', 'permalink': '/rebuild'})
 
 
@@ -704,24 +704,24 @@ def serve_bower_components(path):
     This is meant to be used ONLY by the internal dev server.
     Please configure your web server to handle requests to this URL::
 
-        /bower_components/ => comet/data/bower_components
+        /bower_components/ => coil/data/bower_components
     """
     res = pkg_resources.resource_filename(
-        'comet', os.path.join('data', 'bower_components'))
+        'coil', os.path.join('data', 'bower_components'))
     return send_from_directory(res, path)
 
 
-@app.route('/comet_assets/<path:path>')
-def serve_comet_assets(path):
-    """Serve Comet assets.
+@app.route('/coil_assets/<path:path>')
+def serve_coil_assets(path):
+    """Serve Coil assets.
 
     This is meant to be used ONLY by the internal dev server.
     Please configure your web server to handle requests to this URL::
 
-        /comet_assets/ => comet/data/comet_assets
+        /coil_assets/ => coil/data/coil_assets
     """
     res = pkg_resources.resource_filename(
-        'comet', os.path.join('data', 'comet_assets'))
+        'coil', os.path.join('data', 'coil_assets'))
     return send_from_directory(res, path)
 
 
@@ -812,7 +812,7 @@ def acp_user_account():
         current_user.wants_all_posts = 'wants_all_posts' in data
         write_user(current_user)
 
-    return render('comet_account.tmpl',
+    return render('coil_account.tmpl',
                   context={'title': 'My account',
                            'permalink': '/account',
                            'action': action,
@@ -838,7 +838,7 @@ def acp_users():
     else:
         last_uid = int(db.get('last_uid'))
         USERS = {i: get_user(i) for i in range(1, last_uid + 1)}
-        return render('comet_users.tmpl',
+        return render('coil_users.tmpl',
                       context={'title': 'Users',
                                'permalink': '/users',
                                'USERS': USERS,
@@ -911,7 +911,7 @@ def acp_users_edit():
             current_user = user
         write_user(user)
 
-    return render('comet_users_edit.tmpl',
+    return render('coil_users_edit.tmpl',
                   context={'title': 'Edit user',
                            'permalink': '/users/edit',
                            'user': user,
@@ -994,7 +994,7 @@ def acp_users_permissions():
     for uid in range(1, last_uid + 1):
         users[uid] = get_user(uid)
 
-    return render('comet_users_permissions.tmpl',
+    return render('coil_users_permissions.tmpl',
                   context={'title': 'Permissions',
                            'permalink': '/users/permissions',
                            'USERS': users,
@@ -1004,7 +1004,7 @@ def acp_users_permissions():
                            'form': form,
                            'display_permission': display_permission})
 
-if not os.path.exists('._COMET_NO_CONFIG') and os.path.exists('conf.py'):
+if not os.path.exists('._COIL_NO_CONFIG') and os.path.exists('conf.py'):
     configure_site()
 else:
     # no Nikola site available

@@ -32,16 +32,16 @@ Name                Type    Contents
 ``site:lock``       string  lock on site DB
 ==================  ======  ============================================================================
 
-``comet.utils``
-===============
+``coil.utils``
+==============
 
-.. index:: comet.utils
-.. automodule:: comet.utils
+.. index:: coil.utils
+.. automodule:: coil.utils
    :members:
 
-``comet.web``
-=============
+``coil.web``
+============
 
-.. index:: comet.web
-.. automodule:: comet.web
+.. index:: coil.web
+.. automodule:: coil.web
    :members:

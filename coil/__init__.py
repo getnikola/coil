@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Comet CMS v1.0.0
+# Coil CMS v1.0.0
 # Copyright © 2014-2015 Chris Warrick, Roberto Alsina, Henry Hirsch et al.
 
 # Permission is hereby granted, free of charge, to any
@@ -25,38 +25,8 @@
 # OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 # SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-from __future__ import print_function, unicode_literals
-from comet.utils import PERMISSIONS
-import redis
+from __future__ import unicode_literals
 
-__all__ = ['init', 'write_users']
+__all__ = ['__version__']
 
-
-def init():
-    """Initialize a site."""
-    print("Please read the documentation and set up manually.")
-    print("http://comet-cms.readthedocs.org/en/latest/admin/setup/")
-    return 255
-
-
-def write_users(dburl):
-    """Write users to the DB."""
-    data = {
-        'username': 'admin',
-        'realname': 'Website Administrator',
-        'password':
-            '$2a$12$.qMCcA2uOo0BKkDtEF/bueYtHjcdPBmfEdpxtktRwRTgsR7ZVTWmW',
-    }
-
-    for p in PERMISSIONS:
-        data[p] = '1'
-
-    db = redis.StrictRedis.from_url(dburl)
-    db.hmset('user:1', data)
-    db.hset('users', 'admin', '1')
-    if not db.exists('last_uid'):
-        db.incr('last_uid')
-
-    print("Username: admin")
-    print("Password: admin")
-    return 0
+__version__ = '1.0.0'
