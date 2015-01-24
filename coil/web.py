@@ -122,7 +122,7 @@ def configure_site():
     app.config['REDIS_URL'] = _site.config.get('COIL_REDIS_URL',
                                                'redis://localhost:6379/0')
     db = redis.StrictRedis.from_url(app.config['REDIS_URL'])
-    q = rq.Queue(connection=db)
+    q = rq.Queue(name='coil', connection=db)
 
     _site.template_hooks['menu'].append(generate_menu)
     _site.template_hooks['menu_alt'].append(generate_menu_alt)

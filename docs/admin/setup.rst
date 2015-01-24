@@ -47,7 +47,7 @@ at boot, after Redis.  Here is a sample ``.service`` file for systemd:
 
     [Service]
     Type=simple
-    ExecStart=/var/coil/bin/rqworker
+    ExecStart=/var/coil/bin/rqworker coil
     User=nobody
     Group=nobody
 

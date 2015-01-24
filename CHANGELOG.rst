@@ -5,6 +5,7 @@ Appendix A. Changelog
 master
 ------
 
+* rqworker queue is now named ``coil`` (was ``default``)
 * add trailing slashes to all URLs
 * use ``url_for()``
 * add ``/rebuild/force/`` (== ``nikola build -a``)
