@@ -2,9 +2,12 @@
 Appendix A. Changelog
 =====================
 
-master
+v1.1.0
 ------
 
+* Changed hashing mechanism to sha256 + bcrypt.
+  Hashes will be fixed automatically on first login of each user.
+* Added ``passlib`` dependency.
 * rqworker queue is now named ``coil`` (was ``default``)
 * add trailing slashes to all URLs
 * use ``url_for()``

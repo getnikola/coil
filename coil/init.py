@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Coil CMS v1.0.0
+# Coil CMS v1.1.0
 # Copyright © 2014-2015 Chris Warrick, Roberto Alsina, Henry Hirsch et al.
 
 # Permission is hereby granted, free of charge, to any
@@ -44,8 +44,10 @@ def write_users(dburl):
     data = {
         'username': 'admin',
         'realname': 'Website Administrator',
+        'email': 'coil@example.com',
         'password':
-            '$2a$12$.qMCcA2uOo0BKkDtEF/bueYtHjcdPBmfEdpxtktRwRTgsR7ZVTWmW',
+            r'$bcrypt-sha256$2a,12$NNtd2TC9mZO6.EvLwEwlLO$axojD34/iE8x'
+            r'QitQnCCOGPhofgmjNdq',
     }
 
     for p in PERMISSIONS:

@@ -4,7 +4,7 @@ import io
 from setuptools import setup
 
 setup(name='coil',
-      version='1.0.0',
+      version='1.1.0',
       description='A user-friendly CMS frontend for Nikola.',
       keywords='coil,nikola,cms',
       author='Chris Warrick, Roberto Alsina, Henry Hirsch et al.',

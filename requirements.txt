@@ -15,6 +15,7 @@ lxml==3.4.1
 Mako==1.0.0
 MarkupSafe==0.23
 natsort==3.5.1
+passlib==1.6.2
 Pillow==2.7.0
 py-bcrypt==0.4
 Pygments==2.0.1

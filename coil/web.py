@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Coil CMS v1.0.0
+# Coil CMS v1.1.0
 # Copyright © 2014-2015 Chris Warrick, Roberto Alsina, Henry Hirsch et al.
 
 # Permission is hereby granted, free of charge, to any
@@ -43,7 +43,7 @@ from flask import (Flask, request, redirect, send_from_directory, g, session,
                    url_for)
 from flask.ext.login import (LoginManager, login_required, login_user,
                              logout_user, current_user, make_secure_token)
-from flask.ext.bcrypt import Bcrypt
+from passlib.hash import bcrypt_sha256
 from coil.utils import USER_FIELDS, PERMISSIONS, PERMISSIONS_E, SiteProxy
 from coil.forms import (LoginForm, NewPostForm, NewPageForm, DeleteForm,
                          UserDeleteForm, UserEditForm, AccountForm,
@@ -78,7 +78,6 @@ def configure_site():
     _dn = nikola.__main__.main([])
     _dn.sub_cmds = _dn.get_commands()
     _site = _dn.nikola
-    app.config['BCRYPT_LOG_ROUNDS'] = 12
     app.config['NIKOLA_ROOT'] = os.getcwd()
     app.config['DEBUG'] = False
 
@@ -183,25 +182,44 @@ def configure_site():
 
 
 def password_hash(password):
-    """Hash the password, using bcrypt.
+    """Hash the password, using bcrypt+sha256.
+
+    .. versionchanged:: 1.1.0
 
     :param str password: Password in plaintext
     :return: password hash
     :rtype: str
     """
-    return bcrypt.generate_password_hash(password)
+    return bcrypt_sha256.encrypt(password)
 
 
 def check_password(pwdhash, password):
     """Check the password hash from :func:`password_hash`.
+
+    .. versionchanged:: 1.1.0
 
     :param str pwdhash: Hash from :func:`password_hash` to check
     :param str password: Password in plaintext
     :return: password match
     :rtype: bool
     """
-    return bcrypt.check_password_hash(pwdhash, password)
+    return bcrypt_sha256.verify(password, pwdhash)
 
+
+def check_old_password(pwdhash, password):
+    """Check the old password hash from :func:`password_hash`.
+
+    .. versionadded:: 1.1.0
+
+    :param str pwdhash: Hash from :func:`password_hash` to check
+    :param str password: Password in plaintext
+    :return: password match
+    :rtype: bool
+    """
+    from flask.ext.bcrypt import Bcrypt
+    app.config['BCRYPT_LOG_ROUNDS'] = 12
+    bcrypt = Bcrypt(app)
+    return bcrypt.check_password_hash(pwdhash, password)
 
 def generate_menu():
     """Generate ``menu`` with the rebuild link.
@@ -355,7 +373,6 @@ def log_request(resp):
         app.http_logger.error(l)
     return resp
 
-bcrypt = Bcrypt(app)
 login_manager = LoginManager()
 login_manager.init_app(app)
 login_manager.unauthorized_callback = _unauthorized
@@ -476,13 +493,28 @@ def login():
                 alert = 'Invalid credentials.'
                 code = 401
             else:
-                if check_password(user.password,
-                                  request.form['password']) and user.is_active:
+                try:
+                    pwd_ok = check_password(user.password,
+                                            request.form['password'])
+                except ValueError:
+                    if user.password.startswith('$2a$12'):
+                        # old bcrypt hash
+                        pwd_ok = check_old_password(user.password,
+                                                    request.form['password'])
+                        if pwd_ok:
+                            user.password = password_hash(
+                                request.form['password'])
+                            write_user(user)
+                    else:
+                        pwd_ok = False
+
+                if pwd_ok and user.is_active:
                     login_user(user, remember=('remember' in request.form))
                     return redirect(url_for('index'))
                 else:
                     alert = "Invalid credentials."
                     code = 401
+
         else:
             alert = 'Invalid credentials.'
             code = 401
@@ -826,8 +858,15 @@ def acp_account():
         action = 'save'
         data = request.form
         if data['newpwd1']:
-            if data['newpwd1'] == data['newpwd2'] and check_password(
-                    current_user.password, data['oldpwd']):
+            try:
+                pwd_ok = check_password(current_user.password, data['oldpwd'])
+            except ValueError:
+                if current_user.password.startswith('$2a$12'):
+                    # old bcrypt hash
+                    pwd_ok = check_old_password(current_user.password,
+                                                data['oldpwd'])
+
+            if data['newpwd1'] == data['newpwd2'] and pwd_ok:
                 current_user.password = password_hash(data['newpwd1'])
                 current_user.must_change_password = False
             else:
