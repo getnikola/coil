@@ -75,11 +75,11 @@ Start by setting up Nikola.  This can be done using ``nikola init``.
 
 Then, you must make some changes to the config:
 
- * ``coil_SECRET_KEY`` — a bunch of random characters, needed for sessions.
+ * ``COIL_SECRET_KEY`` — a bunch of random characters, needed for sessions.
    **Store it in a safe place** — git is not one!  You can use
    ``os.urandom(24)`` to generate something good.
- * ``coil_URL`` — the URL under which Coil can be accessed.
- * ``REDIS_URL`` — the URL of your Redis database.
+ * ``COIL_URL`` — the URL under which Coil can be accessed.
+ * ``COIL_REDIS_URL`` — the URL of your Redis database.
  * Modify ``POSTS`` and ``PAGES``, replacing ``.txt`` by ``.html``.
 
 Redis URL syntax
