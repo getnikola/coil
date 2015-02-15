@@ -142,7 +142,8 @@ class SiteProxy(object):
         """Write a list of indexes."""
         d = [self._site.timeline.index(p) for p in getattr(self._site, name)]
         self.db.delete('site:{0}'.format(name))
-        self.db.rpush('site:{0}'.format(name), *d)
+        if d:
+            self.db.rpush('site:{0}'.format(name), *d)
 
     def scan_posts(self, really=True, ignore_quit=False, quiet=True):
         """Rescan the site."""
@@ -162,7 +163,8 @@ class SiteProxy(object):
                     post._template_name, post.compiler.name]
             timeline.append(json.dumps(data))
         self.db.delete('site:timeline')
-        self.db.rpush('site:timeline', *timeline)
+        if timeline:
+            self.db.rpush('site:timeline', *timeline)
 
         self._write_indexlist('posts')
         self._write_indexlist('all_posts')
