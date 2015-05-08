@@ -118,10 +118,14 @@ def configure_site():
 
     app.secret_key = _site.config.get('COIL_SECRET_KEY')
     app.config['COIL_URL'] = _site.config.get('COIL_URL')
+    app.config['COIL_SINGLE'] = _site.config.get('COIL_SINGLE', False)
     app.config['REDIS_URL'] = _site.config.get('COIL_REDIS_URL',
                                                'redis://localhost:6379/0')
-    db = redis.StrictRedis.from_url(app.config['REDIS_URL'])
-    q = rq.Queue(name='coil', connection=db)
+    if app.config['COIL_SINGLE']:
+        app.config['COIL_USERS'] = _site.config.get('COIL_USERS', {})
+    else:
+        db = redis.StrictRedis.from_url(app.config['REDIS_URL'])
+        q = rq.Queue(name='coil', connection=db)
 
     _site.template_hooks['menu'].append(generate_menu)
     _site.template_hooks['menu_alt'].append(generate_menu_alt)
@@ -177,7 +181,11 @@ def configure_site():
         _site.template_system.inject_directory(tmpl_dir)
 
     # Site proxy
-    site = SiteProxy(db, _site, app.logger)
+    if app.config['COIL_SINGLE']:
+        site = _site
+    else:
+        site = SiteProxy(db, _site, app.logger)
+
     configure_url(app.config['COIL_URL'])
 
 
@@ -227,7 +235,11 @@ def generate_menu():
     :return: HTML fragment
     :rtype: str
     """
-    if db.get('site:needs_rebuild') not in ('0', '-1'):
+    if db is not None:
+        needs_rebuild = db.get('site:needs_rebuild')
+    else:
+        needs_rebuild = site.coil_needs_rebuild
+    if needs_rebuild not in ('0', '-1'):
         return ('</li><li><a href="{0}"><i class="fa fa-fw '
                 'fa-warning"></i> <strong>Rebuild</strong></a></li>'.format(
                 url_for('rebuild')))
@@ -245,7 +257,7 @@ def generate_menu_alt():
     if not current_user.is_authenticated():
         return ('<li><a href="{0}"><i class="fa fa-fw fa-sign-in"></i> '
                 'Log in</a></li>'.format(url_for('login')))
-    if current_user.is_admin:
+    if db is not None and current_user.is_admin:
         edit_entry = (
             '<li><a href="{0}"><i class="fa fa-fw fa-users"></i> '
             'Manage users</a></li>'
@@ -434,13 +446,20 @@ def get_user(uid):
     :raises ValueError: uid is not an integer
     :raises KeyError: if user does not exist
     """
-    d = db.hgetall('user:{0}'.format(uid))
-    if d:
-        for p in PERMISSIONS:
-            d[p] = d.get(p) == '1'
-        return User(uid=uid, **d)
+    if db is not None:
+        d = db.hgetall('user:{0}'.format(uid))
+        if d:
+            for p in PERMISSIONS:
+                d[p] = d.get(p) == '1'
+            return User(uid=uid, **d)
+        else:
+            return None
     else:
-        return None
+        d = app.config['COIL_USERS'].get(uid)
+        if d:
+            return User(uid=uid, **d)
+        else:
+            return None
 
 
 def find_user_by_name(username):
@@ -450,11 +469,14 @@ def find_user_by_name(username):
     :return: the user
     :rtype: User object or None
     """
-    uid = db.hget('users', username)
-    if uid:
-        return get_user(uid)
+    if db is not None:
+        uid = db.hget('users', username)
+        if uid:
+            return get_user(uid)
     else:
-        return None
+        for u in app.config['COIL_USERS']:
+            if u['username'] == username:
+                return get_user(uid)
 
 
 def write_user(user):
@@ -638,7 +660,10 @@ def edit(path):
             with io.open(meta_path, 'w+', encoding='utf-8') as fh:
                 fh.write(write_metadata(meta))
         scan_site()
-        db.set('site:needs_rebuild', '1')
+        if db is not None:
+            db.set('site:needs_rebuild', '1')
+        else:
+            site.coil_needs_rebuild = '1'
         post = find_post(path)
         context['action'] = 'save'
     else:
@@ -651,11 +676,16 @@ def edit(path):
 
     context['post'] = post
     users = []
-    uids = db.hgetall('users').values()
-    for u in uids:
-        realname, active = db.hmget('user:{0}'.format(u), 'realname', 'active')
-        if active == '1':
-            users.append((u, realname))
+    if db is not None:
+        uids = db.hgetall('users').values()
+        for u in uids:
+            realname, active = db.hmget('user:{0}'.format(u), 'realname', 'active')
+            if active == '1':
+                users.append((u, realname))
+    else:
+        for u, d in app.config['COIL_USERS'].values():
+            if d['active']:
+                users.append((u, d['realname']))
     context['users'] = sorted(users)
     context['current_auid'] = current_auid
     context['title'] = 'Editing {0}'.format(post.title())
@@ -689,7 +719,10 @@ def delete():
         meta_path = os.path.splitext(path)[0] + '.meta'
         os.unlink(meta_path)
     scan_site()
-    db.set('site:needs_rebuild', '1')
+    if db is not None:
+        db.set('site:needs_rebuild', '1')
+    else:
+        site.coil_needs_rebuild = '1'
     return redirect(url_for('index'))
 
 
@@ -697,6 +730,8 @@ def delete():
 @login_required
 def api_rebuild():
     """Rebuild the site (internally)."""
+    if db is None:
+        return '{"error": "single-user mode"}'
     build_job = q.fetch_job('build')
     orphans_job = q.fetch_job('orphans')
 
@@ -737,17 +772,25 @@ def rebuild(mode=''):
         return error('You are not permitted to rebuild the site.</p>'
                      '<p class="lead">Contact an administartor for '
                      'more information.', 401)
-    db.set('site:needs_rebuild', '-1')
-    if not q.fetch_job('build') and not q.fetch_job('orphans'):
-        b = q.enqueue_call(func=coil.tasks.build,
-                           args=(app.config['REDIS_URL'],
-                                 app.config['NIKOLA_ROOT'], mode), job_id='build')
-        q.enqueue_call(func=coil.tasks.orphans,
-                       args=(app.config['REDIS_URL'],
-                             app.config['NIKOLA_ROOT']), job_id='orphans',
-                       depends_on=b)
+    if db is not None:
+        db.set('site:needs_rebuild', '-1')
+        if not q.fetch_job('build') and not q.fetch_job('orphans'):
+            b = q.enqueue_call(func=coil.tasks.build,
+                            args=(app.config['REDIS_URL'],
+                                    app.config['NIKOLA_ROOT'], mode), job_id='build')
+            q.enqueue_call(func=coil.tasks.orphans,
+                        args=(app.config['REDIS_URL'],
+                                app.config['NIKOLA_ROOT']), job_id='orphans',
+                        depends_on=b)
+        return render('coil_rebuild.tmpl', {'title': 'Rebuild'})
+    else:
+        status, outputb = coil.tasks.build_single(mode)
+        _, outputo = coil.tasks.orphans_single()
+        return render('coil_rebuild_single.tmpl', {'title': 'Rebuild',
+                                                   'status': '1' if status else '0',
+                                                   'outputb': outputb,
+                                                   'outputo': outputo})
 
-    return render('coil_rebuild.tmpl', {'title': 'Rebuild'})
 
 
 @app.route('/new/<obj>/', methods=['POST'])
@@ -791,7 +834,10 @@ def new(obj):
         del _site.config['ADDITIONAL_METADATA']['author.uid']
     # reload post list and go to index
     scan_site()
-    db.set('site:needs_rebuild', '1')
+    if db is not None:
+        db.set('site:needs_rebuild', '1')
+    else:
+        site.coil_needs_rebuild = '1'
     return redirect(url_for('index'))
 
 
@@ -892,8 +938,10 @@ def acp_users():
     """List all users."""
     if current_user.must_change_password:
         return redirect(url_for('acp_account') + '?status=pwdchange')
-    elif not current_user.is_admin:
+    if not current_user.is_admin:
         return error("Not authorized to edit users.", 401)
+    if not db:
+        return error('The ACP is not available in single-user mode.', 500)
 
     alert = ''
     alert_status = ''
@@ -923,8 +971,10 @@ def acp_users_edit():
     global current_user
     if current_user.must_change_password:
         return redirect(url_for('acp_account') + '?status=pwdchange')
-    elif not current_user.is_admin:
+    if not current_user.is_admin:
         return error("Not authorized to edit users.", 401)
+    if not db:
+        return error('The ACP is not available in single-user mode.', 500)
     data = request.form
 
     form = UserEditForm()
@@ -997,8 +1047,10 @@ def acp_users_import():
     """Import users from a TSV file."""
     if current_user.must_change_password:
         return redirect(url_for('acp_account') + '?status=pwdchange')
-    elif not current_user.is_admin:
+    if not current_user.is_admin:
         return error("Not authorized to edit users.", 401)
+    if not db:
+        return error('The ACP is not available in single-user mode.', 500)
 
     form = UserImportForm()
     if not form.validate():
@@ -1015,8 +1067,10 @@ def acp_users_delete():
     """Delete or undelete an user account."""
     if current_user.must_change_password:
         return redirect(url_for('acp_account') + '?status=pwdchange')
-    elif not current_user.is_admin:
+    if not current_user.is_admin:
         return error("Not authorized to edit users.", 401)
+    if not db:
+        return error('The ACP is not available in single-user mode.', 500)
 
     form = UserDeleteForm()
     if not form.validate():
@@ -1040,8 +1094,10 @@ def acp_users_permissions():
     """Change user permissions."""
     if current_user.must_change_password:
         return redirect(url_for('acp_account') + '?status=pwdchange')
-    elif not current_user.is_admin:
+    if not current_user.is_admin:
         return error("Not authorized to edit users.", 401)
+    if not db:
+        return error('The ACP is not available in single-user mode.', 500)
 
     form = PermissionsForm()
     users = []

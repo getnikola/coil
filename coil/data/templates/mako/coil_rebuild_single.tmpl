@@ -1,0 +1,44 @@
+## -*- coding: utf-8 -*-
+<%inherit file="base.tmpl"/>
+<%block name="content">
+<div class="page-header">
+<h1 class="build-status-caption"><i class="build-status-icon fa fa-fw fa-cog"></i> Rebuild</h1>
+</div>
+
+<div class="panel panel-default">
+    <div class="panel-heading"><h3 class="panel-title">
+        <a data-toggle="collapse" href="#collapseOutput" aria-expanded="false" aria-controls="collapseOutput"><i class="fa fa-bars"></i> Advanced information</a>
+    </h3></div>
+    <div class="panel-body collapse" id="collapseOutput">
+        <h4>Build</h4>
+        <pre><code id="outputb">${outputb}</code></pre>
+
+        <h4>Unused files removed</h4>
+        <pre><code id="outputo">${outputo}</code></pre>
+    </div>
+</div>
+
+</%block>
+
+<%block name="extra_js">
+<script>
+$(document).ready(function() {
+    fs = $('.build-status-icon');
+    fsc = $('.build-status-caption');
+    if (${bstatus} == 1) {
+        fs.removeClass('fa-cog');
+        fs.addClass('fa-check');
+        fsc.addClass('text-success');
+        clearInterval(intID);
+    } else {
+        pb.addClass('progress-bar-danger');
+        fs.removeClass('fa-cog');
+        fs.addClass('fa-times');
+        fsc.addClass('text-danger');
+        $("#collapseOutput").collapse({
+            show: true
+        });
+    }
+});
+</script>
+</%block>
