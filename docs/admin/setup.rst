@@ -290,7 +290,7 @@ Other web servers
 
 You can also use any other web or WSGI server.  You must take care of:
 
-* location aliases for ``/favicon.ico``, ``/assets``, ``/coil_assets`,
+* location aliases for ``/favicon.ico``, ``/assets``, ``/coil_assets``,
   ``/bower_components`` — see above for sample destinations
 * correct process count (must be 1 in Limited mode)
 
