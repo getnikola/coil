@@ -13,7 +13,8 @@ Coil requires Nikola to work.  `Nikola`_ is a static site generator, written
 in Python.  Coil manages the files that are then used by Nikola to build the
 site.
 
-As such, you must configure Nikola first before you start Coil.
+As such, you must configure Nikola first before you start Coil.  You can also
+use an existing site.
 
 Virtualenv
 ==========
@@ -113,6 +114,8 @@ created by creating a similar dict.  Password hashes can be calculated on the
 (users should provide you with hashes and you must add them manually and
 restart Coil) — consider not setting ``must_change_password`` in Limited mode.
 
+**Continue** with `First build`_.
+
 Configuring Full Mode
 ---------------------
 
@@ -177,7 +180,10 @@ The default URL is ``redis://localhost:6379/0``.
 First build
 ===========
 
-When you are done configuring Nikola and Coil, run ``nikola build``.
+When you are done configuring Nikola, Coil and any other dependencies, run
+``nikola build``.  This will build an empty Nikola site that can now be hosted
+outside.  You need to do this, because Coil itself uses some assets from this
+site.
 
 .. code-block:: console
 
@@ -198,14 +204,26 @@ Make sure to fix permissions if you fool around the site directory!
 Server
 ======
 
-For testing purposes, you can use ``coil devserver``.  It should **NOT** be used
-in production.  You should use uWSGI Emperor and nginx in a real environment.
+Built-in development server
+---------------------------
+
+For testing purposes, or for ad-hoc usage (especially in Limited mode), you can
+just run ``coil devserver``.  However, it should **NOT** be used in production.
+In a public environment, especially in Full mode, you should use uWSGI Emperor
+and nginx instead.
 
 uWSGI
 -----
 
 Sample uWSGI configuration:
 
+.. note::
+
+   ``python2`` may also be ``python``, depending on your environment.
+
+.. warning::
+
+   ``processes`` **MUST** be set to 1 if running in Limited Mode.
 
 .. code-block:: ini
 
@@ -225,18 +243,18 @@ Sample uWSGI configuration:
     processes = 3
     logger = file:/var/coil/my_coil_site/uwsgi.log
 
-.. note::
-
-   ``python2`` may also be ``python`` depending on your environment.
-
-.. note::
-
-   ``processes`` MUST be set to 1 if running in Limited Mode.
-
 nginx
 -----
 
 Sample nginx configuration:
+
+.. note::
+
+   This configuration block assumes you followed the guide.  You may need to
+   change the location aliases to match your system.
+
+   You should change ``server_name`` to something you own and can run the
+   server on.
 
 .. code-block:: nginx
 
@@ -266,5 +284,14 @@ Sample nginx configuration:
             alias /var/coil/lib/python2.7/site-packages/coil/data/bower_components;
         }
     }
+
+Other web servers
+-----------------
+
+You can also use any other web or WSGI server.  You must take care of:
+
+* location aliases for ``/favicon.ico``, ``/assets``, ``/coil_assets`,
+  ``/bower_components`` — see above for sample destinations
+* correct process count (must be 1 in Limited mode)
 
 .. _Nikola: https://getnikola.com/
