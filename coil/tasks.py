@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Coil CMS v1.1.0
+# Coil CMS v1.2.0
 # Copyright © 2014-2015 Chris Warrick, Roberto Alsina, Henry Hirsch et al.
 
 # Permission is hereby granted, free of charge, to any
@@ -96,6 +96,7 @@ def orphans(dburl, sitedir):
     os.chdir(oldcwd)
     return returncode
 
+
 def build_single(mode):
     """Build, in the single-user mode."""
     if mode == 'force':
@@ -112,6 +113,7 @@ def build_single(mode):
     p.wait()
     out = ''.join(p.stderr.readlines())
     return (p.returncode == 0), out
+
 
 def orphans_single(default_exec=False):
     """Remove all orphans in the site, in the single user-mode."""

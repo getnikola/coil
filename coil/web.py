@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Coil CMS v1.1.0
+# Coil CMS v1.2.0
 # Copyright © 2014-2015 Chris Warrick, Roberto Alsina, Henry Hirsch et al.
 
 # Permission is hereby granted, free of charge, to any
@@ -46,8 +46,8 @@ from flask.ext.login import (LoginManager, login_required, login_user,
 from passlib.hash import bcrypt_sha256
 from coil.utils import USER_FIELDS, PERMISSIONS, PERMISSIONS_E, SiteProxy
 from coil.forms import (LoginForm, NewPostForm, NewPageForm, DeleteForm,
-                         UserDeleteForm, UserEditForm, AccountForm,
-                         PermissionsForm, UserImportForm, PwdHashForm)
+                        UserDeleteForm, UserEditForm, AccountForm,
+                        PermissionsForm, UserImportForm, PwdHashForm)
 
 _site = None
 site = None
@@ -160,8 +160,8 @@ def configure_site():
         _site.config['TRANSLATIONS'])
 
     # Theme must inherit from bootstrap3, because we have hardcoded HTML.
-    bs3 = (('bootstrap3' in _site.THEMES)
-           or ('bootstrap3-jinja' in _site.THEMES))
+    bs3 = (('bootstrap3' in _site.THEMES) or
+           ('bootstrap3-jinja' in _site.THEMES))
     if not bs3:
         app.logger.notice("THEME does not inherit from 'bootstrap3' or "
                           "'bootstrap3-jinja', using 'bootstrap3' instead.")
@@ -252,7 +252,7 @@ def generate_menu():
     if needs_rebuild not in ('0', '-1'):
         return ('</li><li><a href="{0}"><i class="fa fa-fw '
                 'fa-warning"></i> <strong>Rebuild</strong></a></li>'.format(
-                url_for('rebuild')))
+                    url_for('rebuild')))
     else:
         return ('</li><li><a href="{0}"><i class="fa fa-fw '
                 'fa-cog"></i> Rebuild</a></li>'.format(url_for('rebuild')))
@@ -602,8 +602,8 @@ def index():
         posts = []
         pages = []
         for p in site.timeline:
-            if (p.meta('author.uid')
-                    and p.meta('author.uid') != str(current_user.uid)):
+            if (p.meta('author.uid') and
+                    p.meta('author.uid') != str(current_user.uid)):
                 continue
             if p.is_post:
                 posts.append(p)
@@ -637,8 +637,8 @@ def edit(path):
 
     current_auid = int(post.meta('author.uid') or current_user.uid)
 
-    if (not current_user.can_edit_all_posts
-            and current_auid != current_user.uid):
+    if (not current_user.can_edit_all_posts and
+            current_auid != current_user.uid):
         return error("Cannot edit posts of other users.", 401)
 
     if request.method == 'POST':
@@ -652,8 +652,8 @@ def edit(path):
             author_change_success = True
         except:
             author_change_success = False
-        if (not current_user.can_transfer_post_authorship
-                or not author_change_success):
+        if (not current_user.can_transfer_post_authorship or
+                not author_change_success):
             meta['author'] = post.meta('author') or current_user.realname
             meta['author.uid'] = str(current_auid)
 
@@ -690,7 +690,8 @@ def edit(path):
     if db is not None:
         uids = db.hgetall('users').values()
         for u in uids:
-            realname, active = db.hmget('user:{0}'.format(u), 'realname', 'active')
+            realname, active = db.hmget('user:{0}'.format(u),
+                                        'realname', 'active')
             if active == '1':
                 users.append((u, realname))
     else:
@@ -721,8 +722,8 @@ def delete():
 
     current_auid = int(post.meta('author.uid') or current_user.uid)
 
-    if (not current_user.can_edit_all_posts
-            and current_auid != current_user.uid):
+    if (not current_user.can_edit_all_posts and
+            current_auid != current_user.uid):
         return error("Cannot edit posts of other users.", 401)
 
     os.unlink(path)
@@ -760,8 +761,8 @@ def api_rebuild():
     d = json.dumps({'build': build_job.meta, 'orphans': orphans_job.meta})
 
     if ('status' in build_job.meta and
-            build_job.meta['status'] is not None
-            and 'status' in orphans_job.meta and
+            build_job.meta['status'] is not None and
+            'status' in orphans_job.meta and
             orphans_job.meta['status'] is not None):
         rq.cancel_job('build', db)
         rq.cancel_job('orphans', db)
@@ -787,22 +788,21 @@ def rebuild(mode=''):
         db.set('site:needs_rebuild', '-1')
         if not q.fetch_job('build') and not q.fetch_job('orphans'):
             b = q.enqueue_call(func=coil.tasks.build,
-                            args=(app.config['REDIS_URL'],
-                                    app.config['NIKOLA_ROOT'], mode), job_id='build')
+                               args=(app.config['REDIS_URL'],
+                                     app.config['NIKOLA_ROOT'], mode),
+                               job_id='build')
             q.enqueue_call(func=coil.tasks.orphans,
-                        args=(app.config['REDIS_URL'],
-                                app.config['NIKOLA_ROOT']), job_id='orphans',
-                        depends_on=b)
+                           args=(app.config['REDIS_URL'],
+                                 app.config['NIKOLA_ROOT']), job_id='orphans',
+                           depends_on=b)
         return render('coil_rebuild.tmpl', {'title': 'Rebuild'})
     else:
         status, outputb = coil.tasks.build_single(mode)
         _, outputo = coil.tasks.orphans_single()
         site.coil_needs_rebuild = '0'
-        return render('coil_rebuild_single.tmpl', {'title': 'Rebuild',
-                                                   'status': '1' if status else '0',
-                                                   'outputb': outputb,
-                                                   'outputo': outputo})
-
+        return render('coil_rebuild_single.tmpl',
+                      {'title': 'Rebuild', 'status': '1' if status else '0',
+                       'outputb': outputb, 'outputo': outputo})
 
 
 @app.route('/new/<obj>/', methods=['POST'])
@@ -965,10 +965,10 @@ def acp_pwdhash():
     else:
         pwdhash = None
         status = False
-    return render('coil_pwdhash.tmpl', context={'title': 'My account',
-                                                'pwdhash': pwdhash,
-                                                'status': status,
-                                                'form': form})
+    return render('coil_pwdhash.tmpl',
+                  context={'title': 'My account', 'pwdhash': pwdhash,
+                           'status': status, 'form': form})
+
 
 @app.route('/users/')
 @login_required

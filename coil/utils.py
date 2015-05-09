@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Coil CMS v1.1.0
+# Coil CMS v1.2.0
 # Copyright © 2014-2015 Chris Warrick, Roberto Alsina, Henry Hirsch et al.
 
 # Permission is hereby granted, free of charge, to any
@@ -147,8 +147,8 @@ class SiteProxy(object):
 
     def scan_posts(self, really=True, ignore_quit=False, quiet=True):
         """Rescan the site."""
-        while (self.db.exists('site:lock')
-               and int(self.db.get('site:lock')) != 0):
+        while (self.db.exists('site:lock') and
+               int(self.db.get('site:lock')) != 0):
             self.logger.info("Waiting for DB lock...")
             time.sleep(0.5)
         self.db.incr('site:lock')

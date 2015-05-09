@@ -3,7 +3,7 @@ import io
 import os
 import sys
 sys.path.append('/home/kwpolska/git/nikola/scripts')
-import jinjify
+import jinjify  # NOQA
 
 files = os.listdir('mako/')
 for i in files:

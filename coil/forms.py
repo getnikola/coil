@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Coil CMS v1.1.0
+# Coil CMS v1.2.0
 # Copyright © 2014-2015 Chris Warrick, Roberto Alsina, Henry Hirsch et al.
 
 # Permission is hereby granted, free of charge, to any
@@ -77,7 +77,6 @@ class UserImportForm(Form):
 class UserEditForm(Form):
     """A user editor form, used for CSRF protection only."""
     pass
-
 
 
 class PermissionsForm(Form):

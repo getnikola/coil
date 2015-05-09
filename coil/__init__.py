@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Coil CMS v1.1.0
+# Coil CMS v1.2.0
 # Copyright © 2014-2015 Chris Warrick, Roberto Alsina, Henry Hirsch et al.
 
 # Permission is hereby granted, free of charge, to any
@@ -29,4 +29,4 @@ from __future__ import unicode_literals
 
 __all__ = ['__version__']
 
-__version__ = '1.1.0'
+__version__ = '1.2.0'
