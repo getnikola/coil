@@ -3,6 +3,9 @@
 import io
 from setuptools import setup
 
+with open('requirements.txt', 'r') as fh:
+    dependencies = [l.strip() for l in fh][2:]
+
 setup(name='coil',
       version='1.2.0',
       description='A user-friendly CMS frontend for Nikola.',
@@ -23,6 +26,7 @@ setup(name='coil',
                    'Programming Language :: Python :: 3.3',
                    'Programming Language :: Python :: 3.4'],
       packages=['coil'],
+      install_requires=dependencies,
       include_package_data=True,
       entry_points={
           'console_scripts': [
