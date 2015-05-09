@@ -18,42 +18,14 @@ As such, you must configure Nikola first before you start Coil.
 Virtualenv
 ==========
 
-Create a virtualenv in ``/var/coil`` and install Coil in it.
+Create a virtualenv in ``/var/coil`` and install Coil, Nikola and uWSGI in it.
 
 .. code-block:: console
 
     # virtualenv-2.7 /var/coil
     # cd /var/coil
     # source bin/activate
-    # pip install coil uwsgi
-
-Redis
-=====
-
-You need to set up a `Redis <http://redis.io/>`_ server.  Make sure it starts
-at boot.
-
-RQ
-==
-
-You need to set up a `RQ <http://python-rq.org>`_ worker.  Make sure it starts
-at boot, after Redis.  Here is a sample ``.service`` file for systemd:
-
-.. code-block:: ini
-
-    [Unit]
-    Description=RQWorker Service
-    After=redis.service
-
-    [Service]
-    Type=simple
-    ExecStart=/var/coil/bin/rqworker coil
-    User=nobody
-    Group=nobody
-
-    [Install]
-    WantedBy=multi-user.target
-
+    # pip install nikola coil uwsgi
 
 Nikola and ``conf.py``
 ======================
@@ -79,37 +51,102 @@ Then, you must make some changes to the config:
    **Store it in a safe place** — git is not one!  You can use
    ``os.urandom(24)`` to generate something good.
  * ``COIL_URL`` — the URL under which Coil can be accessed.
- * ``COIL_REDIS_URL`` — the URL of your Redis database.
- * Modify ``POSTS`` and ``PAGES``, replacing ``.txt`` by ``.html``.
-
-Redis URL syntax
-----------------
-
-* ``redis://[:password]@localhost:6379/0`` (TCP)
-* ``rediss://[:password]@localhost:6379/0`` (TCP over SSL)
-* ``unix://[:password]@/path/to/socket.sock?db=0`` (Unix socket)
-
-The default URL is ``redis://localhost:6379/0``.
+ * ``_MAKO_DISABLE_CACHING = True``
+ * Modify ``POSTS`` and ``PAGES``, replacing ``.txt`` with ``.html``.
+ * You must set the mode (Limited vs Full) and configure it accordingly — see
+   next section for details.
 
 CSS for the site
 ----------------
 
-Finally, you must add `some CSS`__ for wysihtml5.  The easiest way to do this
-is by downloading the raw ``.css`` file as ``files/assets/css/custom.css``.
+You must add `some CSS`__ for wysihtml5.  The easiest way to do this
+is by downloading the raw ``.css`` file and saving it as ``files/assets/css/custom.css``.
 
 __ https://github.com/Voog/wysihtml/blob/master/examples/css/stylesheet.css
 
-First build
-===========
 
-When you are done configuring nikola, run ``nikola build``.
+Limited Mode vs. Full Mode
+==========================
 
-.. code-block:: console
+Coil can run in two modes: Limited and Full.
 
-    # nikola build
+**Limited Mode**:
+
+* does not require a database, is easier to setup
+* stores its user data in ``conf.py`` (no ability to modify users on-the-fly)
+* MUST run as a single process (``processes=1`` in uWSGI config)
+
+**Full Mode**:
+
+* requires Redis and RQ installed and running
+* stores its user data in the Redis database (you can modify users on-the-fly)
+* may run as multiple processes
+
+Configuring Limited Mode
+------------------------
+
+You need to add the following to your config file:
+
+.. code:: python
+
+    COIL_LIMITED = True
+    COIL_USERS = {
+        '1': {
+            'username': 'admin',
+            'realname': 'Website Administrator',
+            'password': '$bcrypt-sha256$2a,12$St3N7xoStL7Doxpvz78Jve$3vKfveUNhMNhvaFEfJllWEarb5oNgNu',
+            'must_change_password': False,
+            'email': 'info@getnikola.com',
+            'active': True,
+            'is_admin': True,
+            'can_edit_all_posts': True,
+            'wants_all_posts': True,
+            'can_upload_attachments': True,
+            'can_rebuild_site': True,
+            'can_transfer_post_authorship': True,
+        },
+    }
+
+The default user is ``admin`` with the password ``admin``.  New users can be
+created by creating a similar dict.  Password hashes can be calculated on the
+*Account* page.  Note that you are responsible for changing user passwords
+(users should provide you with hashes and you must add them manually and
+restart Coil) — consider not setting ``must_change_password`` in Limited mode.
+
+Configuring Full Mode
+---------------------
+
+Full Mode requires much more extra configuration.
+
+Redis
+~~~~~
+
+You need to set up a `Redis <http://redis.io/>`_ server.  Make sure it starts
+at boot.
+
+RQ
+~~
+
+You need to set up a `RQ <http://python-rq.org>`_ worker.  Make sure it starts
+at boot, after Redis.  Here is a sample ``.service`` file for systemd:
+
+.. code-block:: ini
+
+    [Unit]
+    Description=RQWorker Service
+    After=redis.service
+
+    [Service]
+    Type=simple
+    ExecStart=/var/coil/bin/rqworker coil
+    User=nobody
+    Group=nobody
+
+    [Install]
+    WantedBy=multi-user.target
 
 Users
-=====
+~~~~~
 
 Run ``coil write_users``:
 
@@ -123,6 +160,28 @@ Run ``coil write_users``:
 
 You will be able to add more users and change the admin credentials (which you
 should do!) later.  See also: :doc:`users`.
+
+conf.py additions
+~~~~~~~~~~~~~~~~~
+
+You must add ``COIL_LIMITED = False`` and ``COIL_REDIS_URL``, which is an URL to
+your Redis database.  The accepted formats are:
+
+* ``redis://[:password]@localhost:6379/0`` (TCP)
+* ``rediss://[:password]@localhost:6379/0`` (TCP over SSL)
+* ``unix://[:password]@/path/to/socket.sock?db=0`` (Unix socket)
+
+The default URL is ``redis://localhost:6379/0``.
+
+
+First build
+===========
+
+When you are done configuring Nikola and Coil, run ``nikola build``.
+
+.. code-block:: console
+
+    # nikola build
 
 Permissions
 ===========
@@ -168,7 +227,11 @@ Sample uWSGI configuration:
 
 .. note::
 
-   ``python2`` may also be ``python`` this depending on your environment.
+   ``python2`` may also be ``python`` depending on your environment.
+
+.. note::
+
+   ``processes`` MUST be set to 1 if running in Limited Mode.
 
 nginx
 -----

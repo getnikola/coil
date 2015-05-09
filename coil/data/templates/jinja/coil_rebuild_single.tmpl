@@ -25,13 +25,11 @@
 $(document).ready(function() {
     fs = $('.build-status-icon');
     fsc = $('.build-status-caption');
-    if ({{ bstatus }} == 1) {
+    if ({{ status }} == 1) {
         fs.removeClass('fa-cog');
         fs.addClass('fa-check');
         fsc.addClass('text-success');
-        clearInterval(intID);
     } else {
-        pb.addClass('progress-bar-danger');
         fs.removeClass('fa-cog');
         fs.addClass('fa-times');
         fsc.addClass('text-danger');

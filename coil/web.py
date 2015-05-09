@@ -47,7 +47,7 @@ from passlib.hash import bcrypt_sha256
 from coil.utils import USER_FIELDS, PERMISSIONS, PERMISSIONS_E, SiteProxy
 from coil.forms import (LoginForm, NewPostForm, NewPageForm, DeleteForm,
                          UserDeleteForm, UserEditForm, AccountForm,
-                         PermissionsForm, UserImportForm)
+                         PermissionsForm, UserImportForm, PwdHashForm)
 
 _site = None
 site = None
@@ -58,7 +58,7 @@ q = None
 
 def scan_site():
     """Rescan the site."""
-    site.scan_posts(really=True, quiet=True)
+    site.scan_posts(really=True, ignore_quit=False, quiet=True)
 
 
 def configure_url(url):
@@ -76,7 +76,7 @@ def configure_site():
 
     nikola.__main__._RETURN_DOITNIKOLA = True
     _dn = nikola.__main__.main([])
-    _dn.sub_cmds = _dn.get_commands()
+    _dn.sub_cmds = _dn.get_cmds()
     _site = _dn.nikola
     app.config['NIKOLA_ROOT'] = os.getcwd()
     app.config['DEBUG'] = False
@@ -118,11 +118,12 @@ def configure_site():
 
     app.secret_key = _site.config.get('COIL_SECRET_KEY')
     app.config['COIL_URL'] = _site.config.get('COIL_URL')
-    app.config['COIL_SINGLE'] = _site.config.get('COIL_SINGLE', False)
+    app.config['COIL_LIMITED'] = _site.config.get('COIL_LIMITED', False)
     app.config['REDIS_URL'] = _site.config.get('COIL_REDIS_URL',
                                                'redis://localhost:6379/0')
-    if app.config['COIL_SINGLE']:
+    if app.config['COIL_LIMITED']:
         app.config['COIL_USERS'] = _site.config.get('COIL_USERS', {})
+        _site.coil_needs_rebuild = '0'
     else:
         db = redis.StrictRedis.from_url(app.config['REDIS_URL'])
         q = rq.Queue(name='coil', connection=db)
@@ -180,9 +181,17 @@ def configure_site():
         # Inject tmpl_dir low in the theme chain
         _site.template_system.inject_directory(tmpl_dir)
 
+    # Commands proxy (only for Nikola commands)
+    _site.commands = nikola.utils.Commands(
+        _site.doit,
+        None,
+        {'cmds': _site._commands}
+    )
+
     # Site proxy
-    if app.config['COIL_SINGLE']:
+    if app.config['COIL_LIMITED']:
         site = _site
+        scan_site()
     else:
         site = SiteProxy(db, _site, app.logger)
 
@@ -228,6 +237,7 @@ def check_old_password(pwdhash, password):
     app.config['BCRYPT_LOG_ROUNDS'] = 12
     bcrypt = Bcrypt(app)
     return bcrypt.check_password_hash(pwdhash, password)
+
 
 def generate_menu():
     """Generate ``menu`` with the rebuild link.
@@ -474,7 +484,7 @@ def find_user_by_name(username):
         if uid:
             return get_user(uid)
     else:
-        for u in app.config['COIL_USERS']:
+        for uid, u in app.config['COIL_USERS'].items():
             if u['username'] == username:
                 return get_user(uid)
 
@@ -638,6 +648,7 @@ def edit(path):
         meta.pop('_wysihtml5_mode', '')
         try:
             meta['author'] = get_user(meta['author.uid']).realname
+            current_auid = int(meta['author.uid'])
             author_change_success = True
         except:
             author_change_success = False
@@ -683,9 +694,9 @@ def edit(path):
             if active == '1':
                 users.append((u, realname))
     else:
-        for u, d in app.config['COIL_USERS'].values():
+        for u, d in app.config['COIL_USERS'].items():
             if d['active']:
-                users.append((u, d['realname']))
+                users.append((int(u), d['realname']))
     context['users'] = sorted(users)
     context['current_auid'] = current_auid
     context['title'] = 'Editing {0}'.format(post.title())
@@ -786,6 +797,7 @@ def rebuild(mode=''):
     else:
         status, outputb = coil.tasks.build_single(mode)
         _, outputo = coil.tasks.orphans_single()
+        site.coil_needs_rebuild = '0'
         return render('coil_rebuild_single.tmpl', {'title': 'Rebuild',
                                                    'status': '1' if status else '0',
                                                    'outputb': outputb,
@@ -896,6 +908,15 @@ def acp_account():
     else:
         alert = ''
         alert_status = ''
+
+    if db is None:
+        form = PwdHashForm()
+        return render('coil_account_single.tmpl',
+                      context={'title': 'My account',
+                               'form': form,
+                               'alert': alert,
+                               'alert_status': alert_status})
+
     action = 'edit'
     form = AccountForm()
     if request.method == 'POST':
@@ -931,6 +952,23 @@ def acp_account():
                            'alert_status': alert_status,
                            'form': form})
 
+
+@app.route('/account/pwdhash', methods=['POST'])
+def acp_pwdhash():
+    form = PwdHashForm()
+    if not form.validate():
+        return error("Bad Request", 400)
+    data = request.form
+    if data['newpwd1'] == data['newpwd2']:
+        pwdhash = password_hash(data['newpwd1'])
+        status = True
+    else:
+        pwdhash = None
+        status = False
+    return render('coil_pwdhash.tmpl', context={'title': 'My account',
+                                                'pwdhash': pwdhash,
+                                                'status': status,
+                                                'form': form})
 
 @app.route('/users/')
 @login_required

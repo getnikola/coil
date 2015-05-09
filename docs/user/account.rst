@@ -1,8 +1,13 @@
 Account
 =======
 
-You can edit your account in the Account tab.  You can change your real name,
+You can edit your account in the Account page.  You can change your real name,
 e-mail and password.  You can also set the preferences.
+
+Some sites require you contact an administrator to change your details.
+In this case, the Account page allows you to generate a hash to let your
+password be changed securely (your administrator cannot recover the password
+from the hash).
 
 .. warning::
 
@@ -11,6 +16,7 @@ e-mail and password.  You can also set the preferences.
 .. note::
 
    If you want to change your username, you must contact an administrator.
+
 
 .. admonition:: Permissions
 

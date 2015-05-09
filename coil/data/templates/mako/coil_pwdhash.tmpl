@@ -1,0 +1,39 @@
+## -*- coding: utf-8 -*-
+<%inherit file="base.tmpl"/>
+<%block name="content">
+<div class="page-header">
+<h1>Account <tt>${current_user.username}</tt></h1>
+</div>
+
+<form action="${url_for('acp_pwdhash')}" method="POST" class="form-horizontal">
+    <div class="panel panel-primary">
+        <div class="panel-heading">
+            <h3 class="panel-title">Password change</h3>
+        </div>
+        % if status:
+        <div class="panel-body">
+            <p class="text-success">Please provide the following hash to your
+            administrator:</p>
+            <p><code>${pwdhash}</code></p>
+        </div>
+        % else:
+        <div class="panel-body">
+        <p class="text-danger">The passwords did not match.  Please try again.</p>
+            <div class="form-group">
+                <label for="newpwd1" class="col-sm-2 control-label">New password</label>
+                <div class="col-sm-10"><input type="password" class="form-control" id="newpwd1" name="newpwd1" placeholder="New password"></div>
+            </div>
+            <div class="form-group">
+                <label for="newpwd2" class="col-sm-2 control-label">Repeat password</label>
+                <div class="col-sm-10"><input type="password" class="form-control" id="newpwd2" name="newpwd2" placeholder="Repeat new password"></div>
+            </div>
+        </div>
+    </div>
+    ${form.csrf_token}
+    <div style="text-align: center;">
+        <button type="submit" class="btn btn-primary btn-lg save-btn"><i class="fa fa-key fa-fw"></i> Generate hash</button>
+    </div>
+    % endif
+</form>
+
+</%block>

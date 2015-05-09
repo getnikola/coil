@@ -88,7 +88,7 @@ def orphans(dburl, sitedir):
     job = get_current_job(db)
     job.meta.update({'out': '', 'return': None, 'status': None})
     job.save()
-    returncode, out = orphans_single()
+    returncode, out = orphans_single(default_exec=True)
 
     job.meta.update({'out': out, 'return': returncode, 'status':
                      returncode == 0})
@@ -102,15 +102,25 @@ def build_single(mode):
         amode = ['-a']
     else:
         amode = []
-    p = subprocess.Popen([executable, '-m', 'nikola', 'build'] + amode,
+    if executable.endswith('uwsgi'):
+        # hack, might fail in some environments!
+        _executable = executable[:-5] + 'python'
+    else:
+        _executable = executable
+    p = subprocess.Popen([_executable, '-m', 'nikola', 'build'] + amode,
                          stderr=subprocess.PIPE)
     p.wait()
     out = ''.join(p.stderr.readlines())
     return (p.returncode == 0), out
 
-def orphans_single():
+def orphans_single(default_exec=False):
     """Remove all orphans in the site, in the single user-mode."""
-    p = subprocess.Popen([executable, '-m', 'nikola', 'orphans'],
+    if not default_exec and executable.endswith('uwsgi'):
+        # default_exec => rq => sys.executable is sane
+        _executable = executable[:-5] + 'python'
+    else:
+        _executable = executable
+    p = subprocess.Popen([_executable, '-m', 'nikola', 'orphans'],
                          stdout=subprocess.PIPE)
     p.wait()
     files = [l.strip() for l in p.stdout.readlines()]

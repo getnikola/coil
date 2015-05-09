@@ -2,6 +2,12 @@
 Appendix A. Changelog
 =====================
 
+v1.2.0
+------
+
+* Added support for a Limited mode, which does not require Redis and rq
+* Nikola v7.4.0 compatibility
+
 v1.1.0
 ------
 

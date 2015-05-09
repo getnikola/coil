@@ -73,11 +73,19 @@ class UserImportForm(Form):
     """A user import form."""
     tsv = FileField("TSV File")
 
+
 class UserEditForm(Form):
     """A user editor form, used for CSRF protection only."""
     pass
 
 
+
 class PermissionsForm(Form):
     """A permissions form, used for CSRF protection only."""
     pass
+
+
+class PwdHashForm(Form):
+    """A password hash form."""
+    newpwd1 = TextField('New password', validators=[Required()])
+    newpwd2 = TextField('Repeat new password', validators=[Required()])
