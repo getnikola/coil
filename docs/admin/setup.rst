@@ -19,7 +19,7 @@ use an existing site.
 Virtualenv
 ==========
 
-Create a virtualenv in ``/var/coil`` and install Coil, Nikola and uWSGI in it.
+Create a virtualenv in ``/var/coil`` and install Coil, Nikola, uWSGI and rq in it.
 
 .. code-block:: console
 
@@ -27,6 +27,7 @@ Create a virtualenv in ``/var/coil`` and install Coil, Nikola and uWSGI in it.
     # cd /var/coil
     # source bin/activate
     # pip install nikola coil uwsgi
+    # pip install 'git+https://github.com/nvie/rq.git#egg=rq'
 
 Nikola and ``conf.py``
 ======================

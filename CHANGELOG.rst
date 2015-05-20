@@ -2,6 +2,11 @@
 Appendix A. Changelog
 =====================
 
+v1.2.1
+------
+
+* Specify deps in ``setup.py``
+
 v1.2.0
 ------
 
