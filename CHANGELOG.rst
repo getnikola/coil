@@ -2,6 +2,11 @@
 Appendix A. Changelog
 =====================
 
+v1.2.2
+------
+
+* Don’t repeat Nikola dependencies to decrease maintenance burden
+
 v1.2.1
 ------
 
