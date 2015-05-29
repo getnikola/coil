@@ -2,6 +2,11 @@
 Appendix A. Changelog
 =====================
 
+v1.3.0
+------
+
+* Python 3 support
+
 v1.2.2
 ------
 
