@@ -22,7 +22,7 @@
         >
             % for auid, aname in users:
                 <option
-                %if auid == current_auid:
+                %if int(auid) == int(current_auid):
                 selected
                 % endif
                 value="${auid}">${aname}</option>

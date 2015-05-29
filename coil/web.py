@@ -253,7 +253,7 @@ def generate_menu():
         needs_rebuild = db.get('site:needs_rebuild')
     else:
         needs_rebuild = site.coil_needs_rebuild
-    if needs_rebuild not in ('0', '-1'):
+    if needs_rebuild not in (u'0', u'-1', b'0', b'-1'):
         return ('</li><li><a href="{0}"><i class="fa fa-fw '
                 'fa-warning"></i> <strong>Rebuild</strong></a></li>'.format(
                     url_for('rebuild')))
@@ -671,7 +671,7 @@ def edit(path):
             meta['author'] = get_user(meta['author.uid']).realname
             current_auid = int(meta['author.uid'])
             author_change_success = True
-        except:
+        except Exception:
             author_change_success = False
         if (not current_user.can_transfer_post_authorship or
                 not author_change_success):
@@ -711,10 +711,11 @@ def edit(path):
     if db is not None:
         uids = db.hgetall('users').values()
         for u in uids:
+            u = u.decode('utf-8')
             realname, active = db.hmget('user:{0}'.format(u),
                                         'realname', 'active')
-            if active == '1':
-                users.append((u, realname))
+            if active in (u'1', b'1'):
+                users.append((u, realname.decode('utf-8')))
     else:
         for u, d in app.config['COIL_USERS'].items():
             if d['active']:
@@ -785,6 +786,7 @@ def api_rebuild():
         rq.cancel_job('build', db)
         rq.cancel_job('orphans', db)
         db.set('site:needs_rebuild', '0')
+        site.coil_needs_rebuild = '1'
 
     return d
 
@@ -1003,17 +1005,17 @@ def acp_users():
     if request.args.get('status') == 'undeleted':
         alert = 'User undeleted.'
         alert_status = 'success'
-    else:
-        uids = db.hgetall('users').values()
-        USERS = sorted([(int(i), get_user(i)) for i in uids], key=operator.itemgetter(0))
-        return render('coil_users.tmpl',
-                      context={'title': 'Users',
-                               'USERS': USERS,
-                               'alert': alert,
-                               'alert_status': alert_status,
-                               'delform': UserDeleteForm(),
-                               'editform': UserEditForm(),
-                               'importform': UserImportForm()})
+
+    uids = db.hgetall('users').values()
+    USERS = sorted([(int(i), get_user(i)) for i in uids], key=operator.itemgetter(0))
+    return render('coil_users.tmpl',
+                  context={'title': 'Users',
+                           'USERS': USERS,
+                           'alert': alert,
+                           'alert_status': alert_status,
+                           'delform': UserDeleteForm(),
+                           'editform': UserEditForm(),
+                           'importform': UserImportForm()})
 
 
 @app.route('/users/edit/', methods=['POST'])

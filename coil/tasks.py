@@ -59,7 +59,7 @@ def build(dburl, sitedir, mode):
     out = []
 
     while p.poll() is None:
-        nl = p.stderr.readline()
+        nl = p.stderr.readline().decode('utf-8')
         for k in milestones:
             if k in nl:
                 milestones[k] = 1
