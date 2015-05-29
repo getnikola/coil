@@ -87,7 +87,8 @@ $('#deleteModal').on('show.bs.modal', function (event) {
 % endfor
 <tr><form action="${url_for('acp_users_edit')}" method="POST">${editform.csrf_token}
 <td class="uid"><strong>Create:</strong></td>
-<td colspan="4"><input name="username" placeholder="New user" class="form-control input-sm"></td>
+<td colspan="4"><input name="username" placeholder="New user"
+class="form-control input-sm"><input type="hidden" name="action" value="new"></td>
 <td><button type="submit" class="btn btn-sm btn-primary"><i class="fa fa-plus-square fa-fw"></i> Create</button></td>
 </form></tr>
 <tr><form action="${url_for('acp_users_import')}" method="POST" enctype="multipart/form-data">${importform.csrf_token}

@@ -111,7 +111,11 @@ def build_single(mode):
     p = subprocess.Popen([_executable, '-m', 'nikola', 'build'] + amode,
                          stderr=subprocess.PIPE)
     p.wait()
-    out = ''.join(p.stderr.readlines())
+    rl = p.stderr.readlines()
+    try:
+        out = ''.join(rl)
+    except TypeError:
+        out = ''.join(l.decode('utf-8') for l in rl)
     return (p.returncode == 0), out
 
 
@@ -125,7 +129,7 @@ def orphans_single(default_exec=False):
     p = subprocess.Popen([_executable, '-m', 'nikola', 'orphans'],
                          stdout=subprocess.PIPE)
     p.wait()
-    files = [l.strip() for l in p.stdout.readlines()]
+    files = [l.strip().decode('utf-8') for l in p.stdout.readlines()]
     for f in files:
         if f:
             os.unlink(f)

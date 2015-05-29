@@ -35,6 +35,7 @@ import nikola.__main__
 import logbook
 import redis
 import rq
+import operator
 import coil.tasks
 from nikola.utils import (unicode_str, get_logger, ColorfulStderrHandler,
                           write_metadata, TranslatableSetting)
@@ -207,7 +208,10 @@ def password_hash(password):
     :return: password hash
     :rtype: str
     """
-    return bcrypt_sha256.encrypt(password)
+    try:
+        return bcrypt_sha256.encrypt(password)
+    except TypeError:
+        return bcrypt_sha256.encrypt(password.decode('utf-8'))
 
 
 def check_password(pwdhash, password):
@@ -341,6 +345,14 @@ def render(template_name, context=None, code=200, headers=None):
     headers['Pragma'] = 'no-cache'
     headers['Cache-Control'] = 'private, max-age=0, no-cache'
 
+    try:
+        mcp = current_user.must_change_password in (True, '1')
+    except AttributeError:
+        mcp = False
+
+    if mcp and not context.get('pwdchange_skip', False):
+        return redirect(url_for('acp_account') + '?status=pwdchange')
+
     return _site.render_template(template_name, None, context), code, headers
 
 
@@ -457,11 +469,25 @@ def get_user(uid):
     :raises KeyError: if user does not exist
     """
     if db is not None:
+        try:
+            uid = uid.decode('utf-8')
+        except AttributeError:
+            pass
         d = db.hgetall('user:{0}'.format(uid))
         if d:
+            nd = {}
+            # strings everywhere
+            for k in d:
+                try:
+                    nd[k.decode('utf-8')] = d[k].decode('utf-8')
+                except AttributeError:
+                    try:
+                        nd[k.decode('utf-8')] = d[k]
+                    except AttributeError:
+                        nd[k] = d[k]
             for p in PERMISSIONS:
-                d[p] = d.get(p) == '1'
-            return User(uid=uid, **d)
+                nd[p] = nd.get(p) == '1'
+            return User(uid=uid, **nd)
         else:
             return None
     else:
@@ -557,7 +583,8 @@ def login():
             alert = 'Logged out successfully.'
             alert_status = 'success'
     return render('coil_login.tmpl', {'title': 'Login', 'alert': alert, 'form':
-                                      form, 'alert_status': alert_status},
+                                      form, 'alert_status': alert_status,
+                                      'pwdchange_skip': True},
                   code)
 
 
@@ -576,9 +603,6 @@ def index():
 
     :param int all: Whether or not should show all posts
     """
-    if current_user.must_change_password:
-        return redirect(url_for('acp_account') + '?status=pwdchange')
-
     context = {'postform': NewPostForm(),
                'pageform': NewPageForm(),
                'delform': DeleteForm()}
@@ -627,9 +651,6 @@ def edit(path):
 
     :param path: Path to post to edit.
     """
-    if current_user.must_change_password:
-        return redirect(url_for('acp_account') + '?status=pwdchange')
-
     context = {'path': path, 'site': site}
     post = find_post(path)
     if post is None:
@@ -709,9 +730,6 @@ def edit(path):
 @login_required
 def delete():
     """Delete a post."""
-    if current_user.must_change_password:
-        return redirect(url_for('acp_account') + '?status=pwdchange')
-
     form = DeleteForm()
     path = request.form['path']
     post = find_post(path)
@@ -776,9 +794,6 @@ def api_rebuild():
 @login_required
 def rebuild(mode=''):
     """Rebuild the site with a nice UI."""
-    if current_user.must_change_password:
-        return redirect(url_for('acp_account') + '?status=pwdchange')
-
     scan_site()  # for good measure
     if not current_user.can_rebuild_site:
         return error('You are not permitted to rebuild the site.</p>'
@@ -812,9 +827,6 @@ def new(obj):
 
     :param str obj: Object to create (post or page)
     """
-    if current_user.must_change_password:
-        return redirect(url_for('acp_account') + '?status=pwdchange')
-
     title = request.form['title']
     _site.config['ADDITIONAL_METADATA']['author.uid'] = current_user.uid
     try:
@@ -905,9 +917,11 @@ def acp_account():
     if request.args.get('status') == 'pwdchange':
         alert = 'You must change your password before proceeding.'
         alert_status = 'danger'
+        pwdchange_skip = True
     else:
         alert = ''
         alert_status = ''
+        pwdchange_skip = False
 
     if db is None:
         form = PwdHashForm()
@@ -936,6 +950,7 @@ def acp_account():
             if data['newpwd1'] == data['newpwd2'] and pwd_ok:
                 current_user.password = password_hash(data['newpwd1'])
                 current_user.must_change_password = False
+                pwdchange_skip = True
             else:
                 alert = 'Passwords don’t match.'
                 alert_status = 'danger'
@@ -950,7 +965,8 @@ def acp_account():
                            'action': action,
                            'alert': alert,
                            'alert_status': alert_status,
-                           'form': form})
+                           'form': form,
+                           'pwdchange_skip': pwdchange_skip})
 
 
 @app.route('/account/pwdhash', methods=['POST'])
@@ -974,8 +990,6 @@ def acp_pwdhash():
 @login_required
 def acp_users():
     """List all users."""
-    if current_user.must_change_password:
-        return redirect(url_for('acp_account') + '?status=pwdchange')
     if not current_user.is_admin:
         return error("Not authorized to edit users.", 401)
     if not db:
@@ -991,7 +1005,7 @@ def acp_users():
         alert_status = 'success'
     else:
         uids = db.hgetall('users').values()
-        USERS = sorted([(i, get_user(i)) for i in uids])
+        USERS = sorted([(int(i), get_user(i)) for i in uids], key=operator.itemgetter(0))
         return render('coil_users.tmpl',
                       context={'title': 'Users',
                                'USERS': USERS,
@@ -1007,8 +1021,6 @@ def acp_users():
 def acp_users_edit():
     """Edit an user account."""
     global current_user
-    if current_user.must_change_password:
-        return redirect(url_for('acp_account') + '?status=pwdchange')
     if not current_user.is_admin:
         return error("Not authorized to edit users.", 401)
     if not db:
@@ -1023,7 +1035,7 @@ def acp_users_edit():
     if action == 'new':
         if not data['username']:
             return error("No username to create specified.", 400)
-        uid = max(db.hgetall('users').values()) + 1
+        uid = max(int(i) for i in db.hgetall('users').values()) + 1
         pf = [False for p in PERMISSIONS]
         pf[0] = True  # active
         pf[7] = True  # must_change_password
@@ -1083,8 +1095,6 @@ def acp_users_edit():
 @login_required
 def acp_users_import():
     """Import users from a TSV file."""
-    if current_user.must_change_password:
-        return redirect(url_for('acp_account') + '?status=pwdchange')
     if not current_user.is_admin:
         return error("Not authorized to edit users.", 401)
     if not db:
@@ -1103,8 +1113,6 @@ def acp_users_import():
 @login_required
 def acp_users_delete():
     """Delete or undelete an user account."""
-    if current_user.must_change_password:
-        return redirect(url_for('acp_account') + '?status=pwdchange')
     if not current_user.is_admin:
         return error("Not authorized to edit users.", 401)
     if not db:
@@ -1130,8 +1138,6 @@ def acp_users_delete():
 @login_required
 def acp_users_permissions():
     """Change user permissions."""
-    if current_user.must_change_password:
-        return redirect(url_for('acp_account') + '?status=pwdchange')
     if not current_user.is_admin:
         return error("Not authorized to edit users.", 401)
     if not db:

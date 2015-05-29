@@ -56,7 +56,7 @@ def ask(query, default=None):
     else:
         default_q = ''
     if sys.version_info[0] == 3:
-        inp = raw_input("{query}{default_q}: ".format(
+        inp = input("{query}{default_q}: ".format(
             query=query, default_q=default_q)).strip()
     else:
         inp = raw_input("{query}{default_q}: ".format(
@@ -116,7 +116,7 @@ class SiteProxy(object):
             timeline = self.db.lrange('site:timeline', 0, -1)
             self._timeline = []
             for data in timeline:
-                data = json.loads(data)
+                data = json.loads(data.decode('utf-8'))
                 self._timeline.append(Post(data[0], self.config, data[1],
                                            data[2], data[3], self.messages,
                                            self._site.compilers[data[4]]))
