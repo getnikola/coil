@@ -4,10 +4,10 @@ import io
 from setuptools import setup
 
 with open('requirements.txt', 'r') as fh:
-    dependencies = [l.strip() for l in fh][1:]
+    dependencies = [l.strip() for l in fh]
 
 setup(name='coil',
-      version='1.3.0',
+      version='1.3.1',
       description='A user-friendly CMS frontend for Nikola.',
       keywords='coil,nikola,cms',
       author='Chris Warrick, Roberto Alsina, Henry Hirsch et al.',
