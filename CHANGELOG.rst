@@ -4,6 +4,11 @@ Appendix A. Changelog
 
 :Version: 1.3.1
 
+v1.3.1
+------
+
+* Use rq from PyPI instead of GitHub
+
 v1.3.0
 ------
 
