@@ -34,8 +34,8 @@ __all__ = ['init', 'write_users']
 
 def init():
     """Initialize a site."""
-    print("Please read the documentation and set up manually.")
-    print("http://coil.readthedocs.org/en/latest/admin/setup/")
+    print("Please read the documentation and set up Coil CMS manually:")
+    print("https://coil.readthedocs.org/en/latest/admin/setup/")
     return 255
 
 

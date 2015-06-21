@@ -137,7 +137,7 @@ def configure_site():
         'en': (
             (app.config['NIKOLA_URL'],
              '<i class="fa fa-globe"></i>'),
-            ('http://coil.readthedocs.org/en/latest/user/',
+            ('https://coil.readthedocs.org/en/latest/user/',
              '<i class="fa fa-question-circle"></i>'),
         )
     }
