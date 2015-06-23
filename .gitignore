@@ -30,3 +30,6 @@ nosetests.xml
 .mr.developer.cfg
 .project
 .pydevproject
+
+# GitHub token file
+.pypt/gh-token
