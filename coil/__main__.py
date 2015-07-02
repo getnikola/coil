@@ -29,7 +29,7 @@
 u"""Coil CMS v{0}
 
 Usage:
-  coil devserver [-b | --browser] [-p <port> | --port=<port>]
+  coil devserver [-b | --browser] [-p <port> | --port=<port>] [--no-url-fix] [--no-debug]
   coil write_users
   coil -h | --help
   coil --version
@@ -39,6 +39,8 @@ Options:
  --version                 Show version.
  -b, --browser             Open Coil CMS in the browser after starting.
  -p <port>, --port=<port>  Port to use [default: 8001].
+ --no-url-fix              Don't fix the URL in devserver.  DO NOT USE.
+ --no-debug                Don't run devserver in debug mode.
 """
 
 from __future__ import unicode_literals
@@ -81,8 +83,12 @@ def devserver(arguments):
     if coil.web.app:
         port = int(arguments['--port'])
         url = 'http://localhost:{0}/'.format(port)
-        coil.web.configure_url(url)
-        coil.web.app.config['DEBUG'] = True
+        nourl = arguments['--no-url-fix']
+        nodebug = arguments['--no-debug']
+        if not nourl:
+            coil.web.configure_url(url)
+        if not nodebug:
+            coil.web.app.config['DEBUG'] = True
 
         if arguments['--browser']:
             webbrowser.open(url)
