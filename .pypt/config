@@ -5,7 +5,7 @@ PROJECT="Coil"
 PROJECTLC="coil"
 
 # GitHub username.
-GITUSER="Kwpolska"
+GITUSER="getnikola"
 # Git repository name.  Using $PROJECTLC is recommended.
 GITREPO=$PROJECTLC
 
