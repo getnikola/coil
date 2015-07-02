@@ -2,7 +2,10 @@
 Appendix A. Changelog
 =====================
 
-:Version: 1.3.1
+:Version: 1.3.2
+
+1.3.2
+    * Added two options that should not be used, EVER. Please ignore them.
 
 1.3.1
     * Use rq from PyPI instead of GitHub
@@ -22,7 +25,7 @@ Appendix A. Changelog
 
 1.1.0
     * Changed hashing mechanism to sha256 + bcrypt.
-  Hashes will be fixed automatically on first login of each user.
+      Hashes will be fixed automatically on first login of each user.
     * Added ``passlib`` dependency.
     * rqworker queue is now named ``coil`` (was ``default``)
     * add trailing slashes to all URLs

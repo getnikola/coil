@@ -2,7 +2,10 @@
 Appendix A. Changelog
 =====================
 
-:Version: 1.3.1
+:Version: 1.3.2
+
+1.3.2
+    * Added two options that should not be used, EVER. Please ignore them.
 
 1.3.1
     * Use rq from PyPI instead of GitHub

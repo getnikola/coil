@@ -169,10 +169,12 @@ if [[ $? = 1 ]]; then
 fi
 
 status 'Running tests...'
-./setup.py test
-if [[ $? = 1 ]]; then
-    error "Tests failed.  Fix your code or don't come back."
-    exit 1
+if [[ -e tests ]]; then
+    ./setup.py test
+    if [[ $? = 1 ]]; then
+        error "Tests failed.  Fix your code or don't come back."
+        exit 1
+fi
 fi
 
 status 'Running pre-sdist.hook...'
