@@ -19,12 +19,12 @@ use an existing site.
 Virtualenv
 ==========
 
-Create a virtualenv in ``/var/coil`` and install Coil, Nikola, uWSGI and rq in it.
+Create a virtualenv in ``/srv/coil`` and install Coil, Nikola, uWSGI and rq in it.
 
 .. code-block:: console
 
-    # virtualenv-2.7 /var/coil
-    # cd /var/coil
+    # virtualenv-2.7 /srv/coil
+    # cd /srv/coil
     # source bin/activate
     # pip install nikola coil uwsgi
     # pip install 'git+https://github.com/nvie/rq.git#egg=rq'
@@ -36,8 +36,8 @@ Start by setting up Nikola.  This can be done using ``nikola init``.
 
 .. code-block:: console
 
-    # mkdir /var/coil
-    # cd /var/coil
+    # mkdir /srv/coil
+    # cd /srv/coil
     # nikola init my_coil_site
     Creating Nikola Site
     ====================
@@ -142,7 +142,7 @@ at boot, after Redis.  Here is a sample ``.service`` file for systemd:
 
     [Service]
     Type=simple
-    ExecStart=/var/coil/bin/rqworker coil
+    ExecStart=/srv/coil/bin/rqworker coil
     User=nobody
     Group=nobody
 
@@ -231,18 +231,18 @@ Sample uWSGI configuration:
     [uwsgi]
     emperor = true
     socket = 127.0.0.1:3031
-    chdir = /var/coil/my_coil_site
+    chdir = /srv/coil/my_coil_site
     master = true
     threads = 5
-    binary-path = /var/coil/bin/uwsgi
-    virtualenv = /var/coil
+    binary-path = /srv/coil/bin/uwsgi
+    virtualenv = /srv/coil
     module = coil.web
     callable = app
     plugins = python2
     uid = nobody
     gid = nobody
     processes = 3
-    logger = file:/var/coil/my_coil_site/uwsgi.log
+    logger = file:/srv/coil/my_coil_site/uwsgi.log
 
 nginx
 -----
@@ -262,7 +262,7 @@ Sample nginx configuration:
     server {
         listen 80;
         server_name coil.example.com;
-        root /var/coil/my_coil_site;
+        root /srv/coil/my_coil_site;
 
         location / {
             include uwsgi_params;
@@ -270,19 +270,19 @@ Sample nginx configuration:
         }
 
         location /favicon.ico {
-            alias /var/coil/my_coil_site/output/favicon.ico;
+            alias /srv/coil/my_coil_site/output/favicon.ico;
         }
 
         location /assets {
-            alias /var/coil/my_coil_site/output/assets;
+            alias /srv/coil/my_coil_site/output/assets;
         }
 
         location /coil_assets {
-            alias /var/coil/lib/python2.7/site-packages/coil/data/coil_assets;
+            alias /srv/coil/lib/python2.7/site-packages/coil/data/coil_assets;
         }
 
         location /bower_components {
-            alias /var/coil/lib/python2.7/site-packages/coil/data/bower_components;
+            alias /srv/coil/lib/python2.7/site-packages/coil/data/bower_components;
         }
     }
 

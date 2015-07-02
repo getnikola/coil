@@ -7,7 +7,7 @@ with open('requirements.txt', 'r') as fh:
     dependencies = [l.strip() for l in fh]
 
 setup(name='coil',
-      version='1.3.1',
+      version='1.3.2',
       description='A user-friendly CMS frontend for Nikola.',
       keywords='coil,nikola,cms',
       author='Chris Warrick, Roberto Alsina, Henry Hirsch et al.',
@@ -18,7 +18,7 @@ setup(name='coil',
       platforms='any',
       zip_safe=False,
       # http://pypi.python.org/pypi?%3Aaction=list_classifiers
-      classifiers=['Development Status :: 4 - Beta',
+      classifiers=['Development Status :: 5 - Production/Stable',
                    'Programming Language :: Python',
                    'Programming Language :: Python :: 2',
                    'Programming Language :: Python :: 2.7',
