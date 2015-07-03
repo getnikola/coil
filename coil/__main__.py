@@ -39,8 +39,6 @@ Options:
  --version                 Show version.
  -b, --browser             Open Coil CMS in the browser after starting.
  -p <port>, --port=<port>  Port to use [default: 8001].
- --no-url-fix              Don't fix the URL in devserver.  DO NOT USE.
- --no-debug                Don't run devserver in debug mode.
 """
 
 from __future__ import unicode_literals
@@ -83,12 +81,8 @@ def devserver(arguments):
     if coil.web.app:
         port = int(arguments['--port'])
         url = 'http://localhost:{0}/'.format(port)
-        nourl = arguments['--no-url-fix']
-        nodebug = arguments['--no-debug']
-        if not nourl:
-            coil.web.configure_url(url)
-        if not nodebug:
-            coil.web.app.config['DEBUG'] = True
+        coil.web.configure_url(url)
+        coil.web.app.config['DEBUG'] = True
 
         if arguments['--browser']:
             webbrowser.open(url)

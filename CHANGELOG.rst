@@ -2,7 +2,10 @@
 Appendix A. Changelog
 =====================
 
-:Version: 1.3.2
+:Version: 1.3.3
+
+1.3.3
+    Remove yesterday’s new options.  Please do not use v1.3.2.
 
 1.3.2
     * Added two options that should not be used, EVER. Please ignore them.
