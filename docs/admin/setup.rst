@@ -238,7 +238,7 @@ Sample uWSGI configuration:
     virtualenv = /srv/coil
     module = coil.web
     callable = app
-    plugins = python2
+    plugins = python2,logfile
     uid = nobody
     gid = nobody
     processes = 3
