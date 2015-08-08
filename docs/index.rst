@@ -3,6 +3,11 @@
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
+Coil demo site
+==============
+
+The Coil demo site is available at https://coilcms-site.getnikola.com/ and https://coilcms-site.getnikola.com/.
+
 Coil CMS
 ========
 
