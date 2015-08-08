@@ -66,6 +66,18 @@ is by downloading the raw ``.css`` file and saving it as ``files/assets/css/cust
 
 __ https://github.com/Voog/wysihtml/blob/master/examples/css/stylesheet.css
 
+Special config for demo sites
+-----------------------------
+
+The `demo site <https://coildemo-admin.getnikola.com/>`_ uses the following two
+settings, which might also be useful for some environments:
+
+* ``COIL_LOGIN_CAPTCHA`` — if you want reCAPTCHA to appear on the login page
+   (aimed at plugic environments, eg. the demo site), set this to a dict of
+   ``{'enabled': True, 'site_key': '', 'secret_key': ''}`` and fill in your data.
+   If you don’t want a CAPTCHA, don’t set this setting.
+* ``COIL_USERS_PREVENT_EDITING`` — list of user IDs (integers) that cannot edit their
+  profiles.
 
 Limited Mode vs. Full Mode
 ==========================
@@ -238,7 +250,7 @@ Sample uWSGI configuration:
     virtualenv = /srv/coil
     module = coil.web
     callable = app
-    plugins = python2
+    plugins = python2,logfile
     uid = nobody
     gid = nobody
     processes = 3

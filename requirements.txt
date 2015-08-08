@@ -13,6 +13,7 @@ pyinotify==0.9.5
 python-bcrypt==0.3.1
 pytz==2015.2
 redis==2.10.3
+requests==2.7.0
 rq==0.5.3
 six==1.9.0
 webassets==0.10.1
