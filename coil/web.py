@@ -123,6 +123,7 @@ def configure_site():
     app.config['COIL_LOGIN_CAPTCHA'] = _site.config.get(
         'COIL_LOGIN_CAPTCHA',
         {'enabled': False, 'site_key': '', 'secret_key': ''})
+    app.config['COIL_USERS_PREVENT_EDITING'] = _site.config.get('COIL_USERS_PREVENT_EDITING', [])
     app.config['COIL_LIMITED'] = _site.config.get('COIL_LIMITED', False)
     app.config['REDIS_URL'] = _site.config.get('COIL_REDIS_URL',
                                                'redis://localhost:6379/0')
@@ -955,6 +956,8 @@ def acp_account():
     action = 'edit'
     form = AccountForm()
     if request.method == 'POST':
+        if int(current_user.uid) in app.config['COIL_USERS_PREVENT_EDITING']:
+            return error("Cannot edit data for this user.", 403)
         if not form.validate():
             return error("Bad Request", 400)
         action = 'save'

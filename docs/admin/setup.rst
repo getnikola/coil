@@ -53,10 +53,6 @@ Then, you must make some changes to the config:
    **Store it in a safe place** — git is not one!  You can use
    ``os.urandom(24)`` to generate something good.
  * ``COIL_URL`` — the URL under which Coil can be accessed.
- * ``COIL_LOGIN_CAPTCHA`` — if you want reCAPTCHA to appear on the login page
-   (aimed at plugic environments, eg. the demo site), set this to a dict of
-   ``{'enabled': True, 'site_key': '', 'secret_key': ''}`` and fill in your data.
-   If you don’t want a CAPTCHA, don’t set this setting.
  * ``_MAKO_DISABLE_CACHING = True``
  * Modify ``POSTS`` and ``PAGES``, replacing ``.txt`` with ``.html``.
  * You must set the mode (Limited vs Full) and configure it accordingly — see
@@ -70,6 +66,18 @@ is by downloading the raw ``.css`` file and saving it as ``files/assets/css/cust
 
 __ https://github.com/Voog/wysihtml/blob/master/examples/css/stylesheet.css
 
+Special config for demo sites
+-----------------------------
+
+The `demo site <https://coildemo-admin.getnikola.com/>`_ uses the following two
+settings, which might also be useful for some environments:
+
+* ``COIL_LOGIN_CAPTCHA`` — if you want reCAPTCHA to appear on the login page
+   (aimed at plugic environments, eg. the demo site), set this to a dict of
+   ``{'enabled': True, 'site_key': '', 'secret_key': ''}`` and fill in your data.
+   If you don’t want a CAPTCHA, don’t set this setting.
+* ``COIL_USERS_PREVENT_EDITING`` — list of user IDs (integers) that cannot edit their
+  profiles.
 
 Limited Mode vs. Full Mode
 ==========================
