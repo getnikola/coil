@@ -2,7 +2,12 @@
 Appendix A. Changelog
 =====================
 
-:Version: 1.3.3
+:Version: 1.3.4
+
+1.3.4
+    * Link to demo site in documentation
+    * Support reCAPTCHA for logins (for demo site)
+    * Support preventing some users from editing the site (for demo site)
 
 1.3.3
     Remove yesterday’s new options.  Please do not use v1.3.2.
