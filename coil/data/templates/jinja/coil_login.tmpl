@@ -1,5 +1,11 @@
 {#  -*- coding: utf-8 -*- #}
 {% extends 'base.tmpl' %}
+{% block extra_head %}
+    {{ super() }}
+    {% if captcha['enabled'] %}
+        <script src='https://www.google.com/recaptcha/api.js'></script>
+    {% endif %}
+{% endblock %}
 {% block content %}
 {% if alert %}
 <div class="alert alert-{{ alert_status }}" role="alert">{{ alert }}</div>
@@ -11,6 +17,9 @@
         <input name="username" type="text" id="inputUsername" class="form-control" placeholder="Username" required autofocus>
         <label for="inputPassword" class="sr-only">Password</label>
         <input name="password" type="password" id="inputPassword" class="form-control" placeholder="Password" required>
+        {% if captcha['enabled'] %}
+            <div class="g-recaptcha" data-sitekey="{{ captcha['site_key'] }}"></div>
+        {% endif %}
         <div class="checkbox">
           <label>
             <input type="checkbox" name="remember" value="remember"> Remember me

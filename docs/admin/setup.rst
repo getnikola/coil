@@ -53,6 +53,10 @@ Then, you must make some changes to the config:
    **Store it in a safe place** — git is not one!  You can use
    ``os.urandom(24)`` to generate something good.
  * ``COIL_URL`` — the URL under which Coil can be accessed.
+ * ``COIL_LOGIN_CAPTCHA`` — if you want reCAPTCHA to appear on the login page
+   (aimed at plugic environments, eg. the demo site), set this to a dict of
+   ``{'enabled': True, 'site_key': '', 'secret_key': ''}`` and fill in your data.
+   If you don’t want a CAPTCHA, don’t set this setting.
  * ``_MAKO_DISABLE_CACHING = True``
  * Modify ``POSTS`` and ``PAGES``, replacing ``.txt`` with ``.html``.
  * You must set the mode (Limited vs Full) and configure it accordingly — see

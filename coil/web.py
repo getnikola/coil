@@ -36,6 +36,7 @@ import logbook
 import redis
 import rq
 import operator
+import requests
 import coil.tasks
 from nikola.utils import (unicode_str, get_logger, ColorfulStderrHandler,
                           write_metadata, TranslatableSetting)
@@ -119,6 +120,9 @@ def configure_site():
 
     app.secret_key = _site.config.get('COIL_SECRET_KEY')
     app.config['COIL_URL'] = _site.config.get('COIL_URL')
+    app.config['COIL_LOGIN_CAPTCHA'] = _site.config.get(
+        'COIL_LOGIN_CAPTCHA',
+        {'enabled': False, 'site_key': '', 'secret_key': ''})
     app.config['COIL_LIMITED'] = _site.config.get('COIL_LIMITED', False)
     app.config['REDIS_URL'] = _site.config.get('COIL_REDIS_URL',
                                                'redis://localhost:6379/0')
@@ -543,6 +547,7 @@ def login():
     alert = None
     alert_status = 'danger'
     code = 200
+    captcha = app.config['COIL_LOGIN_CAPTCHA']
     form = LoginForm()
     if request.method == 'POST':
         if form.validate():
@@ -550,7 +555,20 @@ def login():
             if not user:
                 alert = 'Invalid credentials.'
                 code = 401
-            else:
+            if captcha['enabled']:
+                r = requests.post('https://www.google.com/recaptcha/api/siteverify',
+                                  data={'secret': captcha['secret_key'],
+                                        'response': request.form['g-recaptcha-response'],
+                                        'remoteip': request.remote_addr})
+                if r.status_code != 200:
+                    alert = 'Cannot check CAPTCHA response.'
+                    code = 500
+                else:
+                    rj = r.json()
+                    if not rj['success']:
+                        alert = 'Invalid CAPTCHA response. Please try again.'
+                        code = 401
+            if code == 200:
                 try:
                     pwd_ok = check_password(user.password,
                                             request.form['password'])
@@ -584,7 +602,8 @@ def login():
             alert_status = 'success'
     return render('coil_login.tmpl', {'title': 'Login', 'alert': alert, 'form':
                                       form, 'alert_status': alert_status,
-                                      'pwdchange_skip': True},
+                                      'pwdchange_skip': True,
+                                      'captcha': captcha},
                   code)
 
 
