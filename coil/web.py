@@ -141,9 +141,9 @@ def configure_site():
     _site.config['NAVIGATION_LINKS'] = {
         'en': (
             (app.config['NIKOLA_URL'],
-             '<i class="fa fa-globe"></i>'),
+             '<i class="fa fa-globe"></i> View Site'),
             ('https://coil.readthedocs.org/en/latest/user/',
-             '<i class="fa fa-question-circle"></i>'),
+             '<i class="fa fa-question-circle"></i> Help'),
         )
     }
     _site.GLOBAL_CONTEXT['navigation_links'] = _site.config['NAVIGATION_LINKS']
