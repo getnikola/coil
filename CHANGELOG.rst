@@ -2,7 +2,11 @@
 Appendix A. Changelog
 =====================
 
-:Version: 1.3.5
+:Version: 1.3.6
+
+1.3.6
+    * Patch URLs for HTTPS sites
+    * Really add descriptions for icons (got lost between branches)
 
 1.3.5
     * Add icon descriptions for the navigation bar

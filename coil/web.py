@@ -345,7 +345,11 @@ def render(template_name, context=None, code=200, headers=None):
     context['current_user'] = current_user
     context['_author_get'] = _author_get
     context['_author_uid_get'] = _author_uid_get
-    context['permalink'] = request.url
+    if app.config['COIL_URL'].startswith('https') and not request.url.startswith('https'):
+        # patch request URL for HTTPS proxy (eg. CloudFlare)
+        context['permalink'] = request.url.replace('http', 'https', 1)
+    else:
+        context['permalink'] = request.url
     context['url_for'] = url_for
     headers['Pragma'] = 'no-cache'
     headers['Cache-Control'] = 'private, max-age=0, no-cache'
