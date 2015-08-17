@@ -2,7 +2,10 @@
 Appendix A. Changelog
 =====================
 
-:Version: 1.3.4
+:Version: 1.3.5
+
+1.3.5
+    * Add icon descriptions for the navigation bar
 
 1.3.4
     * Link to demo site in documentation
