@@ -6,7 +6,7 @@ Appendix A. Contribution rules
 :Copyright: © 2015, Chris Warrick.
 :License: BSD (see /LICENSE or :doc:`Appendix B <LICENSE>`.)
 :Date: 2015-08-17
-:Version: 1.3.5
+:Version: 1.3.6
 
 .. index:: contributing
 
