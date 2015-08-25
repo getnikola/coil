@@ -78,8 +78,9 @@ def configure_site():
 
     nikola.__main__._RETURN_DOITNIKOLA = True
     _dn = nikola.__main__.main([])
-    _dn.sub_cmds = _dn.get_cmds()
     _site = _dn.nikola
+    _site.init_plugins()
+    _dn.sub_cmds = _dn.get_cmds()
     app.config['NIKOLA_ROOT'] = os.getcwd()
     app.config['DEBUG'] = False
 
