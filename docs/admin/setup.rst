@@ -225,6 +225,8 @@ just run ``coil devserver``.  However, it should **NOT** be used in production.
 In a public environment, especially in Full mode, you should use uWSGI Emperor
 and nginx instead.
 
+If you are on Windows and the server crashes, try ``python -m coil devserver``.
+
 uWSGI
 -----
 
