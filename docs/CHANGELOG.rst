@@ -2,7 +2,10 @@
 Appendix A. Changelog
 =====================
 
-:Version: 1.3.6
+:Version: 1.3.7
+
+1.3.7
+    * Nikola v7.6.4 compatibility
 
 1.3.6
     * Patch URLs for HTTPS sites
