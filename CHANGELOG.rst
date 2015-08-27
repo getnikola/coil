@@ -2,7 +2,10 @@
 Appendix A. Changelog
 =====================
 
-:Version: 1.3.7
+:Version: 1.3.8
+
+1.3.8
+    * Clean up requirements (issue #40)
 
 1.3.7
     * Nikola v7.6.4 compatibility
