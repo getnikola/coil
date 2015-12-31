@@ -6,7 +6,7 @@
 Coil demo site
 ==============
 
-The Coil demo site is available at https://coilcms-site.getnikola.com/ and https://coilcms-site.getnikola.com/.
+The Coil demo site is available at https://coildemo-site.getnikola.com/ and https://coildemo-admin.getnikola.com/ (user: demo, password: demo).
 
 Coil CMS
 ========
