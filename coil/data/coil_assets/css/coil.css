@@ -1,5 +1,5 @@
 /*
- * Copyright © 2014-2015 Chris Warrick, Roberto Alsina, Henry Hirsch et al.
+ * Copyright © 2014-2016 Chris Warrick, Roberto Alsina, Henry Hirsch et al.
  * See /LICENSE for licensing information.
  */
 
