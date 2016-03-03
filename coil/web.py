@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 # Coil CMS v1.2.0
-# Copyright © 2014-2015 Chris Warrick, Roberto Alsina, Henry Hirsch et al.
+# Copyright © 2014-2016 Chris Warrick, Roberto Alsina, Henry Hirsch et al.
 
 # Permission is hereby granted, free of charge, to any
 # person obtaining a copy of this software and associated
@@ -140,7 +140,7 @@ def configure_site():
 
     app.config['NIKOLA_URL'] = _site.config['SITE_URL']
     _site.config['NAVIGATION_LINKS'] = {
-        'en': (
+        _site.default_lang: (
             (app.config['NIKOLA_URL'],
              '<i class="fa fa-globe"></i> View Site'),
             ('https://coil.readthedocs.org/en/latest/user/',
@@ -148,11 +148,11 @@ def configure_site():
         )
     }
     _site.GLOBAL_CONTEXT['navigation_links'] = _site.config['NAVIGATION_LINKS']
-    TITLE = _site.GLOBAL_CONTEXT['blog_title']('en') + ' Administration'
+    TITLE = _site.GLOBAL_CONTEXT['blog_title']() + ' Administration'
     _site.config['BLOG_TITLE'] = TranslatableSetting(
         'BLOG_TITLE', TITLE, _site.config['TRANSLATIONS'])
     _site.GLOBAL_CONTEXT['blog_title'] = _site.config['BLOG_TITLE']
-    _site.GLOBAL_CONTEXT['lang'] = 'en'
+    _site.GLOBAL_CONTEXT['lang'] = _site.default_lang
     _site.GLOBAL_CONTEXT['extra_head_data'] = TranslatableSetting(
         'EXTRA_HEAD_DATA',
         """<link href="//maxcdn.bootstrapcdn.com/font-awesome/4.2.0/css/"""
@@ -310,7 +310,7 @@ def _author_get(post):
     :return: Author real name
     :rtype: str
     """
-    a = post.meta['en']['author']
+    a = post.meta('author')
     return a if a else current_user.realname
 
 
@@ -321,7 +321,7 @@ def _author_uid_get(post):
     :return: Author UID
     :rtype: str
     """
-    u = post.meta['en']['author.uid']
+    u = post.meta('author.uid')
     return u if u else str(current_user.uid)
 
 

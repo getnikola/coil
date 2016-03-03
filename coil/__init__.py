@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 # Coil CMS v1.2.0
-# Copyright © 2014-2015 Chris Warrick, Roberto Alsina, Henry Hirsch et al.
+# Copyright © 2014-2016 Chris Warrick, Roberto Alsina, Henry Hirsch et al.
 
 # Permission is hereby granted, free of charge, to any
 # person obtaining a copy of this software and associated
@@ -29,4 +29,4 @@ from __future__ import unicode_literals
 
 __all__ = ['__version__']
 
-__version__ = '1.3.8'
+__version__ = '1.3.9'
