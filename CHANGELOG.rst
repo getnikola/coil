@@ -2,10 +2,13 @@
 Appendix A. Changelog
 =====================
 
-:Version: 1.3.8
+:Version: 1.3.9
+
+1.3.9
+    * Work on non-English sites (fix #45)
 
 1.3.8
-    * Clean up requirements (issue #41)
+    * Clean up requirements (issue #40)
 
 1.3.7
     * Nikola v7.6.4 compatibility
