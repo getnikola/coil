@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 # Coil CMS v1.2.0
-# Copyright © 2014-2016 Chris Warrick, Roberto Alsina, Henry Hirsch et al.
+# Copyright © 2014-2017 Chris Warrick, Roberto Alsina, Henry Hirsch et al.
 
 # Permission is hereby granted, free of charge, to any
 # person obtaining a copy of this software and associated
@@ -35,7 +35,7 @@ __all__ = ['init', 'write_users']
 def init():
     """Initialize a site."""
     print("Please read the documentation and set up Coil CMS manually:")
-    print("https://coil.readthedocs.org/en/latest/admin/setup/")
+    print("https://coil.readthedocs.io/admin/setup/")
     return 255
 
 

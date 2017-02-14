@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 # Coil CMS v1.2.0
-# Copyright © 2014-2016 Chris Warrick, Roberto Alsina, Henry Hirsch et al.
+# Copyright © 2014-2017 Chris Warrick, Roberto Alsina, Henry Hirsch et al.
 
 # Permission is hereby granted, free of charge, to any
 # person obtaining a copy of this software and associated
@@ -143,7 +143,7 @@ def configure_site():
         _site.default_lang: (
             (app.config['NIKOLA_URL'],
              '<i class="fa fa-globe"></i> View Site'),
-            ('https://coil.readthedocs.org/en/latest/user/',
+            ('http://coil.readthedocs.io/user/',
              '<i class="fa fa-question-circle"></i> Help'),
         )
     }

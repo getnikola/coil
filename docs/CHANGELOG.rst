@@ -2,7 +2,11 @@
 Appendix A. Changelog
 =====================
 
-:Version: 1.3.9
+:Version: 1.3.10
+
+1.3.10
+    * Add `coil unlock` command
+    * Fix links to docs
 
 1.3.9
     * Work on non-English sites (fix #45)
