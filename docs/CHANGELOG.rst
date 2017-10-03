@@ -2,7 +2,10 @@
 Appendix A. Changelog
 =====================
 
-:Version: 1.3.11
+:Version: 1.3.12
+
+1.3.12
+    * Really fix #49 (forgot to press Merge pull request…)
 
 1.3.11
     * Fix bootstrap3 theme detection (Issue #49)
