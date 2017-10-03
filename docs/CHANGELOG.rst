@@ -2,7 +2,10 @@
 Appendix A. Changelog
 =====================
 
-:Version: 1.3.10
+:Version: 1.3.11
+
+1.3.11
+    * Fix bootstrap3 theme detection (Issue #49)
 
 1.3.10
     * Add `coil unlock` command
