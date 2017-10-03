@@ -167,8 +167,9 @@ def configure_site():
         _site.config['TRANSLATIONS'])
 
     # Theme must inherit from bootstrap3, because we have hardcoded HTML.
-    bs3 = (('bootstrap3' in _site.THEMES) or
-           ('bootstrap3-jinja' in _site.THEMES))
+    themes = [os.path.basename(x) for x in _site.THEMES]
+    bs3 = (('bootstrap3' in themes) or
+           ('bootstrap3-jinja' in themes))
     if not bs3:
         app.logger.notice("THEME does not inherit from 'bootstrap3' or "
                           "'bootstrap3-jinja', using 'bootstrap3' instead.")
