@@ -48,7 +48,7 @@ master_doc = 'index'
 
 # General information about the project.
 project = 'Coil CMS'
-copyright = '2014-2017 Chris Warrick, Roberto Alsina, Henry Hirsch et al'
+copyright = '2014-2018 Chris Warrick, Roberto Alsina, Henry Hirsch et al'
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the
