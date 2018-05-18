@@ -69,8 +69,8 @@ __ https://github.com/Voog/wysihtml/blob/master/examples/css/stylesheet.css
 Special config for demo sites
 -----------------------------
 
-The `demo site <https://coildemo-admin.getnikola.com/>`_ uses the following two
-settings, which might also be useful for some environments:
+The former demo site used the following two settings, which might also be
+useful for some environments:
 
 * ``COIL_LOGIN_CAPTCHA`` — if you want reCAPTCHA to appear on the login page
    (aimed at plugic environments, eg. the demo site), set this to a dict of

@@ -1,11 +1,7 @@
-========
-Coil CMS
-========
+===================
+Coil CMS is retired
+===================
 
-Making Nikola accessible for non-programmers, casual users, and all other
-people that don’t feel comfortable using the command line.
+The Coil project is retired due to low interest and lack of resources. Instead, we recommend using `Dato CMS or Netlify CMS <https://getnikola.com/blog/a-cms-or-two-for-nikola-dato-cms-and-netlify-cms-integration.html>`_.
 
-Setup
------
-
-Setting up Coil CMS is described in `the documentation <https://coil.readthedocs.io/admin/setup/>`_.
+We cannot guarantee full compatibility with modern versions of Nikola, or that anything still works with Coil.
